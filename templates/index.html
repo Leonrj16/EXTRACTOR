@@ -4,10 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Consultorio Dental San Judas Tadeo</title>
-  <meta name="description" content="Consultorio dental profesional. Cuidamos tu sonrisa con tecnología moderna y atención personalizada." />
+  <meta name="description" content="Consultorio dental premium. Cuidamos tu sonrisa con tecnología de vanguardia y atención personalizada." />
   <link rel="stylesheet" href="/static/css/style.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 </head>
 <body>
 
@@ -15,7 +15,19 @@
   <header class="navbar" id="navbar">
     <div class="container nav-inner">
       <a href="#" class="logo">
-        <span class="logo-icon">🦷</span>
+        <div class="logo-gem">
+          <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M14 3C8.477 3 4 7.477 4 13s4.477 10 10 10 10-4.477 10-10S19.523 3 14 3Z" fill="url(#lg1)"/>
+            <path d="M9 13c0-2.761 2.239-5 5-5s5 2.239 5 5-2.239 5-5 5-5-2.239-5-5Z" fill="white" fill-opacity="0.3"/>
+            <path d="M12 13c0-1.105.895-2 2-2s2 .895 2 2-.895 2-2 2-2-.895-2-2Z" fill="white"/>
+            <defs>
+              <linearGradient id="lg1" x1="4" y1="3" x2="24" y2="23" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#C084FC"/>
+                <stop offset="1" stop-color="#7C3AED"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
         <span class="logo-text">San Judas Tadeo</span>
       </a>
       <nav class="nav-links" id="navLinks">
@@ -33,15 +45,25 @@
 
   <!-- HERO -->
   <section class="hero" id="inicio">
-    <div class="hero-bg"></div>
+    <!-- Orbs decorativos -->
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+
     <div class="container hero-content">
-      <div class="hero-text">
-        <span class="badge">Consultorio Dental Profesional</span>
-        <h1>Tu Sonrisa es<br /><em>Nuestra Pasión</em></h1>
-        <p class="hero-sub">Atención dental de calidad con tecnología moderna, en un ambiente cálido y de confianza. Tu bienestar es nuestra prioridad.</p>
+      <div class="hero-text" data-reveal>
+        <div class="hero-badge">
+          <span class="badge-dot"></span>
+          Consultorio Dental Premium
+        </div>
+        <h1>Tu Sonrisa,<br /><em>Nuestra Obra<br />Maestra</em></h1>
+        <p class="hero-sub">Donde la ciencia dental se encuentra con el arte. Tratamientos de vanguardia, resultados extraordinarios y una experiencia que transformará tu vida.</p>
         <div class="hero-actions">
-          <a href="#contacto" class="btn btn-primary btn-lg">Agendar Cita</a>
-          <a href="#servicios" class="btn btn-outline btn-lg">Ver Servicios</a>
+          <a href="#contacto" class="btn btn-primary btn-lg">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Agendar Cita
+          </a>
+          <a href="#servicios" class="btn btn-glass btn-lg">Ver Servicios</a>
         </div>
         <div class="hero-stats">
           <div class="stat">
@@ -56,94 +78,159 @@
           <div class="stat-divider"></div>
           <div class="stat">
             <strong>100%</strong>
-            <span>Satisfacción garantizada</span>
+            <span>Satisfacción</span>
           </div>
         </div>
       </div>
-      <div class="hero-image">
-        <div class="hero-card">
-          <div class="hero-card-icon">😁</div>
-          <p>Sonrisas saludables para toda la familia</p>
+
+      <div class="hero-visual" data-reveal-delay>
+        <div class="hero-card-main">
+          <div class="hero-card-glow"></div>
+          <div class="hero-card-inner">
+            <div class="hero-smile">😁</div>
+            <h3>Sonrisas que<br />inspiran confianza</h3>
+            <p>Tecnología de última generación para tu salud bucal</p>
+            <div class="hero-card-chips">
+              <span class="chip">✦ Sin dolor</span>
+              <span class="chip">✦ Resultados visibles</span>
+            </div>
+          </div>
+        </div>
+        <!-- Floating badges -->
+        <div class="float-badge float-badge-1">
+          <div class="float-badge-icon">⭐</div>
+          <div>
+            <strong>4.9 / 5</strong>
+            <span>Google Reviews</span>
+          </div>
+        </div>
+        <div class="float-badge float-badge-2">
+          <div class="float-badge-icon">🏆</div>
+          <div>
+            <strong>Certificado</strong>
+            <span>por la SEP</span>
+          </div>
         </div>
       </div>
+    </div>
+
+    <!-- Scroll indicator -->
+    <div class="scroll-hint">
+      <div class="scroll-dot"></div>
     </div>
   </section>
 
   <!-- SERVICIOS -->
   <section class="section" id="servicios">
+    <!-- decoración -->
+    <div class="section-blob section-blob-right"></div>
     <div class="container">
-      <div class="section-header">
+      <div class="section-header" data-reveal>
         <span class="badge">Lo que ofrecemos</span>
-        <h2>Nuestros Servicios</h2>
-        <p>Contamos con tratamientos completos para cuidar tu salud bucal en todas las etapas de tu vida.</p>
+        <h2>Servicios de <em>Excelencia</em></h2>
+        <p>Tratamientos integrales con la más alta tecnología para cuidar tu salud bucal en cada etapa de tu vida.</p>
       </div>
       <div class="services-grid">
-        <div class="service-card">
-          <div class="service-icon">🦷</div>
+        <div class="service-card" data-reveal>
+          <div class="service-icon-wrap purple">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8"><path d="M12 2C8 2 5 5 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-4-3-7-7-7Z"/><circle cx="12" cy="9" r="2.5"/></svg>
+          </div>
           <h3>Limpieza Dental</h3>
           <p>Eliminamos sarro, placa bacteriana y manchas para mantener tus dientes sanos y brillantes.</p>
+          <div class="card-arrow">→</div>
         </div>
-        <div class="service-card featured">
-          <div class="service-icon">✨</div>
+
+        <div class="service-card featured" data-reveal>
+          <div class="service-icon-wrap gold">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          </div>
+          <span class="tag-featured">✦ Popular</span>
           <h3>Blanqueamiento</h3>
-          <p>Resultados visibles desde la primera sesión con técnicas seguras y efectivas.</p>
-          <span class="tag">Popular</span>
+          <p>Resultados visibles desde la primera sesión con técnicas seguras y profesionales.</p>
+          <div class="card-arrow">→</div>
         </div>
-        <div class="service-card">
-          <div class="service-icon">🔧</div>
+
+        <div class="service-card" data-reveal>
+          <div class="service-icon-wrap lilac">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+          </div>
           <h3>Ortodoncia</h3>
-          <p>Brackets tradicionales o alineadores transparentes para una sonrisa perfectamente alineada.</p>
+          <p>Brackets o alineadores transparentes para una sonrisa perfectamente alineada.</p>
+          <div class="card-arrow">→</div>
         </div>
-        <div class="service-card">
-          <div class="service-icon">🛡️</div>
+
+        <div class="service-card" data-reveal>
+          <div class="service-icon-wrap purple">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8"><path d="M9 12l2 2 4-4"/><path d="M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9 9 4.03 9 9Z"/></svg>
+          </div>
           <h3>Endodoncia</h3>
-          <p>Tratamiento de conductos con equipos modernos para salvar tus dientes naturales.</p>
+          <p>Tratamiento de conductos moderno para preservar tus dientes naturales sin dolor.</p>
+          <div class="card-arrow">→</div>
         </div>
-        <div class="service-card">
-          <div class="service-icon">👶</div>
+
+        <div class="service-card" data-reveal>
+          <div class="service-icon-wrap lilac">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
           <h3>Odontopediatría</h3>
-          <p>Atención especializada para los más pequeños en un ambiente amigable y sin miedo.</p>
+          <p>Atención especializada para niños en un ambiente amigable, cálido y sin miedo.</p>
+          <div class="card-arrow">→</div>
         </div>
-        <div class="service-card">
-          <div class="service-icon">🦴</div>
+
+        <div class="service-card" data-reveal>
+          <div class="service-icon-wrap gold">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+          </div>
           <h3>Implantes Dentales</h3>
-          <p>Reemplaza dientes perdidos con implantes de titanio de alta calidad y larga duración.</p>
+          <p>Reemplaza dientes perdidos con implantes de titanio de calidad premium y larga duración.</p>
+          <div class="card-arrow">→</div>
         </div>
       </div>
     </div>
   </section>
 
   <!-- NOSOTROS -->
-  <section class="section section-alt" id="nosotros">
+  <section class="section about-section" id="nosotros">
+    <div class="about-bg-gradient"></div>
     <div class="container about-layout">
-      <div class="about-image">
-        <div class="about-card-big">
-          <div class="about-emoji">👨‍⚕️</div>
-          <div class="about-badge-float">
-            <strong>Certificado</strong>
-            <span>por la SEP</span>
+      <div class="about-visual" data-reveal>
+        <div class="about-card-main">
+          <div class="about-inner-glow"></div>
+          <div class="about-emoji-wrap">👨‍⚕️</div>
+          <div class="about-lines">
+            <div class="about-line"></div>
+            <div class="about-line short"></div>
           </div>
         </div>
+        <div class="about-float about-float-top">
+          <span class="about-float-num">+10</span>
+          <span class="about-float-label">años de experiencia</span>
+        </div>
+        <div class="about-float about-float-bottom">
+          <span class="about-float-num">SEP</span>
+          <span class="about-float-label">Certificado oficial</span>
+        </div>
       </div>
-      <div class="about-text">
-        <span class="badge">Sobre nosotros</span>
-        <h2>Atención Dental con Compromiso y Calidad</h2>
-        <p>En el Consultorio Dental San Judas Tadeo llevamos más de 10 años brindando atención odontológica integral a familias. Nuestro equipo de profesionales está comprometido con tu salud y comodidad en cada visita.</p>
+
+      <div class="about-text" data-reveal>
+        <span class="badge badge-light">Sobre nosotros</span>
+        <h2>Comprometidos con tu <em>Salud Bucal</em></h2>
+        <p>En el Consultorio Dental San Judas Tadeo llevamos más de 10 años brindando atención odontológica integral a familias. Nuestro equipo de profesionales está comprometido con tu salud, comodidad y confianza en cada visita.</p>
         <ul class="about-list">
           <li>
-            <span class="check">✓</span>
+            <div class="check-wrap"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
             Equipo dental de última generación
           </li>
           <li>
-            <span class="check">✓</span>
+            <div class="check-wrap"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
             Atención personalizada y sin dolor
           </li>
           <li>
-            <span class="check">✓</span>
+            <div class="check-wrap"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
             Protocolos estrictos de esterilización
           </li>
           <li>
-            <span class="check">✓</span>
+            <div class="check-wrap"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
             Planes de pago flexibles
           </li>
         </ul>
@@ -154,16 +241,18 @@
 
   <!-- TESTIMONIOS -->
   <section class="section" id="testimonios">
+    <div class="section-blob section-blob-left"></div>
     <div class="container">
-      <div class="section-header">
+      <div class="section-header" data-reveal>
         <span class="badge">Lo que dicen</span>
-        <h2>Testimonios de Pacientes</h2>
-        <p>La satisfacción de nuestros pacientes es nuestro mayor logro.</p>
+        <h2>Testimonios de <em>Pacientes</em></h2>
+        <p>La satisfacción de nuestros pacientes refleja la calidad de nuestro trabajo.</p>
       </div>
       <div class="testimonials-grid">
-        <div class="testimonial-card">
+        <div class="testimonial-card" data-reveal>
+          <div class="t-quote">"</div>
           <div class="stars">★★★★★</div>
-          <p>"Excelente atención, muy profesionales y amables. Me realizaron la limpieza y blanqueamiento y quedé muy satisfecha. ¡Totalmente recomendado!"</p>
+          <p>Excelente atención, muy profesionales y amables. Me realizaron la limpieza y blanqueamiento y quedé muy satisfecha. ¡Totalmente recomendado!</p>
           <div class="testimonial-author">
             <div class="avatar">MG</div>
             <div>
@@ -172,9 +261,11 @@
             </div>
           </div>
         </div>
-        <div class="testimonial-card">
+
+        <div class="testimonial-card featured-t" data-reveal>
+          <div class="t-quote">"</div>
           <div class="stars">★★★★★</div>
-          <p>"Llevé a mis hijos y el trato fue increíble. Los niños salieron contentos y sin miedo al dentista. El consultorio está muy limpio y moderno."</p>
+          <p>Llevé a mis hijos y el trato fue increíble. Los niños salieron contentos y sin miedo al dentista. El consultorio está muy limpio y moderno.</p>
           <div class="testimonial-author">
             <div class="avatar">JR</div>
             <div>
@@ -183,9 +274,11 @@
             </div>
           </div>
         </div>
-        <div class="testimonial-card">
+
+        <div class="testimonial-card" data-reveal>
+          <div class="t-quote">"</div>
           <div class="stars">★★★★★</div>
-          <p>"Me pusieron un implante dental y el proceso fue muy cómodo. Ahora no puedo distinguirlo de mis dientes naturales. Muy recomendable."</p>
+          <p>Me pusieron un implante dental y el proceso fue muy cómodo. Ahora no puedo distinguirlo de mis dientes naturales. Muy recomendable.</p>
           <div class="testimonial-author">
             <div class="avatar">LP</div>
             <div>
@@ -199,45 +292,59 @@
   </section>
 
   <!-- CONTACTO -->
-  <section class="section section-alt" id="contacto">
+  <section class="section contact-section" id="contacto">
+    <div class="contact-bg"></div>
     <div class="container">
-      <div class="section-header">
-        <span class="badge">Estamos para ti</span>
-        <h2>Agenda tu Cita</h2>
-        <p>Contáctanos y te atenderemos a la brevedad posible.</p>
+      <div class="section-header section-header-light" data-reveal>
+        <span class="badge badge-dark">Estamos para ti</span>
+        <h2>Agenda tu <em>Cita Hoy</em></h2>
+        <p>Escríbenos y te responderemos en menos de 24 horas.</p>
       </div>
       <div class="contact-layout">
-        <div class="contact-info">
+        <div class="contact-info" data-reveal>
           <div class="info-item">
-            <span class="info-icon">📍</span>
+            <div class="info-icon-wrap">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            </div>
             <div>
               <strong>Dirección</strong>
               <p>Calle Principal #123, Col. Centro</p>
             </div>
           </div>
           <div class="info-item">
-            <span class="info-icon">📞</span>
+            <div class="info-icon-wrap">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.9 13.5 19.79 19.79 0 0 1 1.83 4.89 2 2 0 0 1 3.81 2.7h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 10a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            </div>
             <div>
               <strong>Teléfono</strong>
               <p><a href="tel:+521234567890">+52 (123) 456-7890</a></p>
             </div>
           </div>
           <div class="info-item">
-            <span class="info-icon">📧</span>
+            <div class="info-icon-wrap">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            </div>
             <div>
               <strong>Correo</strong>
               <p><a href="mailto:sanjudastadeo.dental@gmail.com">sanjudastadeo.dental@gmail.com</a></p>
             </div>
           </div>
           <div class="info-item">
-            <span class="info-icon">🕐</span>
+            <div class="info-icon-wrap">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
             <div>
               <strong>Horario</strong>
               <p>Lun – Vie: 9:00 – 19:00<br />Sáb: 9:00 – 14:00</p>
             </div>
           </div>
         </div>
-        <form class="contact-form" id="contactForm">
+
+        <form class="contact-form" id="contactForm" data-reveal>
+          <div class="form-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Solicitar Cita
+          </div>
           <div class="form-row">
             <div class="form-group">
               <label for="nombre">Nombre completo</label>
@@ -265,8 +372,11 @@
             <label for="mensaje">Mensaje (opcional)</label>
             <textarea id="mensaje" name="mensaje" rows="3" placeholder="¿Tienes alguna pregunta o comentario?"></textarea>
           </div>
-          <button type="submit" class="btn btn-primary btn-full">Enviar Solicitud</button>
-          <p class="form-note">Te contactaremos en menos de 24 horas.</p>
+          <button type="submit" class="btn btn-primary btn-full">
+            Enviar Solicitud
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
+          <p class="form-note">🔒 Tu información está protegida. Te contactaremos en menos de 24 horas.</p>
         </form>
       </div>
     </div>
@@ -275,18 +385,55 @@
   <!-- FOOTER -->
   <footer class="footer">
     <div class="container footer-inner">
-      <div class="footer-brand">
-        <span class="logo-icon">🦷</span>
-        <span class="logo-text">San Judas Tadeo</span>
-        <p>Tu salud dental en buenas manos.</p>
+      <div class="footer-top">
+        <div class="footer-brand">
+          <a href="#" class="logo">
+            <div class="logo-gem">
+              <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M14 3C8.477 3 4 7.477 4 13s4.477 10 10 10 10-4.477 10-10S19.523 3 14 3Z" fill="url(#lg2)"/>
+                <path d="M9 13c0-2.761 2.239-5 5-5s5 2.239 5 5-2.239 5-5 5-5-2.239-5-5Z" fill="white" fill-opacity="0.3"/>
+                <path d="M12 13c0-1.105.895-2 2-2s2 .895 2 2-.895 2-2 2-2-.895-2-2Z" fill="white"/>
+                <defs>
+                  <linearGradient id="lg2" x1="4" y1="3" x2="24" y2="23" gradientUnits="userSpaceOnUse">
+                    <stop stop-color="#C084FC"/>
+                    <stop offset="1" stop-color="#7C3AED"/>
+                  </linearGradient>
+                </defs>
+              </svg>
+            </div>
+            <span class="logo-text">San Judas Tadeo</span>
+          </a>
+          <p>Tu salud dental en las mejores manos. Transformamos sonrisas con dedicación y tecnología de vanguardia.</p>
+        </div>
+        <nav class="footer-nav">
+          <span>Servicios</span>
+          <a href="#servicios">Limpieza Dental</a>
+          <a href="#servicios">Blanqueamiento</a>
+          <a href="#servicios">Ortodoncia</a>
+          <a href="#servicios">Implantes</a>
+        </nav>
+        <nav class="footer-nav">
+          <span>Consultorio</span>
+          <a href="#nosotros">Sobre Nosotros</a>
+          <a href="#testimonios">Testimonios</a>
+          <a href="#contacto">Contacto</a>
+          <a href="#contacto">Agendar Cita</a>
+        </nav>
       </div>
-      <div class="footer-links">
-        <a href="#servicios">Servicios</a>
-        <a href="#nosotros">Nosotros</a>
-        <a href="#testimonios">Testimonios</a>
-        <a href="#contacto">Contacto</a>
+      <div class="footer-bottom">
+        <p>&copy; 2025 Consultorio Dental San Judas Tadeo · Todos los derechos reservados</p>
+        <div class="footer-social">
+          <a href="#" aria-label="Facebook">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+          </a>
+          <a href="#" aria-label="Instagram">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg>
+          </a>
+          <a href="#" aria-label="WhatsApp">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
+          </a>
+        </div>
       </div>
-      <p class="footer-copy">&copy; 2025 Consultorio Dental San Judas Tadeo. Todos los derechos reservados.</p>
     </div>
   </footer>
 
