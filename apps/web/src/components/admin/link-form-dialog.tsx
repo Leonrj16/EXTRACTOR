@@ -177,7 +177,7 @@ export function LinkFormDialog({ open, onOpenChange, link, onSubmit }: LinkFormD
             <DialogClose render={<Button type="button" variant="outline" />}>
               Cancelar
             </DialogClose>
-            <Button type="submit" disabled={saving}>
+            <Button type="submit" loading={saving}>
               {saving ? "Guardando…" : "Guardar"}
             </Button>
           </DialogFooter>

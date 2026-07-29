@@ -45,35 +45,42 @@ export function AdminSidebar({
       </div>
 
       <nav className="flex flex-1 flex-col gap-1">
-        {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
+        {NAV_ITEMS.map(({ href, label, icon: Icon }, index) => {
           const isActive = pathname === href;
           return (
-            <Link
+            <motion.div
               key={href}
-              href={href}
-              onClick={onNavigate}
-              aria-current={isActive ? "page" : undefined}
-              className="relative rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
+              initial={{ opacity: 0, x: -8 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.3, delay: index * 0.05, ease: [0.16, 1, 0.3, 1] }}
+              whileHover={{ x: 3 }}
             >
-              {isActive && (
-                <motion.div
-                  layoutId="sidebar-active-pill"
-                  className="absolute inset-0 rounded-xl bg-gradient-aura glow-purple-sm"
-                  transition={{ type: "spring", stiffness: 400, damping: 32 }}
-                />
-              )}
-              <span
-                className={cn(
-                  "relative z-10 flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
-                  isActive
-                    ? "text-white"
-                    : "text-muted-foreground hover:bg-surface-5 hover:text-foreground",
-                )}
+              <Link
+                href={href}
+                onClick={onNavigate}
+                aria-current={isActive ? "page" : undefined}
+                className="relative block rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
               >
-                <Icon className="size-4.5" />
-                {label}
-              </span>
-            </Link>
+                {isActive && (
+                  <motion.div
+                    layoutId="sidebar-active-pill"
+                    className="absolute inset-0 rounded-xl bg-gradient-aura glow-purple-sm"
+                    transition={{ type: "spring", stiffness: 400, damping: 32 }}
+                  />
+                )}
+                <span
+                  className={cn(
+                    "relative z-10 flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
+                    isActive
+                      ? "text-white"
+                      : "text-muted-foreground hover:bg-surface-5 hover:text-foreground",
+                  )}
+                >
+                  <Icon className="size-4.5" />
+                  {label}
+                </span>
+              </Link>
+            </motion.div>
           );
         })}
       </nav>

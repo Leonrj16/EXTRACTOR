@@ -357,7 +357,7 @@ export function DesignEditor({ initialProfile, initialAppearance, themes, links 
                   type="button"
                   variant="outline"
                   size="sm"
-                  disabled={uploadingAvatar}
+                  loading={uploadingAvatar}
                   onClick={() => avatarInputRef.current?.click()}
                 >
                   {uploadingAvatar ? "Subiendo…" : "Cambiar foto"}
@@ -382,7 +382,7 @@ export function DesignEditor({ initialProfile, initialAppearance, themes, links 
                   type="button"
                   variant="outline"
                   size="sm"
-                  disabled={uploadingCover}
+                  loading={uploadingCover}
                   onClick={() => coverInputRef.current?.click()}
                 >
                   {uploadingCover ? "Subiendo…" : "Cambiar portada"}
@@ -435,7 +435,7 @@ export function DesignEditor({ initialProfile, initialAppearance, themes, links 
                 onChange={(e) => setProfile({ ...profile, location: e.target.value })}
               />
             </div>
-            <Button onClick={handleSaveProfile} disabled={savingProfile} className="w-fit">
+            <Button onClick={handleSaveProfile} loading={savingProfile} className="w-fit">
               {savingProfile ? "Guardando…" : "Guardar perfil"}
             </Button>
           </>
@@ -487,7 +487,7 @@ export function DesignEditor({ initialProfile, initialAppearance, themes, links 
               onChange={(value) => setAppearance({ ...appearance, fontFamily: value })}
               options={FONTS.map((font) => ({ value: font, label: font }))}
             />
-            <Button onClick={handleSaveAppearance} disabled={savingAppearance} className="w-fit">
+            <Button onClick={handleSaveAppearance} loading={savingAppearance} className="w-fit">
               {savingAppearance ? "Guardando…" : "Guardar apariencia"}
             </Button>
           </>
@@ -516,7 +516,7 @@ export function DesignEditor({ initialProfile, initialAppearance, themes, links 
               onChange={(value) => setAppearance({ ...appearance, animation: value })}
               options={ANIMATIONS}
             />
-            <Button onClick={handleSaveAppearance} disabled={savingAppearance} className="w-fit">
+            <Button onClick={handleSaveAppearance} loading={savingAppearance} className="w-fit">
               {savingAppearance ? "Guardando…" : "Guardar apariencia"}
             </Button>
           </>

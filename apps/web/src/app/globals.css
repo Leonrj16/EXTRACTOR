@@ -69,6 +69,14 @@
     box-shadow: var(--shadow-glow-purple-sm);
   }
 
+  /* Sonner toasts already use a solid --normal-bg (--popover, fully opaque),
+     so this shadow is purely a depth cue — no legibility risk the way a
+     translucent surface would have. Gives toasts the same elevated feel as
+     Dialog/DropdownMenu instead of the flat default Sonner card. */
+  .cn-toast {
+    box-shadow: var(--shadow-surface-strong);
+  }
+
   .text-gradient-aura {
     background-image: linear-gradient(135deg, #c4b5fd 0%, #818cf8 50%, #67e8f9 100%);
     -webkit-background-clip: text;

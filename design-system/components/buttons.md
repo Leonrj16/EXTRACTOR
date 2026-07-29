@@ -1,9 +1,15 @@
 # Botones
 
-Componente: `apps/web/src/components/ui/button.tsx` (`Button`,
-`buttonVariants`). Construido sobre `@base-ui/react/button` +
-`class-variance-authority` (`cva`) — toda variante/tamaño vive en un único
-archivo, nunca se reimplementa un botón a mano en una pantalla.
+Componente: `apps/web/src/components/ui/button.tsx` (`Button`). Construido
+sobre `@base-ui/react/button` + `class-variance-authority` (`cva`) — toda
+variante/tamaño vive en un único archivo, nunca se reimplementa un botón a
+mano en una pantalla.
+
+`buttonVariants` (la función de clases, sin JSX) vive en un archivo
+hermano separado, `ui/button-variants.ts`, **sin** `"use client"` — ver
+`foundations/08-animations.md` para por qué (un Server Component que solo
+necesita la className de un `<Link>` rompe si la importa desde un módulo
+marcado cliente).
 
 ## Variantes
 
@@ -29,15 +35,31 @@ archivo, nunca se reimplementa un botón a mano en una pantalla.
 ## Estados
 
 Ver `foundations/09-states.md`. En resumen: `hover:brightness-110` +
-sombra más intensa (`default`), `active:translate-y-px` (feedback táctil
-de "presionado" en todas las variantes salvo cuando el botón controla un
-popup — `active:not-aria-[haspopup]:translate-y-px`), `focus-visible:ring-3
-ring-ring/40`, `disabled:opacity-50 disabled:pointer-events-none`.
+sombra más intensa (`default`), `active:scale-[0.97]` (feedback táctil de
+"presionado" en todas las variantes salvo cuando el botón controla un
+popup — `active:not-aria-[haspopup]:scale-[0.97]`), `focus-visible:ring-3
+ring-ring/40`, `disabled:opacity-50 disabled:pointer-events-none`. El
+press-feedback es CSS a propósito, no Framer Motion — ver
+`foundations/08-animations.md`.
+
+## Estado de carga
+
+`Button` acepta una prop `loading` que deshabilita el botón y muestra un
+spinner (`Loader2` animado con Framer Motion) antes del contenido —
+reemplaza el patrón repetido de `disabled={saving}` + texto sin ningún
+indicador visual de que algo está pasando:
+
+```tsx
+<Button onClick={handleSave} loading={saving}>
+  {saving ? "Guardando…" : "Guardar"}
+</Button>
+```
 
 ## Uso
 
 ```tsx
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button-variants";
 
 <Button>Guardar</Button>
 <Button variant="outline" size="sm">Cancelar</Button>
@@ -45,7 +67,9 @@ import { Button, buttonVariants } from "@/components/ui/button";
   <Trash2 />
 </Button>
 
-// Cuando el elemento visual debe ser un <Link> de Next.js, no un <button>:
+// Cuando el elemento visual debe ser un <Link> de Next.js, no un <button>
+// — o cuando quien lo usa es un Server Component, importa buttonVariants
+// desde ui/button-variants, no desde ui/button:
 <Link href="/x" className={buttonVariants({ variant: "outline", size: "sm" })}>
   Ver página
 </Link>

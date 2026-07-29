@@ -4,6 +4,7 @@ import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { AdminSidebar } from "./sidebar";
 import { AdminHeader } from "./header";
+import { PageTransition } from "./page-transition";
 import type { ProfileData } from "@/types/profile";
 
 export function AdminShell({
@@ -46,7 +47,9 @@ export function AdminShell({
 
       <div className="flex min-h-[calc(100vh-1.5rem)] flex-1 flex-col gap-4 overflow-x-hidden sm:min-h-[calc(100vh-2rem)]">
         <AdminHeader profile={profile} onMenuClick={() => setMobileOpen(true)} />
-        <div className="flex-1">{children}</div>
+        <div className="flex-1">
+          <PageTransition>{children}</PageTransition>
+        </div>
       </div>
     </div>
   );

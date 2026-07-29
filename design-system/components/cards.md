@@ -24,9 +24,28 @@ del mismo lenguaje, documentadas más abajo.
 
 ```
 rounded-2xl bg-card ring-1 ring-border shadow-(--shadow-surface)
-backdrop-blur-xl transition-all duration-300
+backdrop-blur-xl transition-[ring,box-shadow,background-color,border-color] duration-300
 hover:ring-border-strong
+whileHover={{ y: -3 }}  // Framer Motion, spring — ver nota abajo
 ```
+
+`Card` es `"use client"` porque envuelve `motion.div` para la elevación de
+hover (`whileHover={{ y: -3 }}`, spring `stiffness:400 damping:32`) — esto
+se aplica **una vez, aquí**, y todo lo que use `Card` en cualquier parte
+de la app (Analytics, Benefits, Testimonials en la landing) lo hereda
+gratis, sin que cada pantalla implemente su propio hover. La transición
+CSS deliberadamente excluye `transform` (`transition-[ring,box-shadow,...]`
+en vez de `transition-all`) para no competir con la animación de Framer
+Motion sobre la misma propiedad — ver
+`foundations/08-animations.md`.
+
+Como `Card` ahora es un Client Component, cualquier Server Component que
+lo importe (una página de servidor que solo necesita el layout) sigue
+funcionando igual — Next.js permite que un Server Component renderice un
+Client Component como hijo sin problema; lo que rompería es que un Server
+Component intente usar una función *pura* exportada del mismo archivo que
+un componente cliente (ver el caso de `buttonVariants` en
+`components/buttons.md`).
 
 - `bg-card` = `surface-3` (0.045) — el mismo valor que `.glass`.
 - La sombra es `--shadow-surface` — la misma receta que `.glass`, ver

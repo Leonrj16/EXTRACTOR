@@ -25,6 +25,7 @@ aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructiv
 | Fondo en foco | `surface-4` (0.05) | Un paso más de opacidad, nunca un color distinto |
 | Padding | `px-3.5 py-2` (`py-2.5` Textarea) | |
 | Placeholder | `text-muted-foreground/70` | Nunca el mismo tono que el texto real — debe leerse como placeholder |
+| Zoom de foco | `focus-visible:scale-[1.01]` (solo `Input`) | Microanimación CSS, no Framer Motion — ver `foundations/08-animations.md` sobre por qué. `Textarea` no lo replica: se ve raro sobre un elemento con asa de resize |
 
 ## Por qué `NativeSelect` existe
 

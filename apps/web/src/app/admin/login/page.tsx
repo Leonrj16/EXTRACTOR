@@ -83,7 +83,7 @@ export default function AdminLoginPage() {
                 />
               </div>
               {error && <p className="text-sm text-destructive">{error}</p>}
-              <Button type="submit" size="lg" className="mt-1 w-full" disabled={loading}>
+              <Button type="submit" size="lg" className="mt-1 w-full" loading={loading}>
                 {loading ? "Entrando…" : "Entrar"}
               </Button>
             </form>

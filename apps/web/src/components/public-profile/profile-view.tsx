@@ -133,7 +133,7 @@ function FormBlock({
         onChange={(e) => setValues({ ...values, message: e.target.value })}
       />
       {error && <p className="text-xs text-destructive">{error}</p>}
-      <Button type="submit" size="sm" disabled={sending}>
+      <Button type="submit" size="sm" loading={sending}>
         {sending ? "Enviando…" : "Enviar"}
       </Button>
     </form>

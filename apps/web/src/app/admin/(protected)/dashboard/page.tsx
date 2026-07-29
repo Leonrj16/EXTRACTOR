@@ -3,7 +3,7 @@ import { Eye, MousePointerClick, Percent, Link2, Palette, BarChart3, ArrowUpRigh
 import { StatCard } from "@/components/admin/stat-card";
 import { CopyLinkButton } from "@/components/admin/copy-link-button";
 import { Badge } from "@/components/ui/badge";
-import { buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button-variants";
 import { serverApiFetch } from "@/lib/api-server";
 
 interface Profile {

@@ -1,4 +1,7 @@
+"use client"
+
 import * as React from "react"
+import { motion, type HTMLMotionProps } from "framer-motion"
 
 import { cn } from "@/lib/utils"
 
@@ -6,13 +9,15 @@ function Card({
   className,
   size = "default",
   ...props
-}: React.ComponentProps<"div"> & { size?: "default" | "sm" }) {
+}: HTMLMotionProps<"div"> & { size?: "default" | "sm" }) {
   return (
-    <div
+    <motion.div
       data-slot="card"
       data-size={size}
+      whileHover={{ y: -3 }}
+      transition={{ type: "spring", stiffness: 400, damping: 32 }}
       className={cn(
-        "group/card flex flex-col gap-(--card-spacing) overflow-hidden rounded-2xl bg-card py-(--card-spacing) text-sm text-card-foreground shadow-(--shadow-surface) ring-1 ring-border backdrop-blur-xl transition-all duration-300 [--card-spacing:--spacing(6)] hover:ring-border-strong has-data-[slot=card-footer]:pb-0 has-[>img:first-child]:pt-0 data-[size=sm]:[--card-spacing:--spacing(4)] data-[size=sm]:has-data-[slot=card-footer]:pb-0 *:[img:first-child]:rounded-t-2xl *:[img:last-child]:rounded-b-2xl",
+        "group/card flex flex-col gap-(--card-spacing) overflow-hidden rounded-2xl bg-card py-(--card-spacing) text-sm text-card-foreground shadow-(--shadow-surface) ring-1 ring-border backdrop-blur-xl transition-[ring,box-shadow,background-color,border-color] duration-300 [--card-spacing:--spacing(6)] hover:ring-border-strong has-data-[slot=card-footer]:pb-0 has-[>img:first-child]:pt-0 data-[size=sm]:[--card-spacing:--spacing(4)] data-[size=sm]:has-data-[slot=card-footer]:pb-0 *:[img:first-child]:rounded-t-2xl *:[img:last-child]:rounded-b-2xl",
         className
       )}
       {...props}
