@@ -1,0 +1,245 @@
+// Bio Personal Platform — Prisma schema
+//
+// Diseño pensado para un solo usuario administrador hoy, pero modelado
+// como multiusuario desde el día uno: nada aquí necesita rediseño para
+// soportar registro público, roles o planes más adelante (ver docs/ARCHITECTURE.md).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Identidad y acceso
+// ─────────────────────────────────────────────────────────────────────────
+
+enum Role {
+  ADMIN // único rol usado hoy (dueño de la plataforma)
+  USER  // reservado para cuando se abra el registro público
+}
+
+enum UserStatus {
+  ACTIVE
+  DISABLED
+}
+
+model User {
+  id           String     @id @default(cuid())
+  email        String     @unique
+  passwordHash String
+  role         Role       @default(ADMIN)
+  status       UserStatus @default(ACTIVE)
+
+  profile      Profile?
+  media        Media[]
+  refreshTokens RefreshToken[]
+
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@map("users")
+}
+
+// Refresh tokens persistidos (hasheados) para poder revocar sesiones
+// individualmente cuando existan múltiples usuarios/dispositivos.
+model RefreshToken {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  revokedAt DateTime?
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Perfil público
+// ─────────────────────────────────────────────────────────────────────────
+
+model Profile {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  username    String   @unique // define la ruta pública: /:username
+  displayName String
+  bio         String?  @db.VarChar(280)
+  avatarUrl   String?
+  coverUrl    String?
+
+  // Contacto / ubicación (todo opcional, cada campo es un bloque independiente en la UI)
+  whatsapp      String?
+  contactEmail  String?
+  location      String?
+  locationUrl   String? // link a Google Maps u otro proveedor
+
+  // SEO básico de la página pública
+  seoTitle       String?
+  seoDescription String?
+
+  isPublished Boolean  @default(true)
+  customDomain String? @unique // reservado para el futuro (verificación DNS)
+
+  appearance  Appearance?
+  links       Link[]
+  analytics   AnalyticsEvent[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("profiles")
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Enlaces / bloques
+// ─────────────────────────────────────────────────────────────────────────
+
+enum LinkType {
+  LINK      // enlace genérico
+  SOCIAL    // red social (Instagram, YouTube, TikTok, X, etc.)
+  WHATSAPP  // botón directo de WhatsApp
+  EMAIL     // botón de contacto por email
+  LOCATION  // botón de ubicación / mapa
+  PRODUCT   // producto o servicio (usa metadata para precio/imagen)
+  FORM      // formulario de contacto embebido (usa metadata para campos)
+}
+
+model Link {
+  id        String   @id @default(cuid())
+  profileId String
+  profile   Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  type      LinkType @default(LINK)
+  title     String
+  url       String?  // opcional: FORM, por ejemplo, puede no tener URL propia
+  icon      String?  // nombre de ícono (lucide) o emoji
+  imageUrl  String?
+
+  // Datos específicos por tipo (precio de un producto, campos de un
+  // formulario, handle de una red social, etc.) sin crear una tabla por tipo.
+  metadata  Json?
+
+  isActive  Boolean  @default(true)
+  order     Int      @default(0)
+
+  analytics AnalyticsEvent[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([profileId, order])
+  @@map("links")
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Apariencia / diseño
+// ─────────────────────────────────────────────────────────────────────────
+
+// Catálogo de plantillas disponibles (crece agregando filas, no código).
+model Theme {
+  id           String   @id @default(cuid())
+  key          String   @unique // slug estable usado por el frontend, ej. "minimal-dark"
+  name         String
+  previewUrl   String?
+  isSystem     Boolean  @default(true) // plantilla provista por la plataforma vs. custom futura
+  baseConfig   Json     // paleta/estructura por defecto que Appearance puede sobreescribir
+
+  appearances  Appearance[]
+
+  createdAt    DateTime @default(now())
+
+  @@map("themes")
+}
+
+// Customización aplicada por el usuario sobre una plantilla base.
+model Appearance {
+  id              String   @id @default(cuid())
+  profileId       String   @unique
+  profile         Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  themeId         String
+  theme           Theme    @relation(fields: [themeId], references: [id])
+
+  primaryColor    String?
+  backgroundColor String?
+  backgroundImage String?
+  buttonStyle     String?  // ej. "rounded" | "square" | "pill"
+  fontFamily      String?
+
+  updatedAt       DateTime @updatedAt
+
+  @@map("appearances")
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Medios (imágenes subidas)
+// ─────────────────────────────────────────────────────────────────────────
+
+enum MediaType {
+  IMAGE
+  DOCUMENT
+}
+
+model Media {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type      MediaType @default(IMAGE)
+  url       String
+  provider  String    @default("local") // "local" | "s3" | "r2" — abstrae el storage real
+  filename  String
+  mimeType  String
+  size      Int
+
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+  @@map("media")
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Analítica
+// ─────────────────────────────────────────────────────────────────────────
+
+enum AnalyticsEventType {
+  PAGE_VIEW
+  LINK_CLICK
+}
+
+enum DeviceType {
+  MOBILE
+  TABLET
+  DESKTOP
+  UNKNOWN
+}
+
+model AnalyticsEvent {
+  id        String             @id @default(cuid())
+  profileId String
+  profile   Profile            @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  linkId    String?
+  link      Link?              @relation(fields: [linkId], references: [id], onDelete: SetNull)
+
+  type      AnalyticsEventType
+  device    DeviceType         @default(UNKNOWN)
+  browser   String?
+  os        String?
+  referrer  String?
+  country   String?
+  ipHash    String?            // hash del IP (privacidad), nunca la IP en claro
+
+  createdAt DateTime           @default(now())
+
+  @@index([profileId, type, createdAt])
+  @@index([linkId])
+  @@map("analytics_events")
+}

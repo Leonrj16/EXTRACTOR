@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: bio_platform_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: bio_admin
+      POSTGRES_PASSWORD: bio_admin_password
+      POSTGRES_DB: bio_platform
+    ports:
+      - "5432:5432"
+    volumes:
+      - bio_platform_pgdata:/var/lib/postgresql/data
+
+volumes:
+  bio_platform_pgdata:
