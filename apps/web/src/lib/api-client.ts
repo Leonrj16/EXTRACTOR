@@ -1,4 +1,4 @@
-const API_URL = process.env.API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001/api";
+"use client";
 
 export class ApiError extends Error {
   constructor(public status: number, message: string) {
@@ -6,17 +6,29 @@ export class ApiError extends Error {
   }
 }
 
-export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`${API_URL}${path}`, {
+/** Client Component fetch helper. Calls same-origin /api/backend/*, which
+ * proxies to the NestJS API and attaches the JWT from the httpOnly cookie —
+ * the token itself never reaches browser JS. */
+export async function adminFetch<T>(path: string, init?: RequestInit): Promise<T> {
+  const res = await fetch(`/api/backend${path}`, {
     ...init,
-    headers: {
-      "Content-Type": "application/json",
-      ...init?.headers,
-    },
+    headers: init?.body instanceof FormData
+      ? init.headers
+      : { "Content-Type": "application/json", ...init?.headers },
   });
 
+  if (res.status === 401) {
+    window.location.href = "/admin/login";
+    throw new ApiError(401, "Sesión expirada");
+  }
+
   if (!res.ok) {
-    throw new ApiError(res.status, await res.text());
+    const message = await res.text();
+    throw new ApiError(res.status, message || "Error de red");
+  }
+
+  if (res.status === 204) {
+    return undefined as T;
   }
 
   return res.json() as Promise<T>;
