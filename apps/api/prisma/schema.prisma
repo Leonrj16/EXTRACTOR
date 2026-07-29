@@ -102,17 +102,24 @@ model Profile {
 // ─────────────────────────────────────────────────────────────────────────
 
 enum LinkType {
-  LINK      // enlace genérico
-  SOCIAL    // red social (Instagram, YouTube, TikTok, X, etc.)
-  WHATSAPP  // botón directo de WhatsApp
-  EMAIL     // botón de contacto por email
-  LOCATION  // botón de ubicación / mapa
-  PRODUCT   // producto o servicio (usa metadata para precio/imagen)
-  FORM      // formulario de contacto embebido, guarda envíos en ContactSubmission
-  VIDEO     // video embebido (YouTube/Vimeo)
-  MUSIC     // embed de audio (Spotify)
+  LINK        // enlace genérico (Page Builder: ButtonBlock)
+  SOCIAL      // red social (Instagram, YouTube, TikTok, X, etc.)
+  WHATSAPP    // botón directo de WhatsApp
+  EMAIL       // botón de contacto por email
+  LOCATION    // botón de ubicación / mapa
+  PRODUCT     // producto o servicio (usa metadata para precio/imagen)
+  FORM        // formulario de contacto embebido, guarda envíos en ContactSubmission
+  VIDEO       // video embebido (YouTube/Vimeo) (Page Builder: VideoBlock)
+  MUSIC       // embed de audio (Spotify)
+  GALLERY     // galería de imágenes (Page Builder: GalleryBlock)
+  TESTIMONIAL // testimonio con foto/nombre/cita/calificación (Page Builder: TestimonialBlock)
+  FAQ         // acordeón de preguntas frecuentes (Page Builder: FAQBlock)
 }
 
+// Cada Link es un "bloque" del Page Builder — el nombre de la tabla y el
+// campo `type` se mantienen por compatibilidad con datos existentes, pero
+// conceptualmente esto es la fila de persistencia para /components/blocks.
+// Ver design-system/architecture/blocks.md para el contrato completo.
 model Link {
   id        String   @id @default(cuid())
   profileId String
@@ -124,9 +131,15 @@ model Link {
   icon      String?  // nombre de ícono (lucide) o emoji
   imageUrl  String?
 
-  // Datos específicos por tipo (precio de un producto, campos de un
-  // formulario, handle de una red social, etc.) sin crear una tabla por tipo.
+  // Configuración específica del bloque (precio de un producto, items de un
+  // FAQ, imágenes de una galería, etc.) sin crear una tabla por tipo — cada
+  // bloque define su propio TMeta en blocks/<Block>/types.ts.
   metadata  Json?
+
+  // Estilos genéricos del panel compartido (padding, margin, background,
+  // border, radius, shadow, alineación, ancho, alto, opacidad, animación).
+  // Ver blocks/types.ts → BlockStyleOverrides.
+  styleOverrides Json?
 
   isActive  Boolean  @default(true)
   order     Int      @default(0)

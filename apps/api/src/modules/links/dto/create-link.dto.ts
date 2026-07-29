@@ -27,6 +27,10 @@ export class CreateLinkDto {
   metadata?: Record<string, unknown>;
 
   @IsOptional()
+  @IsObject()
+  styleOverrides?: Record<string, unknown>;
+
+  @IsOptional()
   @IsInt()
   order?: number;
 }

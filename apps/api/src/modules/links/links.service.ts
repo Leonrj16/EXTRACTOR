@@ -39,6 +39,7 @@ export class LinksService {
       data: {
         ...dto,
         metadata: dto.metadata as Prisma.InputJsonValue,
+        styleOverrides: dto.styleOverrides as Prisma.InputJsonValue,
         order,
         profileId,
       },
@@ -49,7 +50,11 @@ export class LinksService {
     await this.assertOwnership(userId, linkId);
     return this.prisma.link.update({
       where: { id: linkId },
-      data: { ...dto, metadata: dto.metadata as Prisma.InputJsonValue },
+      data: {
+        ...dto,
+        metadata: dto.metadata as Prisma.InputJsonValue,
+        styleOverrides: dto.styleOverrides as Prisma.InputJsonValue,
+      },
     });
   }
 

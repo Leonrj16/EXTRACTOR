@@ -7,11 +7,19 @@ export type LinkType =
   | "PRODUCT"
   | "FORM"
   | "VIDEO"
-  | "MUSIC";
+  | "MUSIC"
+  | "GALLERY"
+  | "TESTIMONIAL"
+  | "FAQ";
 
+// Opaque JSON envelope — each block kind defines its own, more specific
+// metadata shape in its own `types.ts` (e.g. blocks/GalleryBlock/types.ts)
+// and narrows via `link.metadata as GalleryMetadata`. The index signature
+// keeps that narrowing cast direct instead of requiring `as unknown as`.
 export interface LinkMetadata {
   price?: string;
   currency?: string;
+  [key: string]: unknown;
 }
 
 export interface LinkItem {
@@ -22,6 +30,9 @@ export interface LinkItem {
   icon: string | null;
   imageUrl: string | null;
   metadata: LinkMetadata | null;
+  // Shared style panel (padding/margin/background/border/radius/shadow/
+  // align/width/opacity/animation) — see blocks/types.ts BlockStyleOverrides.
+  styleOverrides: Record<string, unknown> | null;
   isActive: boolean;
   order: number;
 }
@@ -36,4 +47,7 @@ export const LINK_TYPE_LABELS: Record<LinkType, string> = {
   FORM: "Formulario de contacto",
   VIDEO: "Video (YouTube/Vimeo)",
   MUSIC: "Música (Spotify)",
+  GALLERY: "Galería",
+  TESTIMONIAL: "Testimonio",
+  FAQ: "Preguntas frecuentes",
 };
