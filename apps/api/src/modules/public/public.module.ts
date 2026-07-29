@@ -1,4 +1,11 @@
 import { Module } from '@nestjs/common';
+import { AnalyticsModule } from '../analytics/analytics.module';
+import { PublicController } from './public.controller';
+import { PublicService } from './public.service';
 
-@Module({})
+@Module({
+  imports: [AnalyticsModule],
+  controllers: [PublicController],
+  providers: [PublicService],
+})
 export class PublicModule {}
