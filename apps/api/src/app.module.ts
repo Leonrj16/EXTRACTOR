@@ -14,6 +14,7 @@ import { AppearanceModule } from './modules/appearance/appearance.module';
 import { MediaModule } from './modules/media/media.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { PublicModule } from './modules/public/public.module';
+import { HealthModule } from './modules/health/health.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { PublicModule } from './modules/public/public.module';
     MediaModule,
     AnalyticsModule,
     PublicModule,
+    HealthModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: ThrottlerGuard },

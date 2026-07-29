@@ -26,7 +26,7 @@ docs/      Arquitectura, base de datos y flujo del sistema
 
 - Node.js >= 20
 - pnpm 10.x (`corepack enable` si no lo tienes)
-- Docker (para PostgreSQL local) — opcional si ya tienes Postgres
+- PostgreSQL 14+ (local, Docker, o un proveedor gestionado)
 
 ## Puesta en marcha
 
@@ -34,25 +34,62 @@ docs/      Arquitectura, base de datos y flujo del sistema
 # 1. Instalar dependencias del monorepo
 pnpm install
 
-# 2. Levantar PostgreSQL local
+# 2. Levantar PostgreSQL local (requiere Docker)
 docker compose up -d
 
 # 3. Configurar variables de entorno
 cp apps/api/.env.example apps/api/.env
 cp apps/web/.env.local.example apps/web/.env.local
 
-# 4. Migrar la base de datos
+# 4. Migrar y sembrar la base de datos
 pnpm db:migrate
+pnpm --filter api exec prisma db seed
 
 # 5. Levantar backend y frontend (en dos terminales)
 pnpm dev:api    # http://localhost:3001/api
 pnpm dev:web    # http://localhost:3000
 ```
 
+El seed crea 3 temas por defecto y un usuario administrador
+(`SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD` en `apps/api/.env`, por defecto
+`admin@example.com` / `ChangeMe123!`) con perfil público en `/admin`
+(`SEED_USERNAME`). **Cambia la contraseña por defecto antes de exponer la
+app públicamente.**
+
+## Pruebas
+
+```bash
+pnpm --filter api test        # unit tests (auth, ownership de enlaces)
+pnpm --filter api build       # type-check + build backend
+pnpm --filter web build       # type-check + build frontend
+```
+
+## Producción
+
+- **Backend**: `pnpm --filter api build && pnpm --filter api start:prod`.
+  Aplica migraciones con `prisma migrate deploy` (no `migrate dev`). Sirve
+  detrás de HTTPS; `helmet`, CORS y rate limiting (`@nestjs/throttler`) ya
+  están configurados, pero deben ejecutarse detrás de un proxy que termine
+  TLS (Nginx/Caddy/el balanceador del proveedor).
+- **Frontend**: `pnpm --filter web build && pnpm --filter web start`, o
+  despliega en Vercel apuntando `API_URL`/`NEXT_PUBLIC_API_URL` al backend.
+- **Media**: en un solo servidor, el volumen `STORAGE_LOCAL_PATH` debe
+  persistir entre despliegues; para múltiples instancias, implementa un
+  `StorageProvider` para S3/R2 (la interfaz ya está lista en
+  `apps/api/src/modules/media/storage/`) en vez del local.
+- **Secretos**: nunca reutilices los valores de `.env.example` — genera
+  `JWT_ACCESS_SECRET`/`JWT_REFRESH_SECRET` aleatorios y una contraseña de
+  base de datos propia.
+
 ## Estado del proyecto
 
 - [x] **Fase 1** — Arquitectura, estructura de carpetas y diseño de base de datos
-- [ ] **Fase 2** — Backend NestJS (auth, perfiles, enlaces, apariencia, media, analítica)
-- [ ] **Fase 3** — Frontend Next.js (landing, login, dashboard, editor, página pública)
-- [ ] **Fase 4** — Integración completa frontend-backend
-- [ ] **Fase 5** — Optimización y preparación para crecimiento
+- [x] **Fase 2** — Backend NestJS (auth, perfiles, enlaces, apariencia, media, analítica)
+- [x] **Fase 3** — Frontend Next.js (landing, login, dashboard, editor, página pública)
+- [x] **Fase 4** — Integración completa frontend-backend
+- [x] **Fase 5** — Optimización y preparación para crecimiento (rate limiting,
+      health check, SEO técnico, tests unitarios)
+
+El camino hacia multiusuario/SaaS (registro, planes, dominios propios) está
+documentado en la tabla de `docs/ARCHITECTURE.md#5-preparado-para-saas-sin-implementarlo-ahora`
+y no requiere tocar el modelo de datos existente.
