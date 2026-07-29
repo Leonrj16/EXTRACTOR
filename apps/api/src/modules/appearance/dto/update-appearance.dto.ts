@@ -22,6 +22,14 @@ export class UpdateAppearanceDto {
   buttonStyle?: string;
 
   @IsOptional()
+  @IsIn(['none', 'subtle', 'solid', 'thick'])
+  borderStyle?: string;
+
+  @IsOptional()
+  @IsIn(['none', 'soft', 'glow'])
+  shadowStyle?: string;
+
+  @IsOptional()
   @IsString()
   fontFamily?: string;
 

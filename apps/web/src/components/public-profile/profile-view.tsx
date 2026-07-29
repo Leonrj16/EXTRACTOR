@@ -34,6 +34,24 @@ const CARD_RADIUS: Record<string, string> = {
   square: "rounded-none",
 };
 
+// Border/shadow are a single setting applied uniformly to every block type
+// (link button, form, product card, video/music fallback) — one dial for
+// the whole page instead of each block hardcoding its own border opacity.
+const BORDER_WIDTH: Record<string, number> = { none: 0, subtle: 1, solid: 1.5, thick: 2.5 };
+const BORDER_ALPHA: Record<string, string> = { none: "00", subtle: "33", solid: "ff", thick: "ff" };
+
+function getBorderStyle(borderStyle: string, primaryColor: string): React.CSSProperties {
+  const width = BORDER_WIDTH[borderStyle] ?? BORDER_WIDTH.subtle;
+  const alpha = BORDER_ALPHA[borderStyle] ?? BORDER_ALPHA.subtle;
+  return { borderWidth: `${width}px`, borderStyle: "solid", borderColor: `${primaryColor}${alpha}` };
+}
+
+function getShadow(shadowStyle: string, primaryColor: string): string | undefined {
+  if (shadowStyle === "glow") return `0 0 24px ${primaryColor}66`;
+  if (shadowStyle === "soft") return "0 8px 24px rgba(0,0,0,0.25)";
+  return undefined;
+}
+
 const ANIMATION_VARIANTS: Record<string, Variants> = {
   fade: { hidden: { opacity: 0, y: 8 }, visible: { opacity: 1, y: 0 } },
   slide: { hidden: { opacity: 0, x: -24 }, visible: { opacity: 1, x: 0 } },
@@ -47,12 +65,12 @@ const ANIMATION_VARIANTS: Record<string, Variants> = {
 function FormBlock({
   link,
   radius,
-  primaryColor,
+  blockStyle,
   onContactSubmit,
 }: {
   link: LinkItem;
   radius: string;
-  primaryColor: string;
+  blockStyle: React.CSSProperties;
   onContactSubmit?: ProfileViewProps["onContactSubmit"];
 }) {
   const [values, setValues] = useState({ name: "", email: "", message: "" });
@@ -81,7 +99,7 @@ function FormBlock({
 
   if (sent) {
     return (
-      <div className={`border px-4 py-6 text-center text-sm ${radius}`} style={{ borderColor: primaryColor }}>
+      <div className={`px-4 py-6 text-center text-sm ${radius}`} style={blockStyle}>
         ¡Gracias! Tu mensaje fue enviado.
       </div>
     );
@@ -90,8 +108,8 @@ function FormBlock({
   return (
     <form
       onSubmit={handleSubmit}
-      className={`flex flex-col gap-2 border p-4 text-left ${radius}`}
-      style={{ borderColor: primaryColor }}
+      className={`flex flex-col gap-2 p-4 text-left ${radius}`}
+      style={blockStyle}
     >
       <p className="text-sm font-medium">{link.title}</p>
       <Input
@@ -137,9 +155,19 @@ export function ProfileView({
   const fontFamily = appearance.fontFamily ?? base.fontFamily ?? "Inter";
   const animation = appearance.animation ?? base.animation ?? "fade";
   const layout = appearance.layout ?? appearance.theme?.layout ?? "list";
+  const borderStyleKey = appearance.borderStyle ?? base.borderStyle ?? "subtle";
+  const shadowStyleKey = appearance.shadowStyle ?? base.shadowStyle ?? "none";
   const radius = BUTTON_RADIUS[buttonStyle] ?? "rounded-xl";
   const cardRadius = CARD_RADIUS[buttonStyle] ?? "rounded-xl";
   const variants = ANIMATION_VARIANTS[animation] ?? ANIMATION_VARIANTS.fade;
+  const blockShadow = getShadow(shadowStyleKey, primaryColor);
+  const blockBorder = getBorderStyle(borderStyleKey, primaryColor);
+  // isActive filtering is the component's own responsibility, not each
+  // caller's — the public page route already queries only active links,
+  // but the design editor's live preview passes every link (so hiding a
+  // block updates instantly without a page refetch), so this must hold
+  // here regardless of what the caller passes in.
+  const visibleLinks = links.filter((link) => link.isActive);
 
   const isInteractiveBlock = (type: LinkItem["type"]) =>
     type === "VIDEO" || type === "MUSIC" || type === "FORM";
@@ -158,13 +186,14 @@ export function ProfileView({
             <iframe
               src={embedUrl}
               className={`aspect-video w-full ${cardRadius}`}
+              style={{ boxShadow: blockShadow }}
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
             />
           ) : (
             <div
-              className={`flex aspect-video items-center justify-center border text-xs opacity-60 ${cardRadius}`}
-              style={{ borderColor: primaryColor }}
+              className={`flex aspect-video items-center justify-center text-xs opacity-60 ${cardRadius}`}
+              style={blockBorder}
             >
               URL de video no válida
             </div>
@@ -181,13 +210,14 @@ export function ProfileView({
             <iframe
               src={embedUrl}
               className="w-full rounded-xl"
+              style={{ boxShadow: blockShadow }}
               height="152"
               allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
             />
           ) : (
             <div
-              className={`flex h-24 items-center justify-center border text-xs opacity-60 ${cardRadius}`}
-              style={{ borderColor: primaryColor }}
+              className={`flex h-24 items-center justify-center text-xs opacity-60 ${cardRadius}`}
+              style={blockBorder}
             >
               URL de Spotify no válida
             </div>
@@ -198,7 +228,12 @@ export function ProfileView({
 
     if (link.type === "FORM") {
       return (
-        <FormBlock link={link} radius={cardRadius} primaryColor={primaryColor} onContactSubmit={onContactSubmit} />
+        <FormBlock
+          link={link}
+          radius={cardRadius}
+          blockStyle={{ ...blockBorder, boxShadow: blockShadow }}
+          onContactSubmit={onContactSubmit}
+        />
       );
     }
 
@@ -209,8 +244,8 @@ export function ProfileView({
           target="_blank"
           rel="noreferrer"
           onClick={() => onLinkClick?.(link)}
-          className={`flex flex-col overflow-hidden border shadow-sm outline-none transition-shadow focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current ${cardRadius}`}
-          style={{ borderColor: primaryColor }}
+          className={`flex flex-col overflow-hidden outline-none transition-shadow focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current ${cardRadius}`}
+          style={{ ...blockBorder, boxShadow: blockShadow }}
         >
           {link.imageUrl && (
             // eslint-disable-next-line @next/next/no-img-element
@@ -234,8 +269,8 @@ export function ProfileView({
         target="_blank"
         rel="noreferrer"
         onClick={() => onLinkClick?.(link)}
-        className={`block w-full border px-4 py-3.5 text-center text-sm font-medium outline-none backdrop-blur-md transition-transform focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current ${radius}`}
-        style={{ borderColor: `${primaryColor}33`, backgroundColor: `${primaryColor}14` }}
+        className={`block w-full px-4 py-3.5 text-center text-sm font-medium outline-none backdrop-blur-md transition-transform focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current ${radius}`}
+        style={{ ...blockBorder, backgroundColor: `${primaryColor}14`, boxShadow: blockShadow }}
       >
         {link.title}
       </a>
@@ -328,7 +363,7 @@ export function ProfileView({
             : "relative z-10 flex w-full max-w-sm flex-col gap-3"
         }
       >
-        {links.map((link, index) => (
+        {visibleLinks.map((link, index) => (
           <motion.div
             key={link.id}
             initial="hidden"

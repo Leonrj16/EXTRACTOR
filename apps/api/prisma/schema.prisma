@@ -193,6 +193,8 @@ model Appearance {
   backgroundColor String?
   backgroundImage String?
   buttonStyle     String?  // ej. "rounded" | "square" | "pill"
+  borderStyle     String?  // ej. "none" | "subtle" | "solid" | "thick"
+  shadowStyle     String?  // ej. "none" | "soft" | "glow"
   fontFamily      String?
   animation       String?  // ej. "fade" | "slide" | "bounce" | "none"
   layout          String?  // sobreescribe Theme.layout: "list" | "grid"

@@ -2,7 +2,22 @@
 
 import { useRef, useState } from "react";
 import { toast } from "sonner";
-import { User, Palette, LayoutGrid } from "lucide-react";
+import {
+  DndContext,
+  DragOverlay,
+  closestCenter,
+} from "@dnd-kit/core";
+import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import {
+  User,
+  Palette,
+  LayoutGrid,
+  Blocks,
+  Plus,
+  Monitor,
+  Tablet,
+  Smartphone,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,11 +28,28 @@ import { adminFetch } from "@/lib/api-client";
 import { cn } from "@/lib/utils";
 import type { LinkItem } from "@/types/link";
 import type { AppearanceData, ProfileData, ThemeData } from "@/types/profile";
+import { LinkFormDialog } from "./link-form-dialog";
+import { LinkRow, SortableLinkRow } from "./sortable-link-row";
+import { SubmissionsDialog } from "./submissions-dialog";
+import { useLinksManager } from "./use-links-manager";
 
 const BUTTON_STYLES = [
   { value: "rounded", label: "Redondeado" },
   { value: "pill", label: "Píldora" },
   { value: "square", label: "Cuadrado" },
+];
+
+const BORDER_STYLES = [
+  { value: "none", label: "Sin borde" },
+  { value: "subtle", label: "Sutil" },
+  { value: "solid", label: "Sólido" },
+  { value: "thick", label: "Grueso" },
+];
+
+const SHADOW_STYLES = [
+  { value: "none", label: "Sin sombra" },
+  { value: "soft", label: "Suave" },
+  { value: "glow", label: "Resplandor" },
 ];
 
 const FONTS = ["Inter", "Poppins", "Roboto", "Playfair Display", "Space Grotesk"];
@@ -38,9 +70,24 @@ const TABS = [
   { id: "profile", label: "Perfil", icon: User },
   { id: "theme", label: "Tema", icon: Palette },
   { id: "structure", label: "Estructura", icon: LayoutGrid },
+  { id: "blocks", label: "Bloques", icon: Blocks },
 ] as const;
 
 type TabId = (typeof TABS)[number]["id"];
+
+const DEVICES = [
+  { id: "desktop", label: "Escritorio", icon: Monitor },
+  { id: "tablet", label: "Tablet", icon: Tablet },
+  { id: "mobile", label: "Móvil", icon: Smartphone },
+] as const;
+
+type DeviceId = (typeof DEVICES)[number]["id"];
+
+const DEVICE_FRAME: Record<DeviceId, { width: number; height: number; className: string }> = {
+  mobile: { width: 300, height: 560, className: "rounded-[2.2rem] border-4 border-border" },
+  tablet: { width: 420, height: 560, className: "rounded-[1.4rem] border-4 border-border" },
+  desktop: { width: 640, height: 460, className: "rounded-xl border border-border" },
+};
 
 function FieldSelect({
   id,
@@ -101,6 +148,60 @@ function ColorField({
   );
 }
 
+// The right-hand column has a fixed width, so a wider device frame (tablet,
+// desktop) can't just render at its "native" size — it has to shrink to
+// fit, the same way a real design tool scales its canvas down instead of
+// letting it overflow the panel.
+const PREVIEW_CONTAINER_WIDTH = 300;
+
+function PreviewFrame({ device, children }: { device: DeviceId; children: React.ReactNode }) {
+  const frame = DEVICE_FRAME[device];
+  const scale = Math.min(1, PREVIEW_CONTAINER_WIDTH / frame.width);
+  const scaledHeight = frame.height * scale;
+
+  const frameContent =
+    device === "desktop" ? (
+      <>
+        <div className="flex items-center gap-1.5 border-b border-border bg-surface-2 px-3 py-2">
+          <span className="size-2.5 rounded-full bg-destructive/60" />
+          <span className="size-2.5 rounded-full bg-brand-warning/60" />
+          <span className="size-2.5 rounded-full bg-brand-success/60" />
+        </div>
+        <div className="overflow-y-auto" style={{ height: frame.height }}>
+          {children}
+        </div>
+      </>
+    ) : (
+      <>
+        {device === "mobile" && (
+          <div className="absolute top-2 left-1/2 z-10 h-5 w-24 -translate-x-1/2 rounded-full bg-black/60" />
+        )}
+        <div className="overflow-y-auto" style={{ height: frame.height }}>
+          {children}
+        </div>
+      </>
+    );
+
+  return (
+    <div
+      className="mx-auto"
+      style={{ width: PREVIEW_CONTAINER_WIDTH, height: scaledHeight }}
+    >
+      <div
+        className={cn("glow-purple-sm relative overflow-hidden bg-[#07080c]", frame.className)}
+        style={{
+          width: frame.width,
+          height: frame.height,
+          transform: `scale(${scale})`,
+          transformOrigin: "top left",
+        }}
+      >
+        {frameContent}
+      </div>
+    </div>
+  );
+}
+
 interface DesignEditorProps {
   initialProfile: ProfileData;
   initialAppearance: AppearanceData;
@@ -112,26 +213,49 @@ export function DesignEditor({ initialProfile, initialAppearance, themes, links 
   const [profile, setProfile] = useState(initialProfile);
   const [appearance, setAppearance] = useState(initialAppearance);
   const [activeTab, setActiveTab] = useState<TabId>("profile");
+  const [device, setDevice] = useState<DeviceId>("mobile");
   const [savingProfile, setSavingProfile] = useState(false);
   const [savingAppearance, setSavingAppearance] = useState(false);
-  const [uploading, setUploading] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [uploadingCover, setUploadingCover] = useState(false);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+  const coverInputRef = useRef<HTMLInputElement>(null);
+
+  const linksManager = useLinksManager(links);
+
+  async function uploadImage(file: File): Promise<string> {
+    const formData = new FormData();
+    formData.append("file", file);
+    const media = await adminFetch<{ url: string }>("/admin/media/upload", {
+      method: "POST",
+      body: formData,
+    });
+    return media.url;
+  }
 
   async function handleAvatarUpload(file: File) {
-    setUploading(true);
+    setUploadingAvatar(true);
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-      const media = await adminFetch<{ url: string }>("/admin/media/upload", {
-        method: "POST",
-        body: formData,
-      });
-      setProfile((prev) => ({ ...prev, avatarUrl: media.url }));
+      const url = await uploadImage(file);
+      setProfile((prev) => ({ ...prev, avatarUrl: url }));
       toast.success("Imagen subida, recuerda guardar el perfil");
     } catch {
       toast.error("No se pudo subir la imagen");
     } finally {
-      setUploading(false);
+      setUploadingAvatar(false);
+    }
+  }
+
+  async function handleCoverUpload(file: File) {
+    setUploadingCover(true);
+    try {
+      const url = await uploadImage(file);
+      setProfile((prev) => ({ ...prev, coverUrl: url }));
+      toast.success("Portada subida, recuerda guardar el perfil");
+    } catch {
+      toast.error("No se pudo subir la portada");
+    } finally {
+      setUploadingCover(false);
     }
   }
 
@@ -144,6 +268,7 @@ export function DesignEditor({ initialProfile, initialAppearance, themes, links 
           displayName: profile.displayName,
           bio: profile.bio,
           avatarUrl: profile.avatarUrl,
+          coverUrl: profile.coverUrl,
           whatsapp: profile.whatsapp,
           contactEmail: profile.contactEmail,
           location: profile.location,
@@ -168,6 +293,8 @@ export function DesignEditor({ initialProfile, initialAppearance, themes, links 
           primaryColor: appearance.primaryColor,
           backgroundColor: appearance.backgroundColor,
           buttonStyle: appearance.buttonStyle,
+          borderStyle: appearance.borderStyle,
+          shadowStyle: appearance.shadowStyle,
           fontFamily: appearance.fontFamily,
           animation: appearance.animation,
           layout: appearance.layout,
@@ -193,6 +320,7 @@ export function DesignEditor({ initialProfile, initialAppearance, themes, links 
             key={id}
             onClick={() => setActiveTab(id)}
             aria-current={activeTab === id ? "true" : undefined}
+            aria-label={label}
             className={cn(
               "flex flex-1 items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring/40 lg:flex-none",
               activeTab === id
@@ -210,29 +338,56 @@ export function DesignEditor({ initialProfile, initialAppearance, themes, links 
       <div className="flex flex-col gap-4 border-b border-border-subtle p-6 lg:border-b-0 lg:border-r">
         {activeTab === "profile" && (
           <>
-            <div className="flex items-center gap-4">
-              <div className="size-16 shrink-0 overflow-hidden rounded-full bg-surface-5">
-                {profile.avatarUrl && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={profile.avatarUrl} alt="" className="h-full w-full object-cover" />
-                )}
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+              <div className="flex items-center gap-4">
+                <div className="size-16 shrink-0 overflow-hidden rounded-full bg-surface-5">
+                  {profile.avatarUrl && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={profile.avatarUrl} alt="" className="h-full w-full object-cover" />
+                  )}
+                </div>
+                <input
+                  ref={avatarInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => e.target.files?.[0] && handleAvatarUpload(e.target.files[0])}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={uploadingAvatar}
+                  onClick={() => avatarInputRef.current?.click()}
+                >
+                  {uploadingAvatar ? "Subiendo…" : "Cambiar foto"}
+                </Button>
               </div>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={(e) => e.target.files?.[0] && handleAvatarUpload(e.target.files[0])}
-              />
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                disabled={uploading}
-                onClick={() => fileInputRef.current?.click()}
-              >
-                {uploading ? "Subiendo…" : "Cambiar foto"}
-              </Button>
+
+              <div className="flex items-center gap-4">
+                <div className="h-16 w-24 shrink-0 overflow-hidden rounded-lg bg-surface-5">
+                  {profile.coverUrl && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={profile.coverUrl} alt="" className="h-full w-full object-cover" />
+                  )}
+                </div>
+                <input
+                  ref={coverInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => e.target.files?.[0] && handleCoverUpload(e.target.files[0])}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={uploadingCover}
+                  onClick={() => coverInputRef.current?.click()}
+                >
+                  {uploadingCover ? "Subiendo…" : "Cambiar portada"}
+                </Button>
+              </div>
             </div>
 
             <div className="flex flex-col gap-2">
@@ -309,6 +464,22 @@ export function DesignEditor({ initialProfile, initialAppearance, themes, links 
                 onChange={(value) => setAppearance({ ...appearance, backgroundColor: value })}
               />
             </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <FieldSelect
+                id="borderStyle"
+                label="Estilo de borde"
+                value={appearance.borderStyle ?? base.borderStyle ?? "subtle"}
+                onChange={(value) => setAppearance({ ...appearance, borderStyle: value })}
+                options={BORDER_STYLES}
+              />
+              <FieldSelect
+                id="shadowStyle"
+                label="Estilo de sombra"
+                value={appearance.shadowStyle ?? base.shadowStyle ?? "none"}
+                onChange={(value) => setAppearance({ ...appearance, shadowStyle: value })}
+                options={SHADOW_STYLES}
+              />
+            </div>
             <FieldSelect
               id="fontFamily"
               label="Tipografía"
@@ -350,6 +521,57 @@ export function DesignEditor({ initialProfile, initialAppearance, themes, links 
             </Button>
           </>
         )}
+
+        {activeTab === "blocks" && (
+          <>
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-muted-foreground">
+                Agrega, reordena, duplica u oculta los bloques de tu página.
+              </p>
+              <Button size="sm" onClick={linksManager.openCreateDialog}>
+                <Plus className="size-4" />
+                Nuevo bloque
+              </Button>
+            </div>
+
+            {linksManager.links.length === 0 ? (
+              <p className="rounded-xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
+                Todavía no tienes bloques. Crea el primero.
+              </p>
+            ) : (
+              <DndContext
+                sensors={linksManager.sensors}
+                collisionDetection={closestCenter}
+                onDragStart={linksManager.handleDragStart}
+                onDragEnd={linksManager.handleDragEnd}
+              >
+                <SortableContext
+                  items={linksManager.links.map((l) => l.id)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  <div className="flex flex-col gap-3">
+                    {linksManager.links.map((link) => (
+                      <SortableLinkRow
+                        key={link.id}
+                        link={link}
+                        onToggleActive={linksManager.handleToggleActive}
+                        onEdit={linksManager.openEditDialog}
+                        onDuplicate={linksManager.handleDuplicate}
+                        onDelete={linksManager.handleDelete}
+                        onViewMessages={
+                          link.type === "FORM" ? linksManager.setMessagesLink : undefined
+                        }
+                      />
+                    ))}
+                  </div>
+                </SortableContext>
+                <DragOverlay>
+                  {linksManager.activeLink && <LinkRow link={linksManager.activeLink} overlay />}
+                </DragOverlay>
+              </DndContext>
+            )}
+          </>
+        )}
       </div>
 
       {/* Right — live preview */}
@@ -357,12 +579,41 @@ export function DesignEditor({ initialProfile, initialAppearance, themes, links 
         <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
           Vista previa en vivo
         </p>
-        <div className="glow-purple-sm mx-auto w-[300px] overflow-hidden rounded-[2.2rem] border-4 border-border">
-          <div className="h-[560px] overflow-y-auto">
-            <ProfileView profile={profile} appearance={appearance} links={links} />
-          </div>
+        <div className="flex gap-1 rounded-xl border border-border bg-surface-2 p-1">
+          {DEVICES.map(({ id, label, icon: Icon }) => (
+            <button
+              key={id}
+              onClick={() => setDevice(id)}
+              aria-current={device === id ? "true" : undefined}
+              aria-label={label}
+              title={label}
+              className={cn(
+                "flex size-8 items-center justify-center rounded-lg outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring/40",
+                device === id
+                  ? "bg-gradient-aura text-white"
+                  : "text-muted-foreground hover:bg-surface-5 hover:text-foreground",
+              )}
+            >
+              <Icon className="size-4" />
+            </button>
+          ))}
         </div>
+        <PreviewFrame device={device}>
+          <ProfileView profile={profile} appearance={appearance} links={linksManager.links} />
+        </PreviewFrame>
       </div>
+
+      <LinkFormDialog
+        open={linksManager.dialogOpen}
+        onOpenChange={linksManager.setDialogOpen}
+        link={linksManager.editingLink}
+        onSubmit={linksManager.handleSubmit}
+      />
+
+      <SubmissionsDialog
+        link={linksManager.messagesLink}
+        onOpenChange={(open) => !open && linksManager.setMessagesLink(null)}
+      />
     </div>
   );
 }

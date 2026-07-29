@@ -2,8 +2,16 @@
 
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, Mail, Pencil, Trash2 } from "lucide-react";
+import { Copy, GripVertical, Mail, MoreVertical, Pencil, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Switch } from "@/components/ui/switch";
 import { LINK_TYPE_LABELS, type LinkItem } from "@/types/link";
 
@@ -13,6 +21,7 @@ interface LinkRowProps {
   dragHandleProps?: Record<string, unknown>;
   onToggleActive?: (link: LinkItem) => void;
   onEdit?: (link: LinkItem) => void;
+  onDuplicate?: (link: LinkItem) => void;
   onDelete?: (link: LinkItem) => void;
   onViewMessages?: (link: LinkItem) => void;
 }
@@ -26,9 +35,12 @@ export function LinkRow({
   dragHandleProps,
   onToggleActive,
   onEdit,
+  onDuplicate,
   onDelete,
   onViewMessages,
 }: LinkRowProps) {
+  const hasMenu = onEdit || onDuplicate || onDelete || onViewMessages;
+
   return (
     <div
       className={`flex items-center gap-3 rounded-xl border border-border-subtle bg-surface-1 p-4 transition-colors hover:border-border-strong ${
@@ -61,24 +73,43 @@ export function LinkRow({
         />
       )}
 
-      {onViewMessages && (
-        <button onClick={() => onViewMessages(link)} className={ICON_BUTTON} aria-label="Ver mensajes">
-          <Mail className="size-4" />
-        </button>
-      )}
-      {onEdit && (
-        <button onClick={() => onEdit(link)} className={ICON_BUTTON} aria-label="Editar enlace">
-          <Pencil className="size-4" />
-        </button>
-      )}
-      {onDelete && (
-        <button
-          onClick={() => onDelete(link)}
-          className="flex size-9 shrink-0 items-center justify-center rounded-lg text-muted-foreground outline-none transition-colors hover:bg-destructive/10 hover:text-destructive focus-visible:ring-2 focus-visible:ring-destructive/40"
-          aria-label="Eliminar enlace"
-        >
-          <Trash2 className="size-4" />
-        </button>
+      {hasMenu && (
+        <DropdownMenu>
+          <DropdownMenuTrigger className={ICON_BUTTON} aria-label="Más acciones">
+            <MoreVertical className="size-4" />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuGroup>
+              {onViewMessages && (
+                <DropdownMenuItem onClick={() => onViewMessages(link)}>
+                  <Mail />
+                  Ver mensajes
+                </DropdownMenuItem>
+              )}
+              {onEdit && (
+                <DropdownMenuItem onClick={() => onEdit(link)}>
+                  <Pencil />
+                  Editar
+                </DropdownMenuItem>
+              )}
+              {onDuplicate && (
+                <DropdownMenuItem onClick={() => onDuplicate(link)}>
+                  <Copy />
+                  Duplicar
+                </DropdownMenuItem>
+              )}
+              {onDelete && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem variant="destructive" onClick={() => onDelete(link)}>
+                    <Trash2 />
+                    Eliminar
+                  </DropdownMenuItem>
+                </>
+              )}
+            </DropdownMenuGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
       )}
     </div>
   );
@@ -88,6 +119,7 @@ interface SortableLinkRowProps {
   link: LinkItem;
   onToggleActive: (link: LinkItem) => void;
   onEdit: (link: LinkItem) => void;
+  onDuplicate: (link: LinkItem) => void;
   onDelete: (link: LinkItem) => void;
   onViewMessages?: (link: LinkItem) => void;
 }
@@ -96,6 +128,7 @@ export function SortableLinkRow({
   link,
   onToggleActive,
   onEdit,
+  onDuplicate,
   onDelete,
   onViewMessages,
 }: SortableLinkRowProps) {
@@ -114,6 +147,7 @@ export function SortableLinkRow({
         dragHandleProps={{ ...attributes, ...listeners }}
         onToggleActive={onToggleActive}
         onEdit={onEdit}
+        onDuplicate={onDuplicate}
         onDelete={onDelete}
         onViewMessages={onViewMessages}
       />

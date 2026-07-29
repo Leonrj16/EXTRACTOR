@@ -26,6 +26,8 @@ export interface AppearanceData {
   backgroundColor: string | null;
   backgroundImage: string | null;
   buttonStyle: string | null;
+  borderStyle: string | null;
+  shadowStyle: string | null;
   fontFamily: string | null;
   animation: string | null;
   layout: string | null;
