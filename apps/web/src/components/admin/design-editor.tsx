@@ -6,6 +6,7 @@ import { User, Palette, LayoutGrid } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { NativeSelect } from "@/components/ui/native-select";
 import { Textarea } from "@/components/ui/textarea";
 import { ProfileView } from "@/components/public-profile/profile-view";
 import { adminFetch } from "@/lib/api-client";
@@ -57,18 +58,13 @@ function FieldSelect({
   return (
     <div className="flex flex-col gap-2">
       <Label htmlFor={id}>{label}</Label>
-      <select
-        id={id}
-        className="h-10 rounded-xl border border-white/10 bg-white/[0.03] px-3 text-sm outline-none focus-visible:border-ring"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-      >
+      <NativeSelect id={id} value={value} onChange={(e) => onChange(e.target.value)}>
         {options.map((option) => (
           <option key={option.value} value={option.value} className="bg-[#12131c]">
             {option.label}
           </option>
         ))}
-      </select>
+      </NativeSelect>
     </div>
   );
 }
@@ -196,8 +192,9 @@ export function DesignEditor({ initialProfile, initialAppearance, themes, links 
           <button
             key={id}
             onClick={() => setActiveTab(id)}
+            aria-current={activeTab === id ? "true" : undefined}
             className={cn(
-              "flex flex-1 items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors lg:flex-none",
+              "flex flex-1 items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring/40 lg:flex-none",
               activeTab === id
                 ? "bg-white/[0.07] text-foreground"
                 : "text-muted-foreground hover:bg-white/[0.04] hover:text-foreground",
@@ -210,11 +207,11 @@ export function DesignEditor({ initialProfile, initialAppearance, themes, links 
       </div>
 
       {/* Center — active panel */}
-      <div className="flex flex-col gap-5 border-b border-white/[0.06] p-6 lg:border-b-0 lg:border-r">
+      <div className="flex flex-col gap-4 border-b border-white/[0.06] p-6 lg:border-b-0 lg:border-r">
         {activeTab === "profile" && (
           <>
             <div className="flex items-center gap-4">
-              <div className="h-16 w-16 overflow-hidden rounded-full bg-white/[0.06]">
+              <div className="size-16 shrink-0 overflow-hidden rounded-full bg-white/[0.06]">
                 {profile.avatarUrl && (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={profile.avatarUrl} alt="" className="h-full w-full object-cover" />
@@ -357,7 +354,7 @@ export function DesignEditor({ initialProfile, initialAppearance, themes, links 
 
       {/* Right — live preview */}
       <div className="flex flex-col items-center gap-3 bg-black/20 p-6">
-        <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+        <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
           Vista previa en vivo
         </p>
         <div className="glow-purple-sm mx-auto w-[300px] overflow-hidden rounded-[2.2rem] border-4 border-white/10">

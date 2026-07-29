@@ -2,6 +2,8 @@ import Link from "next/link";
 import { Eye, MousePointerClick, Percent, Link2, Palette, BarChart3, ArrowUpRight } from "lucide-react";
 import { StatCard } from "@/components/admin/stat-card";
 import { CopyLinkButton } from "@/components/admin/copy-link-button";
+import { Badge } from "@/components/ui/badge";
+import { buttonVariants } from "@/components/ui/button";
 import { serverApiFetch } from "@/lib/api-server";
 
 interface Profile {
@@ -71,7 +73,7 @@ export default async function DashboardPage() {
 
   return (
     <main className="flex flex-col gap-6 px-1 pb-8">
-      <div className="glass flex flex-wrap items-center justify-between gap-4 rounded-2xl p-5">
+      <div className="glass flex flex-wrap items-center justify-between gap-4 rounded-2xl p-6">
         <div className="flex items-center gap-3">
           <div className="flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gradient-aura text-sm font-semibold text-white">
             {profile.avatarUrl ? (
@@ -85,18 +87,14 @@ export default async function DashboardPage() {
             <p className="font-heading text-sm font-semibold">{profile.displayName}</p>
             <p className="text-xs text-muted-foreground">tuapp.com{publicUrl}</p>
           </div>
-          {!profile.isPublished && (
-            <span className="rounded-full bg-brand-warning/15 px-2.5 py-1 text-xs font-medium text-brand-warning">
-              Sin publicar
-            </span>
-          )}
+          {!profile.isPublished && <Badge variant="warning">Sin publicar</Badge>}
         </div>
         <div className="flex items-center gap-2">
           <CopyLinkButton path={publicUrl} />
           <Link
             href={publicUrl}
             target="_blank"
-            className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2 text-sm font-medium transition-colors hover:bg-white/[0.07]"
+            className={buttonVariants({ variant: "outline", size: "sm" })}
           >
             Ver página
             <ArrowUpRight className="size-3.5" />
@@ -137,7 +135,7 @@ export default async function DashboardPage() {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[1.3fr_1fr]">
-        <div className="glass flex flex-col gap-4 rounded-2xl p-6">
+        <div className="glass flex min-w-0 flex-col gap-4 rounded-2xl p-6">
           <h3 className="font-heading text-base font-semibold">Enlaces con más clics</h3>
           {summary.topLinks.length === 0 ? (
             <p className="rounded-xl border border-dashed border-white/10 p-8 text-center text-sm text-muted-foreground">
@@ -148,13 +146,13 @@ export default async function DashboardPage() {
               {summary.topLinks.map((link, index) => (
                 <li
                   key={link.linkId}
-                  className="flex items-center gap-3 rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3"
+                  className="flex min-w-0 items-center gap-3 rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3"
                 >
                   <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-white/[0.06] text-xs font-semibold text-muted-foreground">
                     {index + 1}
                   </span>
-                  <span className="flex-1 truncate text-sm font-medium">{link.title}</span>
-                  <span className="font-heading text-sm font-semibold text-brand-purple-light">
+                  <span className="min-w-0 flex-1 truncate text-sm font-medium">{link.title}</span>
+                  <span className="shrink-0 font-heading text-sm font-semibold text-brand-purple-light">
                     {link.clicks} clics
                   </span>
                 </li>
@@ -163,12 +161,12 @@ export default async function DashboardPage() {
           )}
         </div>
 
-        <div className="flex flex-col gap-4">
+        <div className="flex min-w-0 flex-col gap-4">
           {QUICK_ACTIONS.map(({ href, icon: Icon, title, description, color }) => (
             <Link
               key={href}
               href={href}
-              className={`group glass flex items-center gap-4 rounded-2xl border border-transparent p-5 transition-colors ${CARD_ACCENTS[color]}`}
+              className={`group glass flex items-center gap-4 rounded-2xl border border-transparent p-6 outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring/40 ${CARD_ACCENTS[color]}`}
             >
               <div className={`flex size-10 shrink-0 items-center justify-center rounded-xl ${ICON_ACCENTS[color]}`}>
                 <Icon className="size-5" />

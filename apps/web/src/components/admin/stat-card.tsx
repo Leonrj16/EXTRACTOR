@@ -27,9 +27,9 @@ export function StatCard({ label, value, suffix, icon, color = "purple", delay =
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay, ease: [0.16, 1, 0.3, 1] }}
       whileHover={{ y: -3 }}
-      className="glass flex flex-col gap-4 rounded-2xl p-5"
+      className="glass flex flex-col gap-4 rounded-2xl p-6"
     >
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3">
         <p className="text-sm text-muted-foreground">{label}</p>
         <div className={`flex size-9 items-center justify-center rounded-xl ${GLOW[color]}`}>
           {icon}

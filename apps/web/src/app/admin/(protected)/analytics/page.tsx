@@ -95,13 +95,13 @@ export default async function AnalyticsPage({ searchParams }: AnalyticsPageProps
               {summary.topLinks.map((link, index) => (
                 <li
                   key={link.linkId}
-                  className="flex items-center gap-3 rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-sm"
+                  className="flex min-w-0 items-center gap-3 rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-sm"
                 >
                   <span className="flex size-6 shrink-0 items-center justify-center rounded-md bg-white/[0.06] text-xs font-semibold text-muted-foreground">
                     {index + 1}
                   </span>
-                  <span className="flex-1 truncate">{link.title}</span>
-                  <span className="font-heading font-semibold text-brand-purple-light">
+                  <span className="min-w-0 flex-1 truncate">{link.title}</span>
+                  <span className="shrink-0 font-heading font-semibold text-brand-purple-light">
                     {link.clicks} clics
                   </span>
                 </li>

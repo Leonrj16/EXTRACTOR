@@ -148,7 +148,7 @@ export function LinksManager({ initialLinks }: { initialLinks: LinkItem[] }) {
       </div>
 
       {links.length === 0 ? (
-        <p className="rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground">
+        <p className="rounded-xl border border-dashed border-white/10 p-8 text-center text-sm text-muted-foreground">
           Todavía no tienes enlaces. Crea el primero.
         </p>
       ) : (
@@ -159,7 +159,7 @@ export function LinksManager({ initialLinks }: { initialLinks: LinkItem[] }) {
           onDragEnd={handleDragEnd}
         >
           <SortableContext items={links.map((l) => l.id)} strategy={verticalListSortingStrategy}>
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-3">
               {links.map((link) => (
                 <SortableLinkRow
                   key={link.id}

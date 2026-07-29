@@ -17,6 +17,9 @@ interface LinkRowProps {
   onViewMessages?: (link: LinkItem) => void;
 }
 
+const ICON_BUTTON =
+  "flex size-9 shrink-0 items-center justify-center rounded-lg text-muted-foreground outline-none transition-colors hover:bg-white/[0.07] hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40";
+
 export function LinkRow({
   link,
   overlay,
@@ -28,53 +31,51 @@ export function LinkRow({
 }: LinkRowProps) {
   return (
     <div
-      className={`flex items-center gap-3 rounded-lg border bg-background p-3 ${
-        overlay ? "shadow-lg" : ""
+      className={`flex items-center gap-3 rounded-xl border border-white/[0.07] bg-white/[0.025] p-4 transition-colors hover:border-white/[0.12] ${
+        overlay ? "shadow-2xl" : ""
       }`}
     >
       <button
         {...dragHandleProps}
-        className="cursor-grab touch-none text-muted-foreground active:cursor-grabbing"
+        className="flex size-9 shrink-0 cursor-grab items-center justify-center rounded-lg text-muted-foreground outline-none transition-colors hover:bg-white/[0.07] hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40 active:cursor-grabbing"
         aria-label="Reordenar"
       >
         <GripVertical className="size-4" />
       </button>
 
-      <div className="flex-1">
-        <div className="flex items-center gap-2">
-          <span className="font-medium">{link.title}</span>
-          <Badge variant="secondary">{LINK_TYPE_LABELS[link.type]}</Badge>
+      <div className="min-w-0 flex-1">
+        <div className="flex min-w-0 items-center gap-2">
+          <span className="min-w-0 truncate text-sm font-medium">{link.title}</span>
+          <Badge variant="secondary" className="hidden shrink-0 sm:inline-flex">
+            {LINK_TYPE_LABELS[link.type]}
+          </Badge>
         </div>
-        {link.url && <p className="truncate text-xs text-muted-foreground">{link.url}</p>}
+        {link.url && <p className="mt-0.5 truncate text-xs text-muted-foreground">{link.url}</p>}
       </div>
 
       {onToggleActive && (
-        <Switch checked={link.isActive} onCheckedChange={() => onToggleActive(link)} />
+        <Switch
+          checked={link.isActive}
+          onCheckedChange={() => onToggleActive(link)}
+          aria-label={link.isActive ? "Desactivar enlace" : "Activar enlace"}
+        />
       )}
 
       {onViewMessages && (
-        <button
-          onClick={() => onViewMessages(link)}
-          className="rounded-md p-2 text-muted-foreground hover:bg-muted hover:text-foreground"
-          aria-label="Ver mensajes"
-        >
+        <button onClick={() => onViewMessages(link)} className={ICON_BUTTON} aria-label="Ver mensajes">
           <Mail className="size-4" />
         </button>
       )}
       {onEdit && (
-        <button
-          onClick={() => onEdit(link)}
-          className="rounded-md p-2 text-muted-foreground hover:bg-muted hover:text-foreground"
-          aria-label="Editar"
-        >
+        <button onClick={() => onEdit(link)} className={ICON_BUTTON} aria-label="Editar enlace">
           <Pencil className="size-4" />
         </button>
       )}
       {onDelete && (
         <button
           onClick={() => onDelete(link)}
-          className="rounded-md p-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-          aria-label="Eliminar"
+          className="flex size-9 shrink-0 items-center justify-center rounded-lg text-muted-foreground outline-none transition-colors hover:bg-destructive/10 hover:text-destructive focus-visible:ring-2 focus-visible:ring-destructive/40"
+          aria-label="Eliminar enlace"
         >
           <Trash2 className="size-4" />
         </button>

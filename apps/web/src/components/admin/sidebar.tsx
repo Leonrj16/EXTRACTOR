@@ -48,7 +48,13 @@ export function AdminSidebar({
         {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
           const isActive = pathname === href;
           return (
-            <Link key={href} href={href} className="relative" onClick={onNavigate}>
+            <Link
+              key={href}
+              href={href}
+              onClick={onNavigate}
+              aria-current={isActive ? "page" : undefined}
+              className="relative rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
+            >
               {isActive && (
                 <motion.div
                   layoutId="sidebar-active-pill"
@@ -77,14 +83,14 @@ export function AdminSidebar({
           href={`/${profile.username}`}
           target="_blank"
           rel="noreferrer"
-          className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-white/[0.06] hover:text-foreground"
+          className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium text-muted-foreground outline-none transition-colors hover:bg-white/[0.06] hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40"
         >
           <ExternalLink className="size-4.5" />
           Ver página pública
         </a>
         <button
           onClick={handleLogout}
-          className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-muted-foreground transition-colors hover:bg-white/[0.06] hover:text-foreground"
+          className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-muted-foreground outline-none transition-colors hover:bg-white/[0.06] hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40"
         >
           <LogOut className="size-4.5" />
           Cerrar sesión

@@ -2,10 +2,11 @@
 
 import { useEffect, useState, type KeyboardEvent } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { Bell, Menu, Search } from "lucide-react";
+import { Bell, BellOff, Menu, Search } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -66,14 +67,14 @@ export function AdminHeader({
     <header className="glass flex items-center gap-3 rounded-2xl px-4 py-3.5 sm:gap-4 sm:px-5">
       <button
         onClick={onMenuClick}
-        className="flex size-9 shrink-0 items-center justify-center rounded-xl text-muted-foreground hover:bg-white/[0.06] hover:text-foreground lg:hidden"
+        className="flex size-10 shrink-0 items-center justify-center rounded-xl text-muted-foreground outline-none transition-colors hover:bg-white/[0.06] hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40 lg:hidden"
         aria-label="Abrir menú"
       >
         <Menu className="size-5" />
       </button>
 
       <div className="min-w-0 flex-1">
-        <p className="truncate text-xs text-muted-foreground">
+        <p className="truncate text-xs font-semibold tracking-wide text-muted-foreground uppercase">
           {PAGE_LABELS[pathname] ?? "Aura"}
         </p>
         <h2 className="truncate font-heading text-base font-semibold">{greeting}</h2>
@@ -91,20 +92,29 @@ export function AdminHeader({
       </div>
 
       <DropdownMenu>
-        <DropdownMenuTrigger className="flex size-9 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-white/[0.06] hover:text-foreground">
+        <DropdownMenuTrigger
+          className="flex size-10 shrink-0 items-center justify-center rounded-xl text-muted-foreground outline-none transition-colors hover:bg-white/[0.06] hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40"
+          aria-label="Notificaciones"
+        >
           <Bell className="size-4.5" />
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-64">
-          <DropdownMenuLabel>Notificaciones</DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          <p className="px-2 py-4 text-center text-xs text-muted-foreground">
-            No tienes notificaciones nuevas.
-          </p>
+        <DropdownMenuContent align="end" className="w-72">
+          <DropdownMenuGroup>
+            <DropdownMenuLabel>Notificaciones</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem className="cursor-default flex-col gap-1.5 py-6 text-center">
+              <BellOff className="size-5 text-muted-foreground" />
+              <span className="text-xs text-muted-foreground">No tienes notificaciones nuevas.</span>
+            </DropdownMenuItem>
+          </DropdownMenuGroup>
         </DropdownMenuContent>
       </DropdownMenu>
 
       <DropdownMenu>
-        <DropdownMenuTrigger className="flex size-9 items-center justify-center overflow-hidden rounded-full bg-gradient-aura text-xs font-semibold text-white">
+        <DropdownMenuTrigger
+          className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gradient-aura text-xs font-semibold text-white outline-none transition-transform hover:scale-105 focus-visible:ring-2 focus-visible:ring-ring/40"
+          aria-label="Menú de cuenta"
+        >
           {profile.avatarUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={profile.avatarUrl} alt="" className="h-full w-full object-cover" />
@@ -113,14 +123,16 @@ export function AdminHeader({
           )}
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuLabel>{profile.displayName}</DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => router.push("/admin/design")}>
-            Editar perfil
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => window.open(`/${profile.username}`, "_blank")}>
-            Ver página pública
-          </DropdownMenuItem>
+          <DropdownMenuGroup>
+            <DropdownMenuLabel>{profile.displayName}</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => router.push("/admin/design")}>
+              Editar perfil
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => window.open(`/${profile.username}`, "_blank")}>
+              Ver página pública
+            </DropdownMenuItem>
+          </DropdownMenuGroup>
         </DropdownMenuContent>
       </DropdownMenu>
     </header>

@@ -33,26 +33,33 @@ export function SubmissionsDialog({
 
   return (
     <Dialog open={!!link} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-h-[80vh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Mensajes — {link?.title}</DialogTitle>
         </DialogHeader>
         {loading ? (
-          <p className="text-sm text-muted-foreground">Cargando…</p>
+          <p className="rounded-xl border border-dashed border-white/10 p-8 text-center text-sm text-muted-foreground">
+            Cargando…
+          </p>
         ) : submissions.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Todavía no hay mensajes.</p>
+          <p className="rounded-xl border border-dashed border-white/10 p-8 text-center text-sm text-muted-foreground">
+            Todavía no hay mensajes.
+          </p>
         ) : (
           <div className="flex flex-col gap-3">
             {submissions.map((submission) => (
-              <div key={submission.id} className="rounded-lg border p-3 text-sm">
-                <div className="flex items-center justify-between">
+              <div
+                key={submission.id}
+                className="rounded-xl border border-white/[0.07] bg-white/[0.025] p-4 text-sm"
+              >
+                <div className="flex items-center justify-between gap-3">
                   <span className="font-medium">{submission.name}</span>
-                  <span className="text-xs text-muted-foreground">
+                  <span className="shrink-0 text-xs text-muted-foreground">
                     {new Date(submission.createdAt).toLocaleString()}
                   </span>
                 </div>
-                <p className="text-xs text-muted-foreground">{submission.email}</p>
-                <p className="mt-2">{submission.message}</p>
+                <p className="mt-0.5 text-xs text-muted-foreground">{submission.email}</p>
+                <p className="mt-2.5 leading-relaxed">{submission.message}</p>
               </div>
             ))}
           </div>

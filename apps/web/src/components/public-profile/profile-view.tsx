@@ -25,6 +25,15 @@ const BUTTON_RADIUS: Record<string, string> = {
   square: "rounded-none",
 };
 
+// Taller block containers (form, product card, video/music fallback) can't
+// use the same "pill" radius as a short link button — rounded-full on a tall
+// box distorts into a lens/circle shape, so it's capped at a card-sized radius.
+const CARD_RADIUS: Record<string, string> = {
+  rounded: "rounded-xl",
+  pill: "rounded-2xl",
+  square: "rounded-none",
+};
+
 const ANIMATION_VARIANTS: Record<string, Variants> = {
   fade: { hidden: { opacity: 0, y: 8 }, visible: { opacity: 1, y: 0 } },
   slide: { hidden: { opacity: 0, x: -24 }, visible: { opacity: 1, x: 0 } },
@@ -129,27 +138,34 @@ export function ProfileView({
   const animation = appearance.animation ?? base.animation ?? "fade";
   const layout = appearance.layout ?? appearance.theme?.layout ?? "list";
   const radius = BUTTON_RADIUS[buttonStyle] ?? "rounded-xl";
+  const cardRadius = CARD_RADIUS[buttonStyle] ?? "rounded-xl";
   const variants = ANIMATION_VARIANTS[animation] ?? ANIMATION_VARIANTS.fade;
 
+  const isInteractiveBlock = (type: LinkItem["type"]) =>
+    type === "VIDEO" || type === "MUSIC" || type === "FORM";
+
   function isWide(link: LinkItem) {
-    return layout === "grid" && (link.type === "VIDEO" || link.type === "MUSIC" || link.type === "FORM");
+    return layout === "grid" && isInteractiveBlock(link.type);
   }
 
   function renderBlock(link: LinkItem) {
     if (link.type === "VIDEO") {
       const embedUrl = link.url ? toVideoEmbedUrl(link.url) : null;
       return (
-        <div className={`overflow-hidden ${radius}`}>
+        <div className={`overflow-hidden ${cardRadius}`}>
           <p className="mb-1 text-sm font-medium">{link.title}</p>
           {embedUrl ? (
             <iframe
               src={embedUrl}
-              className={`aspect-video w-full ${radius}`}
+              className={`aspect-video w-full ${cardRadius}`}
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
             />
           ) : (
-            <div className={`flex aspect-video items-center justify-center border text-xs opacity-60 ${radius}`}>
+            <div
+              className={`flex aspect-video items-center justify-center border text-xs opacity-60 ${cardRadius}`}
+              style={{ borderColor: primaryColor }}
+            >
               URL de video no válida
             </div>
           )}
@@ -169,7 +185,10 @@ export function ProfileView({
               allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
             />
           ) : (
-            <div className={`flex h-24 items-center justify-center border text-xs opacity-60 ${radius}`}>
+            <div
+              className={`flex h-24 items-center justify-center border text-xs opacity-60 ${cardRadius}`}
+              style={{ borderColor: primaryColor }}
+            >
               URL de Spotify no válida
             </div>
           )}
@@ -179,7 +198,7 @@ export function ProfileView({
 
     if (link.type === "FORM") {
       return (
-        <FormBlock link={link} radius={radius} primaryColor={primaryColor} onContactSubmit={onContactSubmit} />
+        <FormBlock link={link} radius={cardRadius} primaryColor={primaryColor} onContactSubmit={onContactSubmit} />
       );
     }
 
@@ -190,7 +209,7 @@ export function ProfileView({
           target="_blank"
           rel="noreferrer"
           onClick={() => onLinkClick?.(link)}
-          className={`flex flex-col overflow-hidden border shadow-sm ${radius}`}
+          className={`flex flex-col overflow-hidden border shadow-sm outline-none transition-shadow focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current ${cardRadius}`}
           style={{ borderColor: primaryColor }}
         >
           {link.imageUrl && (
@@ -215,7 +234,7 @@ export function ProfileView({
         target="_blank"
         rel="noreferrer"
         onClick={() => onLinkClick?.(link)}
-        className={`block w-full border px-4 py-3.5 text-center text-sm font-medium backdrop-blur-md transition-transform ${radius}`}
+        className={`block w-full border px-4 py-3.5 text-center text-sm font-medium outline-none backdrop-blur-md transition-transform focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current ${radius}`}
         style={{ borderColor: `${primaryColor}33`, backgroundColor: `${primaryColor}14` }}
       >
         {link.title}
@@ -316,8 +335,8 @@ export function ProfileView({
             animate="visible"
             variants={variants}
             transition={{ duration: 0.3, delay: index * 0.05 }}
-            whileHover={link.type === "VIDEO" || link.type === "MUSIC" || link.type === "FORM" ? undefined : { scale: 1.02 }}
-            whileTap={link.type === "VIDEO" || link.type === "MUSIC" || link.type === "FORM" ? undefined : { scale: 0.98 }}
+            whileHover={isInteractiveBlock(link.type) ? undefined : { scale: 1.02 }}
+            whileTap={isInteractiveBlock(link.type) ? undefined : { scale: 0.98 }}
             className={isWide(link) ? "col-span-2" : undefined}
           >
             {renderBlock(link)}

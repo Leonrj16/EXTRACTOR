@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogFooter,
   DialogHeader,
@@ -11,6 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { NativeSelect } from "@/components/ui/native-select";
 import { LINK_TYPE_LABELS, type LinkItem, type LinkType } from "@/types/link";
 
 export interface LinkFormValues {
@@ -86,9 +88,8 @@ export function LinkFormDialog({ open, onOpenChange, link, onSubmit }: LinkFormD
         <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
           <div className="flex flex-col gap-2">
             <Label htmlFor="link-type">Tipo</Label>
-            <select
+            <NativeSelect
               id="link-type"
-              className="h-9 rounded-md border bg-background px-3 text-sm"
               value={values.type}
               onChange={(e) => setValues({ ...values, type: e.target.value as LinkType })}
             >
@@ -97,7 +98,7 @@ export function LinkFormDialog({ open, onOpenChange, link, onSubmit }: LinkFormD
                   {label}
                 </option>
               ))}
-            </select>
+            </NativeSelect>
           </div>
           <div className="flex flex-col gap-2">
             <Label htmlFor="link-title">Título</Label>
@@ -128,7 +129,7 @@ export function LinkFormDialog({ open, onOpenChange, link, onSubmit }: LinkFormD
           )}
 
           {isForm && (
-            <p className="rounded-md bg-muted p-3 text-xs text-muted-foreground">
+            <p className="rounded-xl border border-white/10 bg-white/[0.03] p-4 text-xs leading-relaxed text-muted-foreground">
               Este bloque muestra un formulario (nombre, email y mensaje) en tu página
               pública. Los mensajes enviados quedan guardados y los puedes ver desde la
               lista de enlaces.
@@ -173,6 +174,9 @@ export function LinkFormDialog({ open, onOpenChange, link, onSubmit }: LinkFormD
           )}
 
           <DialogFooter>
+            <DialogClose render={<Button type="button" variant="outline" />}>
+              Cancelar
+            </DialogClose>
             <Button type="submit" disabled={saving}>
               {saving ? "Guardando…" : "Guardar"}
             </Button>
