@@ -67,7 +67,7 @@ export function AdminHeader({
     <header className="glass flex items-center gap-3 rounded-2xl px-4 py-3.5 sm:gap-4 sm:px-5">
       <button
         onClick={onMenuClick}
-        className="flex size-10 shrink-0 items-center justify-center rounded-xl text-muted-foreground outline-none transition-colors hover:bg-white/[0.06] hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40 lg:hidden"
+        className="flex size-10 shrink-0 items-center justify-center rounded-xl text-muted-foreground outline-none transition-colors hover:bg-surface-5 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40 lg:hidden"
         aria-label="Abrir menú"
       >
         <Menu className="size-5" />
@@ -87,13 +87,13 @@ export function AdminHeader({
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={handleSearchKeyDown}
           placeholder="Ir a… (enlaces, diseño, analítica)"
-          className="border-white/10 bg-white/[0.03] pl-9"
+          className="border-border bg-surface-2 pl-9"
         />
       </div>
 
       <DropdownMenu>
         <DropdownMenuTrigger
-          className="flex size-10 shrink-0 items-center justify-center rounded-xl text-muted-foreground outline-none transition-colors hover:bg-white/[0.06] hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40"
+          className="flex size-10 shrink-0 items-center justify-center rounded-xl text-muted-foreground outline-none transition-colors hover:bg-surface-5 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40"
           aria-label="Notificaciones"
         >
           <Bell className="size-4.5" />

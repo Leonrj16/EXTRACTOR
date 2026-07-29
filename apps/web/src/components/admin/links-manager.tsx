@@ -148,7 +148,7 @@ export function LinksManager({ initialLinks }: { initialLinks: LinkItem[] }) {
       </div>
 
       {links.length === 0 ? (
-        <p className="rounded-xl border border-dashed border-white/10 p-8 text-center text-sm text-muted-foreground">
+        <p className="rounded-xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
           Todavía no tienes enlaces. Crea el primero.
         </p>
       ) : (

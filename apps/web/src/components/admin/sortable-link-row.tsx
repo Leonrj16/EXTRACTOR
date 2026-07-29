@@ -18,7 +18,7 @@ interface LinkRowProps {
 }
 
 const ICON_BUTTON =
-  "flex size-9 shrink-0 items-center justify-center rounded-lg text-muted-foreground outline-none transition-colors hover:bg-white/[0.07] hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40";
+  "flex size-9 shrink-0 items-center justify-center rounded-lg text-muted-foreground outline-none transition-colors hover:bg-surface-6 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40";
 
 export function LinkRow({
   link,
@@ -31,13 +31,13 @@ export function LinkRow({
 }: LinkRowProps) {
   return (
     <div
-      className={`flex items-center gap-3 rounded-xl border border-white/[0.07] bg-white/[0.025] p-4 transition-colors hover:border-white/[0.12] ${
+      className={`flex items-center gap-3 rounded-xl border border-border-subtle bg-surface-1 p-4 transition-colors hover:border-border-strong ${
         overlay ? "shadow-2xl" : ""
       }`}
     >
       <button
         {...dragHandleProps}
-        className="flex size-9 shrink-0 cursor-grab items-center justify-center rounded-lg text-muted-foreground outline-none transition-colors hover:bg-white/[0.07] hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40 active:cursor-grabbing"
+        className="flex size-9 shrink-0 cursor-grab items-center justify-center rounded-lg text-muted-foreground outline-none transition-colors hover:bg-surface-6 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40 active:cursor-grabbing"
         aria-label="Reordenar"
       >
         <GripVertical className="size-4" />

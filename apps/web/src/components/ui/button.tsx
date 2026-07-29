@@ -9,13 +9,13 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-gradient-aura text-white shadow-[0_1px_0_rgba(255,255,255,0.2)_inset,0_4px_20px_rgba(124,58,237,0.35)] hover:shadow-[0_1px_0_rgba(255,255,255,0.25)_inset,0_6px_28px_rgba(124,58,237,0.5)] hover:brightness-110",
+          "bg-gradient-aura text-white shadow-(--shadow-button) hover:shadow-(--shadow-button-hover) hover:brightness-110",
         outline:
-          "border-white/10 bg-white/[0.03] text-foreground backdrop-blur-sm hover:border-white/20 hover:bg-white/[0.07] aria-expanded:bg-white/[0.07]",
+          "border-border bg-surface-2 text-foreground backdrop-blur-sm hover:border-border-hover hover:bg-surface-6 aria-expanded:bg-surface-6",
         secondary:
-          "bg-secondary text-secondary-foreground ring-1 ring-white/[0.06] hover:bg-[color-mix(in_oklch,var(--secondary),white_6%)] aria-expanded:bg-secondary",
+          "bg-secondary text-secondary-foreground ring-1 ring-border-subtle hover:bg-[color-mix(in_oklch,var(--secondary),white_6%)] aria-expanded:bg-secondary",
         ghost:
-          "text-muted-foreground hover:bg-white/[0.06] hover:text-foreground aria-expanded:bg-white/[0.06] aria-expanded:text-foreground",
+          "text-muted-foreground hover:bg-surface-5 hover:text-foreground aria-expanded:bg-surface-5 aria-expanded:text-foreground",
         destructive:
           "bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20",
         link: "text-brand-purple-light underline-offset-4 hover:underline",

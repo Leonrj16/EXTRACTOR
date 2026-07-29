@@ -129,7 +129,7 @@ export function LinkFormDialog({ open, onOpenChange, link, onSubmit }: LinkFormD
           )}
 
           {isForm && (
-            <p className="rounded-xl border border-white/10 bg-white/[0.03] p-4 text-xs leading-relaxed text-muted-foreground">
+            <p className="rounded-xl border border-border bg-surface-2 p-4 text-xs leading-relaxed text-muted-foreground">
               Este bloque muestra un formulario (nombre, email y mensaje) en tu página
               pública. Los mensajes enviados quedan guardados y los puedes ver desde la
               lista de enlaces.

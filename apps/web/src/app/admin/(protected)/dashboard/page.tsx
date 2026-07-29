@@ -138,7 +138,7 @@ export default async function DashboardPage() {
         <div className="glass flex min-w-0 flex-col gap-4 rounded-2xl p-6">
           <h3 className="font-heading text-base font-semibold">Enlaces con más clics</h3>
           {summary.topLinks.length === 0 ? (
-            <p className="rounded-xl border border-dashed border-white/10 p-8 text-center text-sm text-muted-foreground">
+            <p className="rounded-xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
               Todavía no hay clics registrados esta semana.
             </p>
           ) : (
@@ -146,9 +146,9 @@ export default async function DashboardPage() {
               {summary.topLinks.map((link, index) => (
                 <li
                   key={link.linkId}
-                  className="flex min-w-0 items-center gap-3 rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3"
+                  className="flex min-w-0 items-center gap-3 rounded-xl border border-border-subtle bg-surface-1 px-4 py-3"
                 >
-                  <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-white/[0.06] text-xs font-semibold text-muted-foreground">
+                  <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-surface-5 text-xs font-semibold text-muted-foreground">
                     {index + 1}
                   </span>
                   <span className="min-w-0 flex-1 truncate text-sm font-medium">{link.title}</span>

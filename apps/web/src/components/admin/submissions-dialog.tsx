@@ -38,11 +38,11 @@ export function SubmissionsDialog({
           <DialogTitle>Mensajes — {link?.title}</DialogTitle>
         </DialogHeader>
         {loading ? (
-          <p className="rounded-xl border border-dashed border-white/10 p-8 text-center text-sm text-muted-foreground">
+          <p className="rounded-xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
             Cargando…
           </p>
         ) : submissions.length === 0 ? (
-          <p className="rounded-xl border border-dashed border-white/10 p-8 text-center text-sm text-muted-foreground">
+          <p className="rounded-xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
             Todavía no hay mensajes.
           </p>
         ) : (
@@ -50,7 +50,7 @@ export function SubmissionsDialog({
             {submissions.map((submission) => (
               <div
                 key={submission.id}
-                className="rounded-xl border border-white/[0.07] bg-white/[0.025] p-4 text-sm"
+                className="rounded-xl border border-border-subtle bg-surface-1 p-4 text-sm"
               >
                 <div className="flex items-center justify-between gap-3">
                   <span className="font-medium">{submission.name}</span>

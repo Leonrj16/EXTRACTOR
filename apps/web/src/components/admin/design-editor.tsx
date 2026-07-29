@@ -83,9 +83,9 @@ function ColorField({
   return (
     <div className="flex flex-col gap-2">
       <Label htmlFor={id}>{label}</Label>
-      <div className="relative flex h-10 items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-2">
+      <div className="relative flex h-10 items-center gap-2 rounded-xl border border-border bg-surface-2 px-2">
         <div
-          className="size-6 shrink-0 rounded-lg border border-white/20"
+          className="size-6 shrink-0 rounded-lg border border-border-hover"
           style={{ backgroundColor: value }}
         />
         <span className="text-sm text-muted-foreground uppercase">{value}</span>
@@ -187,7 +187,7 @@ export function DesignEditor({ initialProfile, initialAppearance, themes, links 
   return (
     <div className="glass grid overflow-hidden rounded-2xl lg:grid-cols-[220px_1fr_360px]">
       {/* Left rail — sections */}
-      <div className="flex gap-1 border-b border-white/[0.06] p-3 lg:flex-col lg:border-b-0 lg:border-r lg:p-4">
+      <div className="flex gap-1 border-b border-border-subtle p-3 lg:flex-col lg:border-b-0 lg:border-r lg:p-4">
         {TABS.map(({ id, label, icon: Icon }) => (
           <button
             key={id}
@@ -196,8 +196,8 @@ export function DesignEditor({ initialProfile, initialAppearance, themes, links 
             className={cn(
               "flex flex-1 items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring/40 lg:flex-none",
               activeTab === id
-                ? "bg-white/[0.07] text-foreground"
-                : "text-muted-foreground hover:bg-white/[0.04] hover:text-foreground",
+                ? "bg-surface-6 text-foreground"
+                : "text-muted-foreground hover:bg-surface-3 hover:text-foreground",
             )}
           >
             <Icon className="size-4" />
@@ -207,11 +207,11 @@ export function DesignEditor({ initialProfile, initialAppearance, themes, links 
       </div>
 
       {/* Center — active panel */}
-      <div className="flex flex-col gap-4 border-b border-white/[0.06] p-6 lg:border-b-0 lg:border-r">
+      <div className="flex flex-col gap-4 border-b border-border-subtle p-6 lg:border-b-0 lg:border-r">
         {activeTab === "profile" && (
           <>
             <div className="flex items-center gap-4">
-              <div className="size-16 shrink-0 overflow-hidden rounded-full bg-white/[0.06]">
+              <div className="size-16 shrink-0 overflow-hidden rounded-full bg-surface-5">
                 {profile.avatarUrl && (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={profile.avatarUrl} alt="" className="h-full w-full object-cover" />
@@ -357,7 +357,7 @@ export function DesignEditor({ initialProfile, initialAppearance, themes, links 
         <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
           Vista previa en vivo
         </p>
-        <div className="glow-purple-sm mx-auto w-[300px] overflow-hidden rounded-[2.2rem] border-4 border-white/10">
+        <div className="glow-purple-sm mx-auto w-[300px] overflow-hidden rounded-[2.2rem] border-4 border-border">
           <div className="h-[560px] overflow-y-auto">
             <ProfileView profile={profile} appearance={appearance} links={links} />
           </div>

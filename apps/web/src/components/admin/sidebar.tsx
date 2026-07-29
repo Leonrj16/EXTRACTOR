@@ -67,7 +67,7 @@ export function AdminSidebar({
                   "relative z-10 flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
                   isActive
                     ? "text-white"
-                    : "text-muted-foreground hover:bg-white/[0.06] hover:text-foreground",
+                    : "text-muted-foreground hover:bg-surface-5 hover:text-foreground",
                 )}
               >
                 <Icon className="size-4.5" />
@@ -78,25 +78,25 @@ export function AdminSidebar({
         })}
       </nav>
 
-      <div className="flex flex-col gap-1 border-t border-white/[0.08] pt-3">
+      <div className="flex flex-col gap-1 border-t border-border pt-3">
         <a
           href={`/${profile.username}`}
           target="_blank"
           rel="noreferrer"
-          className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium text-muted-foreground outline-none transition-colors hover:bg-white/[0.06] hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40"
+          className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium text-muted-foreground outline-none transition-colors hover:bg-surface-5 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40"
         >
           <ExternalLink className="size-4.5" />
           Ver página pública
         </a>
         <button
           onClick={handleLogout}
-          className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-muted-foreground outline-none transition-colors hover:bg-white/[0.06] hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40"
+          className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-muted-foreground outline-none transition-colors hover:bg-surface-5 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40"
         >
           <LogOut className="size-4.5" />
           Cerrar sesión
         </button>
 
-        <div className="mt-2 flex items-center gap-2.5 rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-2.5">
+        <div className="mt-2 flex items-center gap-2.5 rounded-xl border border-border bg-surface-2 px-3 py-2.5">
           <div className="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gradient-aura text-xs font-semibold text-white">
             {profile.avatarUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
