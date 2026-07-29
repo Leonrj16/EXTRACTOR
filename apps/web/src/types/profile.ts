@@ -29,5 +29,7 @@ export interface AppearanceData {
   fontFamily: string | null;
   animation: string | null;
   layout: string | null;
-  theme?: ThemeData & { baseConfig: Record<string, string> };
+  theme?: ThemeData & {
+    baseConfig: Record<string, string> & { aurora?: boolean };
+  };
 }

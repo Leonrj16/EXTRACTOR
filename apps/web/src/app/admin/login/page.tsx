@@ -3,8 +3,10 @@
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
+import { AuroraBackground } from "@/components/brand/aurora-background";
+import { Logo } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -37,17 +39,25 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center px-4">
+    <main className="relative flex min-h-screen items-center justify-center px-4">
+      <AuroraBackground />
       <motion.div
-        initial={{ opacity: 0, y: 12 }}
+        initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, ease: "easeOut" }}
+        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
         className="w-full max-w-sm"
       >
-        <Card>
-          <CardHeader>
-            <CardTitle>Iniciar sesión</CardTitle>
-          </CardHeader>
+        <div className="mb-8 flex flex-col items-center gap-3 text-center">
+          <Logo />
+          <div>
+            <h1 className="font-heading text-xl font-semibold">Bienvenido de nuevo</h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Entra a tu panel para seguir creando.
+            </p>
+          </div>
+        </div>
+
+        <Card className="p-2">
           <CardContent>
             <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
               <div className="flex flex-col gap-2">
@@ -73,7 +83,7 @@ export default function AdminLoginPage() {
                 />
               </div>
               {error && <p className="text-sm text-destructive">{error}</p>}
-              <Button type="submit" className="w-full" disabled={loading}>
+              <Button type="submit" size="lg" className="mt-1 w-full" disabled={loading}>
                 {loading ? "Entrando…" : "Entrar"}
               </Button>
             </form>

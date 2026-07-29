@@ -215,17 +215,19 @@ export function ProfileView({
         target="_blank"
         rel="noreferrer"
         onClick={() => onLinkClick?.(link)}
-        className={`block w-full border px-4 py-3 text-center text-sm font-medium shadow-sm ${radius}`}
-        style={{ borderColor: primaryColor, backgroundColor: `${primaryColor}0d` }}
+        className={`block w-full border px-4 py-3.5 text-center text-sm font-medium backdrop-blur-md transition-transform ${radius}`}
+        style={{ borderColor: `${primaryColor}33`, backgroundColor: `${primaryColor}14` }}
       >
         {link.title}
       </a>
     );
   }
 
+  const isAurora = Boolean(base.aurora);
+
   return (
     <div
-      className={`flex min-h-full flex-col items-center gap-6 px-6 py-14 text-center ${className ?? ""}`}
+      className={`relative flex min-h-full flex-col items-center gap-6 overflow-hidden px-6 py-14 text-center ${className ?? ""}`}
       style={{
         backgroundColor,
         color: primaryColor,
@@ -234,12 +236,35 @@ export function ProfileView({
         backgroundSize: "cover",
       }}
     >
+      {isAurora && (
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          <div className="absolute left-[-20%] top-[-15%] size-[70%] animate-[aurora-drift-1_22s_ease-in-out_infinite] rounded-full bg-brand-purple/40 blur-[90px]" />
+          <div className="absolute right-[-20%] top-[5%] size-[65%] animate-[aurora-drift-2_26s_ease-in-out_infinite] rounded-full bg-brand-blue/30 blur-[100px]" />
+          <div className="absolute bottom-[-25%] left-[10%] size-[60%] animate-[aurora-drift-3_30s_ease-in-out_infinite] rounded-full bg-brand-cyan/20 blur-[100px]" />
+        </div>
+      )}
+
+      {profile.coverUrl && (
+        <div className="absolute inset-x-0 top-0 h-32 overflow-hidden">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={profile.coverUrl} alt="" className="h-full w-full object-cover opacity-70" />
+          <div
+            className="absolute inset-0"
+            style={{ background: `linear-gradient(to bottom, transparent, ${backgroundColor})` }}
+          />
+        </div>
+      )}
+
       <motion.div
         initial="hidden"
         animate="visible"
         variants={variants}
-        className="h-24 w-24 overflow-hidden rounded-full border-2"
-        style={{ borderColor: primaryColor }}
+        className="relative z-10 h-24 w-24 overflow-hidden rounded-full border-2"
+        style={{
+          borderColor: primaryColor,
+          boxShadow: isAurora ? `0 0 32px ${primaryColor}66` : undefined,
+          marginTop: profile.coverUrl ? "1.5rem" : undefined,
+        }}
       >
         {profile.avatarUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -249,13 +274,13 @@ export function ProfileView({
         )}
       </motion.div>
 
-      <div>
+      <div className="relative z-10">
         <h1 className="text-xl font-semibold">{profile.displayName}</h1>
         {profile.bio && <p className="mt-2 max-w-xs text-sm opacity-80">{profile.bio}</p>}
       </div>
 
       {(profile.location || profile.contactEmail || profile.whatsapp) && (
-        <div className="flex flex-wrap items-center justify-center gap-3 text-xs opacity-70">
+        <div className="relative z-10 flex flex-wrap items-center justify-center gap-3 text-xs opacity-70">
           {profile.location && (
             <span className="flex items-center gap-1">
               <MapPin className="size-3.5" />
@@ -280,8 +305,8 @@ export function ProfileView({
       <div
         className={
           layout === "grid"
-            ? "grid w-full max-w-sm grid-cols-2 gap-3"
-            : "flex w-full max-w-sm flex-col gap-3"
+            ? "relative z-10 grid w-full max-w-sm grid-cols-2 gap-3"
+            : "relative z-10 flex w-full max-w-sm flex-col gap-3"
         }
       >
         {links.map((link, index) => (

@@ -2,13 +2,14 @@
 
 import { useRef, useState } from "react";
 import { toast } from "sonner";
+import { User, Palette, LayoutGrid } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ProfileView } from "@/components/public-profile/profile-view";
 import { adminFetch } from "@/lib/api-client";
+import { cn } from "@/lib/utils";
 import type { LinkItem } from "@/types/link";
 import type { AppearanceData, ProfileData, ThemeData } from "@/types/profile";
 
@@ -32,6 +33,78 @@ const ANIMATIONS = [
   { value: "none", label: "Sin animación" },
 ];
 
+const TABS = [
+  { id: "profile", label: "Perfil", icon: User },
+  { id: "theme", label: "Tema", icon: Palette },
+  { id: "structure", label: "Estructura", icon: LayoutGrid },
+] as const;
+
+type TabId = (typeof TABS)[number]["id"];
+
+function FieldSelect({
+  id,
+  label,
+  value,
+  onChange,
+  options,
+}: {
+  id: string;
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  options: Array<{ value: string; label: string }>;
+}) {
+  return (
+    <div className="flex flex-col gap-2">
+      <Label htmlFor={id}>{label}</Label>
+      <select
+        id={id}
+        className="h-10 rounded-xl border border-white/10 bg-white/[0.03] px-3 text-sm outline-none focus-visible:border-ring"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+      >
+        {options.map((option) => (
+          <option key={option.value} value={option.value} className="bg-[#12131c]">
+            {option.label}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
+function ColorField({
+  id,
+  label,
+  value,
+  onChange,
+}: {
+  id: string;
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <div className="flex flex-col gap-2">
+      <Label htmlFor={id}>{label}</Label>
+      <div className="relative flex h-10 items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-2">
+        <div
+          className="size-6 shrink-0 rounded-lg border border-white/20"
+          style={{ backgroundColor: value }}
+        />
+        <span className="text-sm text-muted-foreground uppercase">{value}</span>
+        <input
+          id={id}
+          type="color"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+        />
+      </div>
+    </div>
+  );
+}
+
 interface DesignEditorProps {
   initialProfile: ProfileData;
   initialAppearance: AppearanceData;
@@ -42,6 +115,7 @@ interface DesignEditorProps {
 export function DesignEditor({ initialProfile, initialAppearance, themes, links }: DesignEditorProps) {
   const [profile, setProfile] = useState(initialProfile);
   const [appearance, setAppearance] = useState(initialAppearance);
+  const [activeTab, setActiveTab] = useState<TabId>("profile");
   const [savingProfile, setSavingProfile] = useState(false);
   const [savingAppearance, setSavingAppearance] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -115,15 +189,32 @@ export function DesignEditor({ initialProfile, initialAppearance, themes, links 
   const base = appearance.theme?.baseConfig ?? {};
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
-      <div className="flex flex-col gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Perfil</CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-4">
+    <div className="glass grid overflow-hidden rounded-2xl lg:grid-cols-[220px_1fr_360px]">
+      {/* Left rail — sections */}
+      <div className="flex gap-1 border-b border-white/[0.06] p-3 lg:flex-col lg:border-b-0 lg:border-r lg:p-4">
+        {TABS.map(({ id, label, icon: Icon }) => (
+          <button
+            key={id}
+            onClick={() => setActiveTab(id)}
+            className={cn(
+              "flex flex-1 items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors lg:flex-none",
+              activeTab === id
+                ? "bg-white/[0.07] text-foreground"
+                : "text-muted-foreground hover:bg-white/[0.04] hover:text-foreground",
+            )}
+          >
+            <Icon className="size-4" />
+            <span className="hidden sm:inline">{label}</span>
+          </button>
+        ))}
+      </div>
+
+      {/* Center — active panel */}
+      <div className="flex flex-col gap-5 border-b border-white/[0.06] p-6 lg:border-b-0 lg:border-r">
+        {activeTab === "profile" && (
+          <>
             <div className="flex items-center gap-4">
-              <div className="h-16 w-16 overflow-hidden rounded-full bg-muted">
+              <div className="h-16 w-16 overflow-hidden rounded-full bg-white/[0.06]">
                 {profile.avatarUrl && (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={profile.avatarUrl} alt="" className="h-full w-full object-cover" />
@@ -195,132 +286,82 @@ export function DesignEditor({ initialProfile, initialAppearance, themes, links 
             <Button onClick={handleSaveProfile} disabled={savingProfile} className="w-fit">
               {savingProfile ? "Guardando…" : "Guardar perfil"}
             </Button>
-          </CardContent>
-        </Card>
+          </>
+        )}
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Apariencia</CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-4">
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="theme">Plantilla</Label>
-              <select
-                id="theme"
-                className="h-9 rounded-md border bg-background px-3 text-sm"
-                value={appearance.themeId}
-                onChange={(e) => setAppearance({ ...appearance, themeId: e.target.value })}
-              >
-                {themes.map((theme) => (
-                  <option key={theme.id} value={theme.id}>
-                    {theme.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
+        {activeTab === "theme" && (
+          <>
+            <FieldSelect
+              id="theme"
+              label="Plantilla"
+              value={appearance.themeId}
+              onChange={(value) => setAppearance({ ...appearance, themeId: value })}
+              options={themes.map((theme) => ({ value: theme.id, label: theme.name }))}
+            />
             <div className="grid gap-4 sm:grid-cols-2">
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="primaryColor">Color principal</Label>
-                <Input
-                  id="primaryColor"
-                  type="color"
-                  className="h-9 w-full p-1"
-                  value={appearance.primaryColor ?? base.primaryColor ?? "#111827"}
-                  onChange={(e) => setAppearance({ ...appearance, primaryColor: e.target.value })}
-                />
-              </div>
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="backgroundColor">Color de fondo</Label>
-                <Input
-                  id="backgroundColor"
-                  type="color"
-                  className="h-9 w-full p-1"
-                  value={appearance.backgroundColor ?? base.backgroundColor ?? "#ffffff"}
-                  onChange={(e) => setAppearance({ ...appearance, backgroundColor: e.target.value })}
-                />
-              </div>
+              <ColorField
+                id="primaryColor"
+                label="Color principal"
+                value={appearance.primaryColor ?? base.primaryColor ?? "#111827"}
+                onChange={(value) => setAppearance({ ...appearance, primaryColor: value })}
+              />
+              <ColorField
+                id="backgroundColor"
+                label="Color de fondo"
+                value={appearance.backgroundColor ?? base.backgroundColor ?? "#ffffff"}
+                onChange={(value) => setAppearance({ ...appearance, backgroundColor: value })}
+              />
             </div>
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="buttonStyle">Estilo de botones</Label>
-                <select
-                  id="buttonStyle"
-                  className="h-9 rounded-md border bg-background px-3 text-sm"
-                  value={appearance.buttonStyle ?? base.buttonStyle ?? "rounded"}
-                  onChange={(e) => setAppearance({ ...appearance, buttonStyle: e.target.value })}
-                >
-                  {BUTTON_STYLES.map((style) => (
-                    <option key={style.value} value={style.value}>
-                      {style.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="fontFamily">Tipografía</Label>
-                <select
-                  id="fontFamily"
-                  className="h-9 rounded-md border bg-background px-3 text-sm"
-                  value={appearance.fontFamily ?? base.fontFamily ?? "Inter"}
-                  onChange={(e) => setAppearance({ ...appearance, fontFamily: e.target.value })}
-                >
-                  {FONTS.map((font) => (
-                    <option key={font} value={font}>
-                      {font}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="layout">Estructura de plantilla</Label>
-                <select
-                  id="layout"
-                  className="h-9 rounded-md border bg-background px-3 text-sm"
-                  value={appearance.layout ?? appearance.theme?.layout ?? "list"}
-                  onChange={(e) => setAppearance({ ...appearance, layout: e.target.value })}
-                >
-                  {LAYOUTS.map((layout) => (
-                    <option key={layout.value} value={layout.value}>
-                      {layout.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="animation">Animación de entrada</Label>
-                <select
-                  id="animation"
-                  className="h-9 rounded-md border bg-background px-3 text-sm"
-                  value={appearance.animation ?? base.animation ?? "fade"}
-                  onChange={(e) => setAppearance({ ...appearance, animation: e.target.value })}
-                >
-                  {ANIMATIONS.map((animation) => (
-                    <option key={animation.value} value={animation.value}>
-                      {animation.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
+            <FieldSelect
+              id="fontFamily"
+              label="Tipografía"
+              value={appearance.fontFamily ?? base.fontFamily ?? "Inter"}
+              onChange={(value) => setAppearance({ ...appearance, fontFamily: value })}
+              options={FONTS.map((font) => ({ value: font, label: font }))}
+            />
             <Button onClick={handleSaveAppearance} disabled={savingAppearance} className="w-fit">
               {savingAppearance ? "Guardando…" : "Guardar apariencia"}
             </Button>
-          </CardContent>
-        </Card>
+          </>
+        )}
+
+        {activeTab === "structure" && (
+          <>
+            <FieldSelect
+              id="buttonStyle"
+              label="Estilo de botones"
+              value={appearance.buttonStyle ?? base.buttonStyle ?? "rounded"}
+              onChange={(value) => setAppearance({ ...appearance, buttonStyle: value })}
+              options={BUTTON_STYLES}
+            />
+            <FieldSelect
+              id="layout"
+              label="Estructura de plantilla"
+              value={appearance.layout ?? appearance.theme?.layout ?? "list"}
+              onChange={(value) => setAppearance({ ...appearance, layout: value })}
+              options={LAYOUTS}
+            />
+            <FieldSelect
+              id="animation"
+              label="Animación de entrada"
+              value={appearance.animation ?? base.animation ?? "fade"}
+              onChange={(value) => setAppearance({ ...appearance, animation: value })}
+              options={ANIMATIONS}
+            />
+            <Button onClick={handleSaveAppearance} disabled={savingAppearance} className="w-fit">
+              {savingAppearance ? "Guardando…" : "Guardar apariencia"}
+            </Button>
+          </>
+        )}
       </div>
 
-      <div className="lg:sticky lg:top-12 lg:self-start">
-        <p className="mb-2 text-center text-xs font-medium uppercase tracking-wide text-muted-foreground">
-          Vista previa
+      {/* Right — live preview */}
+      <div className="flex flex-col items-center gap-3 bg-black/20 p-6">
+        <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+          Vista previa en vivo
         </p>
-        <div className="mx-auto w-[320px] overflow-hidden rounded-[2rem] border-8 border-foreground/10 shadow-xl">
-          <div className="h-[600px] overflow-y-auto">
+        <div className="glow-purple-sm mx-auto w-[300px] overflow-hidden rounded-[2.2rem] border-4 border-white/10">
+          <div className="h-[560px] overflow-y-auto">
             <ProfileView profile={profile} appearance={appearance} links={links} />
           </div>
         </div>

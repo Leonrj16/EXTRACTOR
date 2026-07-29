@@ -205,6 +205,32 @@ src/
   y `baseConfig`), sin tocar código; nuevos `layout`s (además de "list" y
   "grid") sí requieren un caso nuevo en `ProfileView`.
 
+## 4.3 Marca y sistema de diseño — "Aura"
+
+Identidad visual propia (no inspirada en ningún producto existente), estilo
+"Neo Glass Premium": fondo casi negro, auroras difuminadas animadas, tarjetas
+de vidrio (`backdrop-blur` + borde translúcido + glow) y acentos en gradiente
+morado → azul → cian.
+
+- **Tokens**: todo vive en `apps/web/src/app/globals.css` como variables CSS
+  (`@theme`/`:root`). Cambiar la marca es cambiar valores ahí — los
+  componentes shadcn (`Button`, `Card`, `Input`...) los consumen vía clases
+  semánticas (`bg-primary`, `bg-card`, etc.), así que heredan la identidad
+  automáticamente sin tocar cada componente.
+- **Tipografía**: Space Grotesk para títulos (`font-heading`), Inter para
+  cuerpo (`font-sans`) — cargadas con `next/font/google` en `layout.tsx`.
+- **Utilidades reutilizables**: `.glass` / `.glass-strong` (superficie de
+  vidrio), `.glow-purple` / `.glow-purple-sm`, `.text-gradient-aura` /
+  `.bg-gradient-aura`, y los keyframes `aurora-drift-*` que mueven los blobs
+  de fondo en `components/brand/aurora-background.tsx`.
+- **Marca temporal**: `components/brand/logo.tsx` — un logomark simple
+  (orbe con glow) + wordmark en gradiente. Pensado para reemplazarse por un
+  logo real sin tocar el resto del sistema.
+- El tema público `aura-glow` (sembrado por defecto) es el único que activa
+  el fondo de aurora en `ProfileView` (`baseConfig.aurora: true`); los demás
+  temas siguen siendo planos para quien prefiera un look distinto — la marca
+  del panel admin no fuerza el estilo de las páginas públicas de cada perfil.
+
 ## 5. Preparado para SaaS (sin implementarlo ahora)
 
 No se implementa pagos/planes/suscripciones, pero el diseño no los bloquea:

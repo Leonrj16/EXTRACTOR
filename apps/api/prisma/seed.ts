@@ -52,6 +52,19 @@ const THEMES = [
       animation: 'bounce',
     },
   },
+  {
+    key: 'aura-glow',
+    name: 'Aura Glow',
+    layout: 'list',
+    baseConfig: {
+      primaryColor: '#f4f5fb',
+      backgroundColor: '#07080c',
+      buttonStyle: 'pill',
+      fontFamily: 'Space Grotesk',
+      animation: 'bounce',
+      aurora: true,
+    },
+  },
 ];
 
 async function main() {
@@ -83,7 +96,7 @@ async function main() {
   });
 
   const defaultTheme = await prisma.theme.findUniqueOrThrow({
-    where: { key: 'minimal-light' },
+    where: { key: 'aura-glow' },
   });
 
   await prisma.appearance.upsert({

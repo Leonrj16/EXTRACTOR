@@ -12,8 +12,8 @@ export default async function DesignPage() {
   ]);
 
   return (
-    <main className="px-8 py-12">
-      <h1 className="mb-8 text-2xl font-semibold">Editor visual</h1>
+    <main className="flex flex-col gap-6 px-1 pb-8">
+      <h1 className="font-heading text-2xl font-semibold">Editor visual</h1>
       <DesignEditor
         initialProfile={profile}
         initialAppearance={appearance}
