@@ -42,7 +42,8 @@ en lugar de por número mágico.
     ├── dropdowns.md
     ├── sidebar.md
     ├── navbar.md
-    └── tables.md
+    ├── tables.md
+    └── accordion.md
 ```
 
 ## Cómo se conecta con el código

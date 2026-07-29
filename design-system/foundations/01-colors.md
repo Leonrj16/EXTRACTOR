@@ -68,7 +68,19 @@ esta escala — nunca de un `bg-white/[0.0X]` escrito a mano.
 | `surface-4` | 0.05 | Fill en foco | `Input`/`Textarea`/`Select` al enfocar |
 | `surface-5` | 0.06 | Fill en hover | Ítem de sidebar, ícono del header, `Badge` secundario |
 | `surface-6` | 0.07 | Fill activo/presionado | Ítem de dropdown en foco, botón `ghost`/`outline` en hover, tab activo del editor |
-| `surface-strong` | sólido `rgba(12,13,20,0.82)` | Popovers/diálogos | `.glass-strong` (Dialog, DropdownMenu) |
+| `surface-strong` | sólido `#0a0b11` (opacidad 1) | Popovers/diálogos | `.glass-strong` (Dialog, DropdownMenu, menú móvil del navbar de marketing) |
+
+`surface-strong` es **totalmente opaco, no "casi"**. Se probó con 0.82 y
+luego con 0.99 de opacidad contra el título grande y brillante del hero de
+marketing, y en ambos casos un fantasma legible del texto seguía
+atravesando el panel — el alpha-blending en espacio gamma oscurece mucho
+menos de lo que el porcentaje sugiere, y `backdrop-filter: blur` no es una
+barrera confiable porque no se renderiza en todos los entornos (ajustes de
+accesibilidad `prefers-reduced-transparency`, navegadores antiguos,
+algunos renderizadores headless/sin GPU). Un popover que a veces no se lee
+es peor que uno que nunca es translúcido: `surface-strong` es sólido, y el
+`blur(24px)` de `.glass-strong` queda como un matiz de profundidad en los
+bordes donde sí se soporta — nunca como lo único que garantiza legibilidad.
 
 ## Escala de bordes
 

@@ -23,6 +23,10 @@
   }
   html {
     color-scheme: dark;
+    scroll-behavior: smooth;
+    /* Keeps anchor-link targets (marketing navbar, hero "Ver demo") clear of
+       the fixed MarketingNavbar instead of tucking their heading under it. */
+    scroll-padding-top: 6.5rem;
   }
   body {
     @apply bg-background font-sans text-foreground;

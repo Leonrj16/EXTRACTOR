@@ -1,27 +1,31 @@
-import Link from "next/link";
-import { AuroraBackground } from "@/components/brand/aurora-background";
-import { Logo } from "@/components/brand/logo";
-import { buttonVariants } from "@/components/ui/button";
+import { MarketingNavbar } from "@/components/marketing/navbar";
+import { Hero } from "@/components/marketing/hero";
+import { InteractiveDemo } from "@/components/marketing/interactive-demo";
+import { Benefits } from "@/components/marketing/benefits";
+import { HowItWorks } from "@/components/marketing/how-it-works";
+import { Templates } from "@/components/marketing/templates";
+import { BlocksShowcase } from "@/components/marketing/blocks-showcase";
+import { Testimonials } from "@/components/marketing/testimonials";
+import { Faq } from "@/components/marketing/faq";
+import { FinalCta } from "@/components/marketing/final-cta";
+import { MarketingFooter } from "@/components/marketing/footer";
 
 export default function LandingPage() {
   return (
-    <main className="relative flex min-h-screen flex-col items-center justify-center gap-8 px-6 text-center">
-      <AuroraBackground />
-      <Logo className="scale-125" />
-      <div className="flex flex-col items-center gap-4">
-        <h1 className="max-w-2xl font-heading text-5xl font-semibold tracking-tight sm:text-6xl">
-          Tu presencia,
-          <br />
-          <span className="text-gradient-aura">en un solo lugar.</span>
-        </h1>
-        <p className="max-w-md text-balance text-muted-foreground">
-          Una página que se siente tan tuya como tu marca. Enlaces, productos,
-          video y contacto — todo en una experiencia con identidad propia.
-        </p>
-      </div>
-      <Link href="/admin/login" className={buttonVariants({ size: "lg" })}>
-        Entrar al panel
-      </Link>
-    </main>
+    <div className="relative overflow-x-clip">
+      <MarketingNavbar />
+      <main>
+        <Hero />
+        <InteractiveDemo />
+        <Benefits />
+        <HowItWorks />
+        <Templates />
+        <BlocksShowcase />
+        <Testimonials />
+        <Faq />
+        <FinalCta />
+      </main>
+      <MarketingFooter />
+    </div>
   );
 }

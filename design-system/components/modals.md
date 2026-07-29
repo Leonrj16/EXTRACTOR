@@ -40,7 +40,7 @@ modal con `position: fixed` a mano.
 Un Dialog **flota sobre** otra superficie (la página que quedó detrás,
 oscurecida por el overlay), mientras que una Card **vive al mismo nivel**
 que el fondo de la página. Por eso Dialog usa el segundo nivel de
-elevación (`--shadow-surface-strong`, blur 24px, fondo casi opaco
+elevación (`--shadow-surface-strong`, blur 24px, fondo sólido
 `surface-strong`) en vez del primero — ver
 `foundations/06-shadows-elevation.md`. Esta misma regla aplica a
 `DropdownMenuContent`.

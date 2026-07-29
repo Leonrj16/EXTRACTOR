@@ -104,7 +104,18 @@
   --color-surface-4: rgba(255, 255, 255, 0.05);
   --color-surface-5: rgba(255, 255, 255, 0.06);
   --color-surface-6: rgba(255, 255, 255, 0.07);
-  --color-surface-strong: rgba(12, 13, 20, 0.82);
+  /* Fully opaque on purpose — not "almost". Testing against the marketing
+     hero's bright, bold heading proved that even 99% alpha still lets a
+     legible ghost of high-contrast text bleed through (alpha blending in
+     gamma space is not linear — it darkens far less than the percentage
+     suggests), and backdrop-filter cannot be relied on to hide the rest:
+     it doesn't render at all in every environment (reduced-transparency
+     settings, older browsers, some headless/GPU-less renderers). A
+     popover that is sometimes unreadable is worse than one that is never
+     translucent, so this is solid. blur(24px) stays on `.glass-strong`
+     as a soft depth cue at the edges where it *is* supported — it is not
+     load-bearing for legibility. */
+  --color-surface-strong: rgba(10, 11, 17, 1);
 
   /* ---------------------------------------------------------------
    * Border scale — same idea, for hairline borders.
