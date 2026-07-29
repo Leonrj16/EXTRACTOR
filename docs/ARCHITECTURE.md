@@ -126,6 +126,25 @@ Cada carpeta de `modules/*` es autocontenida (`*.module.ts`, `*.controller.ts`,
   IP para evitar scraping).
 - `/api/public/:username/track` → registra visitas/clics (analítica),
   también sin auth pero con rate limiting.
+- `/api/public/:username/contact` → envío de formularios de contacto (bloque
+  `FORM`), también sin auth, con rate limiting propio y persistido en
+  `ContactSubmission` (sin depender de un proveedor de email externo).
+
+> **Usernames reservados**: como el perfil público vive en `/:username` al
+> mismo nivel que `/admin` y `/api`, un username igual a una ruta reservada
+> del frontend quedaría inalcanzable (el middleware de `/admin/**` lo
+> interceptaría antes de llegar a la página pública). `ProfilesService`
+> valida esto contra `common/constants/reserved-usernames.ts` — al agregar
+> una ruta nueva de primer nivel en `apps/web/src/app/`, súmala también ahí.
+
+### 3.5 Bloques de enlace (tipos)
+
+`Link.type` cubre: `LINK`, `SOCIAL`, `WHATSAPP`, `EMAIL`, `LOCATION` (botón
+genérico), `PRODUCT` (imagen + precio vía `metadata`), `FORM` (formulario
+inline, ver arriba), `VIDEO` (embed de YouTube/Vimeo) y `MUSIC` (embed de
+Spotify). Agregar un tipo nuevo no requiere una tabla nueva: se añade al enum
+`LinkType`, se define cómo se renderiza en `ProfileView` (frontend) y, si
+necesita datos propios, se guardan en `Link.metadata` (JSON).
 
 ## 4. Frontend (Next.js 15)
 
@@ -178,8 +197,13 @@ src/
 - Framer Motion para micro-interacciones (entrada de botones, hover states,
   transición del editor).
 - El editor visual escribe una configuración de `Appearance` (colores, fondo,
-  tipografía, plantilla) que la página pública consume — el mismo modelo de
-  datos alimenta preview en vivo dentro del admin y el render público.
+  tipografía, plantilla, `layout` — lista o grid, y `animation` — fade/slide/
+  bounce/none) que la página pública consume — el mismo componente
+  `ProfileView` renderiza tanto el preview en vivo del admin como la página
+  pública real, así que nunca pueden desincronizarse.
+- Nuevas plantillas se agregan como filas de `Theme` (con su propio `layout`
+  y `baseConfig`), sin tocar código; nuevos `layout`s (además de "list" y
+  "grid") sí requieren un caso nuevo en `ProfileView`.
 
 ## 5. Preparado para SaaS (sin implementarlo ahora)
 

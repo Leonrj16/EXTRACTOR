@@ -4,6 +4,7 @@ import { Public } from '../../common/decorators/public.decorator';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AnalyticsService } from '../analytics/analytics.service';
 import { TrackEventDto } from '../analytics/dto/track-event.dto';
+import { SubmitContactDto } from './dto/submit-contact.dto';
 import { PublicService } from './public.service';
 
 @Public()
@@ -53,5 +54,11 @@ export class PublicController {
     });
 
     return { ok: true };
+  }
+
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  @Post(':username/contact')
+  submitContact(@Param('username') username: string, @Body() dto: SubmitContactDto) {
+    return this.publicService.submitContact(username, dto);
   }
 }

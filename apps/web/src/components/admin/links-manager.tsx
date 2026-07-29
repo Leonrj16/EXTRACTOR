@@ -3,11 +3,13 @@
 import { useState } from "react";
 import {
   DndContext,
+  DragOverlay,
   closestCenter,
   PointerSensor,
   useSensor,
   useSensors,
   type DragEndEvent,
+  type DragStartEvent,
 } from "@dnd-kit/core";
 import {
   SortableContext,
@@ -20,12 +22,30 @@ import { Button } from "@/components/ui/button";
 import { adminFetch } from "@/lib/api-client";
 import type { LinkItem } from "@/types/link";
 import { LinkFormDialog, type LinkFormValues } from "./link-form-dialog";
-import { SortableLinkRow } from "./sortable-link-row";
+import { LinkRow, SortableLinkRow } from "./sortable-link-row";
+import { SubmissionsDialog } from "./submissions-dialog";
+
+function buildPayload(values: LinkFormValues) {
+  const isForm = values.type === "FORM";
+  const isProduct = values.type === "PRODUCT";
+
+  return {
+    type: values.type,
+    title: values.title,
+    url: isForm ? undefined : values.url || undefined,
+    icon: values.icon || undefined,
+    metadata: isProduct
+      ? { price: values.price || undefined, currency: values.currency || undefined }
+      : undefined,
+  };
+}
 
 export function LinksManager({ initialLinks }: { initialLinks: LinkItem[] }) {
   const [links, setLinks] = useState<LinkItem[]>(initialLinks);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingLink, setEditingLink] = useState<LinkItem | null>(null);
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [messagesLink, setMessagesLink] = useState<LinkItem | null>(null);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
 
@@ -40,18 +60,19 @@ export function LinksManager({ initialLinks }: { initialLinks: LinkItem[] }) {
   }
 
   async function handleSubmit(values: LinkFormValues) {
+    const payload = buildPayload(values);
     try {
       if (editingLink) {
         const updated = await adminFetch<LinkItem>(`/admin/links/${editingLink.id}`, {
           method: "PATCH",
-          body: JSON.stringify(values),
+          body: JSON.stringify(payload),
         });
         setLinks((prev) => prev.map((l) => (l.id === updated.id ? updated : l)));
         toast.success("Enlace actualizado");
       } else {
         const created = await adminFetch<LinkItem>("/admin/links", {
           method: "POST",
-          body: JSON.stringify(values),
+          body: JSON.stringify(payload),
         });
         setLinks((prev) => [...prev, created]);
         toast.success("Enlace creado");
@@ -89,7 +110,12 @@ export function LinksManager({ initialLinks }: { initialLinks: LinkItem[] }) {
     }
   }
 
+  function handleDragStart(event: DragStartEvent) {
+    setActiveId(String(event.active.id));
+  }
+
   async function handleDragEnd(event: DragEndEvent) {
+    setActiveId(null);
     const { active, over } = event;
     if (!over || active.id === over.id) return;
 
@@ -110,6 +136,8 @@ export function LinksManager({ initialLinks }: { initialLinks: LinkItem[] }) {
     }
   }
 
+  const activeLink = links.find((l) => l.id === activeId) ?? null;
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex justify-end">
@@ -124,7 +152,12 @@ export function LinksManager({ initialLinks }: { initialLinks: LinkItem[] }) {
           Todavía no tienes enlaces. Crea el primero.
         </p>
       ) : (
-        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+        >
           <SortableContext items={links.map((l) => l.id)} strategy={verticalListSortingStrategy}>
             <div className="flex flex-col gap-2">
               {links.map((link) => (
@@ -134,10 +167,14 @@ export function LinksManager({ initialLinks }: { initialLinks: LinkItem[] }) {
                   onToggleActive={handleToggleActive}
                   onEdit={openEditDialog}
                   onDelete={handleDelete}
+                  onViewMessages={link.type === "FORM" ? setMessagesLink : undefined}
                 />
               ))}
             </div>
           </SortableContext>
+          <DragOverlay>
+            {activeLink && <LinkRow link={activeLink} overlay />}
+          </DragOverlay>
         </DndContext>
       )}
 
@@ -146,6 +183,11 @@ export function LinksManager({ initialLinks }: { initialLinks: LinkItem[] }) {
         onOpenChange={setDialogOpen}
         link={editingLink}
         onSubmit={handleSubmit}
+      />
+
+      <SubmissionsDialog
+        link={messagesLink}
+        onOpenChange={(open) => !open && setMessagesLink(null)}
       />
     </div>
   );

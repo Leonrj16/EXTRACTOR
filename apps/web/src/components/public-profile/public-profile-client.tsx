@@ -34,12 +34,27 @@ export function PublicProfileClient({ username, profile, appearance, links }: Pu
     track(username, { type: "LINK_CLICK", linkId: link.id });
   }
 
+  async function handleContactSubmit(
+    link: LinkItem,
+    values: { name: string; email: string; message: string },
+  ) {
+    const res = await fetch(`${API_URL}/public/${username}/contact`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ linkId: link.id, ...values }),
+    });
+    if (!res.ok) {
+      throw new Error("No se pudo enviar el mensaje");
+    }
+  }
+
   return (
     <ProfileView
       profile={profile}
       appearance={appearance}
       links={links}
       onLinkClick={handleLinkClick}
+      onContactSubmit={handleContactSubmit}
       className="min-h-screen"
     />
   );

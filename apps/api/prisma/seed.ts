@@ -7,31 +7,49 @@ const THEMES = [
   {
     key: 'minimal-light',
     name: 'Minimal Claro',
+    layout: 'list',
     baseConfig: {
       primaryColor: '#111827',
       backgroundColor: '#ffffff',
       buttonStyle: 'rounded',
       fontFamily: 'Inter',
+      animation: 'fade',
     },
   },
   {
     key: 'minimal-dark',
     name: 'Minimal Oscuro',
+    layout: 'list',
     baseConfig: {
       primaryColor: '#f9fafb',
       backgroundColor: '#0a0a0a',
       buttonStyle: 'rounded',
       fontFamily: 'Inter',
+      animation: 'fade',
     },
   },
   {
     key: 'gradient-sunset',
     name: 'Gradiente Sunset',
+    layout: 'list',
     baseConfig: {
       primaryColor: '#ffffff',
       backgroundColor: '#f97316',
       buttonStyle: 'pill',
       fontFamily: 'Inter',
+      animation: 'slide',
+    },
+  },
+  {
+    key: 'grid-showcase',
+    name: 'Grid Showcase',
+    layout: 'grid',
+    baseConfig: {
+      primaryColor: '#111827',
+      backgroundColor: '#f4f4f5',
+      buttonStyle: 'square',
+      fontFamily: 'Space Grotesk',
+      animation: 'bounce',
     },
   },
 ];
@@ -40,14 +58,14 @@ async function main() {
   for (const theme of THEMES) {
     await prisma.theme.upsert({
       where: { key: theme.key },
-      update: { name: theme.name, baseConfig: theme.baseConfig },
+      update: { name: theme.name, layout: theme.layout, baseConfig: theme.baseConfig },
       create: theme,
     });
   }
 
   const email = process.env.SEED_ADMIN_EMAIL ?? 'admin@example.com';
   const password = process.env.SEED_ADMIN_PASSWORD ?? 'ChangeMe123!';
-  const username = process.env.SEED_USERNAME ?? 'admin';
+  const username = process.env.SEED_USERNAME ?? 'me';
   const displayName = process.env.SEED_DISPLAY_NAME ?? 'Mi Perfil';
 
   const passwordHash = await bcrypt.hash(password, 10);

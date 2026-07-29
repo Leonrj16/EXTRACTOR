@@ -18,6 +18,8 @@ export interface LinkFormValues {
   title: string;
   url: string;
   icon: string;
+  price: string;
+  currency: string;
 }
 
 interface LinkFormDialogProps {
@@ -27,7 +29,20 @@ interface LinkFormDialogProps {
   onSubmit: (values: LinkFormValues) => Promise<void>;
 }
 
-const EMPTY_FORM: LinkFormValues = { type: "LINK", title: "", url: "", icon: "" };
+const EMPTY_FORM: LinkFormValues = {
+  type: "LINK",
+  title: "",
+  url: "",
+  icon: "",
+  price: "",
+  currency: "USD",
+};
+
+const URL_HELP: Partial<Record<LinkType, string>> = {
+  VIDEO: "Pega la URL de un video de YouTube o Vimeo",
+  MUSIC: "Pega la URL de una canción, álbum o playlist de Spotify",
+  PRODUCT: "URL de compra o más información (opcional)",
+};
 
 export function LinkFormDialog({ open, onOpenChange, link, onSubmit }: LinkFormDialogProps) {
   const [values, setValues] = useState<LinkFormValues>(EMPTY_FORM);
@@ -40,6 +55,8 @@ export function LinkFormDialog({ open, onOpenChange, link, onSubmit }: LinkFormD
         title: link.title,
         url: link.url ?? "",
         icon: link.icon ?? "",
+        price: link.metadata?.price ?? "",
+        currency: link.metadata?.currency ?? "USD",
       });
     } else {
       setValues(EMPTY_FORM);
@@ -56,6 +73,9 @@ export function LinkFormDialog({ open, onOpenChange, link, onSubmit }: LinkFormD
       setSaving(false);
     }
   }
+
+  const isForm = values.type === "FORM";
+  const isProduct = values.type === "PRODUCT";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -89,25 +109,69 @@ export function LinkFormDialog({ open, onOpenChange, link, onSubmit }: LinkFormD
               onChange={(e) => setValues({ ...values, title: e.target.value })}
             />
           </div>
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="link-url">URL</Label>
-            <Input
-              id="link-url"
-              type="url"
-              placeholder="https://…"
-              value={values.url}
-              onChange={(e) => setValues({ ...values, url: e.target.value })}
-            />
-          </div>
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="link-icon">Ícono (opcional)</Label>
-            <Input
-              id="link-icon"
-              placeholder="instagram, whatsapp, link…"
-              value={values.icon}
-              onChange={(e) => setValues({ ...values, icon: e.target.value })}
-            />
-          </div>
+
+          {!isForm && (
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="link-url">URL</Label>
+              <Input
+                id="link-url"
+                type="url"
+                placeholder="https://…"
+                required={!isProduct}
+                value={values.url}
+                onChange={(e) => setValues({ ...values, url: e.target.value })}
+              />
+              {URL_HELP[values.type] && (
+                <p className="text-xs text-muted-foreground">{URL_HELP[values.type]}</p>
+              )}
+            </div>
+          )}
+
+          {isForm && (
+            <p className="rounded-md bg-muted p-3 text-xs text-muted-foreground">
+              Este bloque muestra un formulario (nombre, email y mensaje) en tu página
+              pública. Los mensajes enviados quedan guardados y los puedes ver desde la
+              lista de enlaces.
+            </p>
+          )}
+
+          {isProduct && (
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="link-price">Precio</Label>
+                <Input
+                  id="link-price"
+                  inputMode="decimal"
+                  placeholder="19.99"
+                  value={values.price}
+                  onChange={(e) => setValues({ ...values, price: e.target.value })}
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="link-currency">Moneda</Label>
+                <Input
+                  id="link-currency"
+                  maxLength={3}
+                  placeholder="USD"
+                  value={values.currency}
+                  onChange={(e) => setValues({ ...values, currency: e.target.value.toUpperCase() })}
+                />
+              </div>
+            </div>
+          )}
+
+          {!isForm && (
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="link-icon">Ícono (opcional)</Label>
+              <Input
+                id="link-icon"
+                placeholder="instagram, whatsapp, link…"
+                value={values.icon}
+                onChange={(e) => setValues({ ...values, icon: e.target.value })}
+              />
+            </div>
+          )}
+
           <DialogFooter>
             <Button type="submit" disabled={saving}>
               {saving ? "Guardando…" : "Guardar"}

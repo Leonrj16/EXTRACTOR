@@ -41,4 +41,9 @@ export class LinksController {
   remove(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string) {
     return this.linksService.remove(user.id, id);
   }
+
+  @Get(':id/submissions')
+  listSubmissions(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string) {
+    return this.linksService.listSubmissions(user.id, id);
+  }
 }

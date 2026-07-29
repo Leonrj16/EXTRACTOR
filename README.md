@@ -50,11 +50,13 @@ pnpm dev:api    # http://localhost:3001/api
 pnpm dev:web    # http://localhost:3000
 ```
 
-El seed crea 3 temas por defecto y un usuario administrador
+El seed crea 4 temas por defecto y un usuario administrador
 (`SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD` en `apps/api/.env`, por defecto
-`admin@example.com` / `ChangeMe123!`) con perfil público en `/admin`
+`admin@example.com` / `ChangeMe123!`) con perfil público en `/me`
 (`SEED_USERNAME`). **Cambia la contraseña por defecto antes de exponer la
-app públicamente.**
+app públicamente.** No uses `admin`, `api`, `login` ni otras rutas del
+frontend como username (ver `docs/ARCHITECTURE.md`, sección "usernames
+reservados") — el backend las rechaza igualmente.
 
 ## Pruebas
 

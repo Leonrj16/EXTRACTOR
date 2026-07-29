@@ -1,4 +1,4 @@
-import { IsHexColor, IsOptional, IsString } from 'class-validator';
+import { IsHexColor, IsIn, IsOptional, IsString } from 'class-validator';
 
 export class UpdateAppearanceDto {
   @IsOptional()
@@ -24,4 +24,12 @@ export class UpdateAppearanceDto {
   @IsOptional()
   @IsString()
   fontFamily?: string;
+
+  @IsOptional()
+  @IsIn(['fade', 'slide', 'bounce', 'none'])
+  animation?: string;
+
+  @IsOptional()
+  @IsIn(['list', 'grid'])
+  layout?: string;
 }

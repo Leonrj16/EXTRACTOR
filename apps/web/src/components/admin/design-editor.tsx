@@ -20,6 +20,18 @@ const BUTTON_STYLES = [
 
 const FONTS = ["Inter", "Poppins", "Roboto", "Playfair Display", "Space Grotesk"];
 
+const LAYOUTS = [
+  { value: "list", label: "Lista (clásico)" },
+  { value: "grid", label: "Grid (bento)" },
+];
+
+const ANIMATIONS = [
+  { value: "fade", label: "Aparecer" },
+  { value: "slide", label: "Deslizar" },
+  { value: "bounce", label: "Rebote" },
+  { value: "none", label: "Sin animación" },
+];
+
 interface DesignEditorProps {
   initialProfile: ProfileData;
   initialAppearance: AppearanceData;
@@ -87,6 +99,8 @@ export function DesignEditor({ initialProfile, initialAppearance, themes, links 
           backgroundColor: appearance.backgroundColor,
           buttonStyle: appearance.buttonStyle,
           fontFamily: appearance.fontFamily,
+          animation: appearance.animation,
+          layout: appearance.layout,
         }),
       });
       setAppearance(updated);
@@ -255,6 +269,39 @@ export function DesignEditor({ initialProfile, initialAppearance, themes, links 
                   {FONTS.map((font) => (
                     <option key={font} value={font}>
                       {font}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="layout">Estructura de plantilla</Label>
+                <select
+                  id="layout"
+                  className="h-9 rounded-md border bg-background px-3 text-sm"
+                  value={appearance.layout ?? appearance.theme?.layout ?? "list"}
+                  onChange={(e) => setAppearance({ ...appearance, layout: e.target.value })}
+                >
+                  {LAYOUTS.map((layout) => (
+                    <option key={layout.value} value={layout.value}>
+                      {layout.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="animation">Animación de entrada</Label>
+                <select
+                  id="animation"
+                  className="h-9 rounded-md border bg-background px-3 text-sm"
+                  value={appearance.animation ?? base.animation ?? "fade"}
+                  onChange={(e) => setAppearance({ ...appearance, animation: e.target.value })}
+                >
+                  {ANIMATIONS.map((animation) => (
+                    <option key={animation.value} value={animation.value}>
+                      {animation.label}
                     </option>
                   ))}
                 </select>

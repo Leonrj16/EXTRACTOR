@@ -17,6 +17,7 @@ export interface ThemeData {
   id: string;
   key: string;
   name: string;
+  layout: string;
 }
 
 export interface AppearanceData {
@@ -26,5 +27,7 @@ export interface AppearanceData {
   backgroundImage: string | null;
   buttonStyle: string | null;
   fontFamily: string | null;
+  animation: string | null;
+  layout: string | null;
   theme?: ThemeData & { baseConfig: Record<string, string> };
 }

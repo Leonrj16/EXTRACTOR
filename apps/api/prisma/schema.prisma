@@ -108,7 +108,9 @@ enum LinkType {
   EMAIL     // botón de contacto por email
   LOCATION  // botón de ubicación / mapa
   PRODUCT   // producto o servicio (usa metadata para precio/imagen)
-  FORM      // formulario de contacto embebido (usa metadata para campos)
+  FORM      // formulario de contacto embebido, guarda envíos en ContactSubmission
+  VIDEO     // video embebido (YouTube/Vimeo)
+  MUSIC     // embed de audio (Spotify)
 }
 
 model Link {
@@ -130,12 +132,31 @@ model Link {
   order     Int      @default(0)
 
   analytics AnalyticsEvent[]
+  submissions ContactSubmission[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([profileId, order])
   @@map("links")
+}
+
+// Envíos de un bloque tipo FORM. Se guardan en BD (no requiere proveedor de
+// email externo) y se listan en el panel admin.
+model ContactSubmission {
+  id        String   @id @default(cuid())
+  linkId    String
+  link      Link     @relation(fields: [linkId], references: [id], onDelete: Cascade)
+  profileId String
+
+  name      String
+  email     String
+  message   String   @db.VarChar(1000)
+
+  createdAt DateTime @default(now())
+
+  @@index([profileId, createdAt])
+  @@map("contact_submissions")
 }
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -149,6 +170,7 @@ model Theme {
   name         String
   previewUrl   String?
   isSystem     Boolean  @default(true) // plantilla provista por la plataforma vs. custom futura
+  layout       String   @default("list") // "list" | "grid" — estructura visual de la plantilla
   baseConfig   Json     // paleta/estructura por defecto que Appearance puede sobreescribir
 
   appearances  Appearance[]
@@ -172,6 +194,8 @@ model Appearance {
   backgroundImage String?
   buttonStyle     String?  // ej. "rounded" | "square" | "pill"
   fontFamily      String?
+  animation       String?  // ej. "fade" | "slide" | "bounce" | "none"
+  layout          String?  // sobreescribe Theme.layout: "list" | "grid"
 
   updatedAt       DateTime @updatedAt
 

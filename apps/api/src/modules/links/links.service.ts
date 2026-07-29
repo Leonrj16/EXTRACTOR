@@ -79,6 +79,14 @@ export class LinksService {
     return this.list(userId);
   }
 
+  async listSubmissions(userId: string, linkId: string) {
+    await this.assertOwnership(userId, linkId);
+    return this.prisma.contactSubmission.findMany({
+      where: { linkId },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
   private async assertOwnership(userId: string, linkId: string) {
     const profileId = await this.getProfileId(userId);
     const link = await this.prisma.link.findUnique({ where: { id: linkId } });
