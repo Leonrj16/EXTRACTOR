@@ -1,4 +1,18 @@
-import { IsHexColor, IsIn, IsOptional, IsString } from 'class-validator';
+import { IsHexColor, IsIn, IsObject, IsOptional, IsString } from 'class-validator';
+
+const ANIMATION_PRESETS = [
+  'fade',
+  'slide',
+  'bounce',
+  'zoom',
+  'glow',
+  'float',
+  'parallax',
+  'ripple',
+  'pulse',
+  'scale',
+  'none',
+];
 
 export class UpdateAppearanceDto {
   @IsOptional()
@@ -34,10 +48,17 @@ export class UpdateAppearanceDto {
   fontFamily?: string;
 
   @IsOptional()
-  @IsIn(['fade', 'slide', 'bounce', 'none'])
+  @IsIn(ANIMATION_PRESETS)
   animation?: string;
 
   @IsOptional()
   @IsIn(['list', 'grid'])
   layout?: string;
+
+  // Personalización profunda del Theme Engine (color secundario/acento,
+  // fondo, tipografía avanzada, tratamiento de botón, glow) — ver
+  // design-system/architecture/theme-engine.md.
+  @IsOptional()
+  @IsObject()
+  themeOverrides?: Record<string, unknown>;
 }

@@ -1,6 +1,7 @@
 import type { ComponentType } from "react";
 import type { LucideIcon } from "lucide-react";
 import type { LinkItem, LinkType } from "@/types/link";
+import type { ButtonTreatment } from "@/themes/types";
 
 /**
  * A block IS a `Link` row under the hood (see design-system/architecture/
@@ -41,6 +42,12 @@ export interface BlockTheme {
   pageBorder: import("react").CSSProperties;
   /** Page-level shadow (from Appearance.shadowStyle), same fallback role. */
   pageShadow: string | undefined;
+  /** Theme Engine additions (see themes/resolve-theme.ts) — optional so
+   * every block written before the Theme Engine keeps compiling
+   * unchanged; adopting them is opt-in per block. */
+  secondaryColor?: string;
+  accentColor?: string;
+  buttonTreatment?: ButtonTreatment;
 }
 
 export interface BlockPreviewProps<TMeta = Record<string, unknown>> {

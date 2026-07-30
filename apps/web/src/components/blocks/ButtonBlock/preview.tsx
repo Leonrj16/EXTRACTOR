@@ -2,6 +2,7 @@
 
 import { BlockFrame } from "../shared/block-frame";
 import { resolveBlockStyle } from "../shared/style-resolver";
+import { resolveButtonTreatment } from "@/themes/shared/button-treatments";
 import type { BlockPreviewProps } from "../types";
 import { BUTTON_BLOCK_DEFAULT_META } from "./config";
 import { BUTTON_BLOCK_INTERACTIVE } from "./animation";
@@ -19,6 +20,11 @@ export function ButtonBlockPreview({
   const resolved = { ...BUTTON_BLOCK_DEFAULT_META, ...meta };
   const color = resolved.color ?? theme.primaryColor;
 
+  // The page theme's button treatment (glass/gradient/glow/...) is the
+  // base look; resolveBlockStyle's per-block overrides (a custom
+  // background, border, shadow the user set on THIS button) still win —
+  // see themes/shared/button-treatments.ts.
+  const treatment = resolveButtonTreatment(theme.buttonTreatment ?? "filled", color, theme.secondaryColor);
   const style = resolveBlockStyle(styleOverrides, {
     primaryColor: color,
     pageBorder: theme.pageBorder,
@@ -32,8 +38,8 @@ export function ButtonBlockPreview({
         target="_blank"
         rel="noreferrer"
         onClick={() => onLinkClick?.(link)}
-        className={`block w-full text-center font-medium outline-none backdrop-blur-md transition-transform focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current ${theme.radius} ${BUTTON_SIZE_CLASS[resolved.size ?? "md"]}`}
-        style={{ ...style, backgroundColor: style.backgroundColor ?? `${color}14` }}
+        className={`block w-full text-center font-medium outline-none transition-transform focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current ${treatment.className} ${theme.radius} ${BUTTON_SIZE_CLASS[resolved.size ?? "md"]}`}
+        style={{ ...treatment.style, ...style }}
       >
         {link.title}
       </a>

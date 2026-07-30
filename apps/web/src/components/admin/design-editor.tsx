@@ -17,6 +17,7 @@ import {
   Monitor,
   Tablet,
   Smartphone,
+  LayoutTemplate,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ColorField } from "@/components/ui/color-field";
@@ -27,11 +28,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { ProfileView } from "@/components/public-profile/profile-view";
 import { adminFetch } from "@/lib/api-client";
 import { cn } from "@/lib/utils";
+import { getResolvedDefinition } from "@/themes/resolve-theme";
+import type { ThemeOverrides } from "@/themes/types";
 import type { LinkItem } from "@/types/link";
 import type { AppearanceData, ProfileData, ThemeData } from "@/types/profile";
 import { LinkFormDialog } from "./link-form-dialog";
 import { LinkRow, SortableLinkRow } from "./sortable-link-row";
 import { SubmissionsDialog } from "./submissions-dialog";
+import { ThemeCustomizePanel } from "./theme-customize-panel";
+import { ThemeGallery } from "./theme-gallery";
 import { useLinksManager } from "./use-links-manager";
 
 const BUTTON_STYLES = [
@@ -53,8 +58,6 @@ const SHADOW_STYLES = [
   { value: "glow", label: "Resplandor" },
 ];
 
-const FONTS = ["Inter", "Poppins", "Roboto", "Playfair Display", "Space Grotesk"];
-
 const LAYOUTS = [
   { value: "list", label: "Lista (clásico)" },
   { value: "grid", label: "Grid (bento)" },
@@ -63,12 +66,19 @@ const LAYOUTS = [
 const ANIMATIONS = [
   { value: "fade", label: "Aparecer" },
   { value: "slide", label: "Deslizar" },
-  { value: "bounce", label: "Rebote" },
+  { value: "scale", label: "Escala" },
+  { value: "zoom", label: "Zoom" },
+  { value: "glow", label: "Resplandor" },
+  { value: "float", label: "Flotar" },
+  { value: "parallax", label: "Parallax" },
+  { value: "ripple", label: "Ondulación" },
+  { value: "pulse", label: "Pulso" },
   { value: "none", label: "Sin animación" },
 ];
 
 const TABS = [
   { id: "profile", label: "Perfil", icon: User },
+  { id: "gallery", label: "Galería", icon: LayoutTemplate },
   { id: "theme", label: "Tema", icon: Palette },
   { id: "structure", label: "Estructura", icon: LayoutGrid },
   { id: "blocks", label: "Bloques", icon: Blocks },
@@ -151,9 +161,11 @@ interface DesignEditorProps {
   links: LinkItem[];
 }
 
-export function DesignEditor({ initialProfile, initialAppearance, themes, links }: DesignEditorProps) {
+export function DesignEditor({ initialProfile, initialAppearance, themes: initialThemes, links }: DesignEditorProps) {
   const [profile, setProfile] = useState(initialProfile);
   const [appearance, setAppearance] = useState(initialAppearance);
+  const [themeList, setThemeList] = useState(initialThemes);
+  const [favoriteThemeKeys, setFavoriteThemeKeys] = useState(initialAppearance.favoriteThemeKeys ?? []);
   const [activeTab, setActiveTab] = useState<TabId>("profile");
   const [device, setDevice] = useState<DeviceId>("mobile");
   const [savingProfile, setSavingProfile] = useState(false);
@@ -228,21 +240,7 @@ export function DesignEditor({ initialProfile, initialAppearance, themes, links 
   async function handleSaveAppearance() {
     setSavingAppearance(true);
     try {
-      const updated = await adminFetch<AppearanceData>("/admin/appearance", {
-        method: "PUT",
-        body: JSON.stringify({
-          themeId: appearance.themeId,
-          primaryColor: appearance.primaryColor,
-          backgroundColor: appearance.backgroundColor,
-          buttonStyle: appearance.buttonStyle,
-          borderStyle: appearance.borderStyle,
-          shadowStyle: appearance.shadowStyle,
-          fontFamily: appearance.fontFamily,
-          animation: appearance.animation,
-          layout: appearance.layout,
-        }),
-      });
-      setAppearance(updated);
+      await persistAppearance(appearance);
       toast.success("Apariencia actualizada");
     } catch {
       toast.error("No se pudo guardar la apariencia");
@@ -251,7 +249,108 @@ export function DesignEditor({ initialProfile, initialAppearance, themes, links 
     }
   }
 
-  const base = appearance.theme?.baseConfig ?? {};
+  async function persistAppearance(next: AppearanceData) {
+    const updated = await adminFetch<AppearanceData>("/admin/appearance", {
+      method: "PUT",
+      body: JSON.stringify({
+        themeId: next.themeId,
+        primaryColor: next.primaryColor,
+        backgroundColor: next.backgroundColor,
+        buttonStyle: next.buttonStyle,
+        borderStyle: next.borderStyle,
+        shadowStyle: next.shadowStyle,
+        fontFamily: next.fontFamily,
+        animation: next.animation,
+        layout: next.layout,
+        themeOverrides: next.themeOverrides,
+      }),
+    });
+    setAppearance(updated);
+    return updated;
+  }
+
+  async function handleApplyTheme(themeId: string) {
+    try {
+      await persistAppearance({ ...appearance, themeId, themeOverrides: null });
+      toast.success("Tema aplicado");
+    } catch {
+      toast.error("No se pudo aplicar el tema");
+    }
+  }
+
+  function handlePatchOverrides<K extends keyof ThemeOverrides>(section: K, patch: ThemeOverrides[K]) {
+    const current = (appearance.themeOverrides ?? {}) as ThemeOverrides;
+    setAppearance({
+      ...appearance,
+      themeOverrides: { ...current, [section]: { ...current[section], ...patch } },
+    });
+  }
+
+  async function handleResetOverrides() {
+    await persistAppearance({ ...appearance, themeOverrides: null });
+    toast.success("Personalización restablecida");
+  }
+
+  async function handleSaveAsTheme(name: string) {
+    const created = await adminFetch<ThemeData>("/admin/themes", {
+      method: "POST",
+      body: JSON.stringify({
+        name,
+        layout: resolvedDefinition.layout,
+        baseConfig: {
+          meta: { name, tagline: "Tema personalizado", categories: [] },
+          layout: resolvedDefinition.layout,
+          colors: { ...resolvedDefinition.colors, ...(appearance.themeOverrides as ThemeOverrides | null)?.colors },
+          typography: { ...resolvedDefinition.typography, ...(appearance.themeOverrides as ThemeOverrides | null)?.typography },
+          buttons: { ...resolvedDefinition.buttons, ...(appearance.themeOverrides as ThemeOverrides | null)?.buttons },
+          cards: { ...resolvedDefinition.cards, ...(appearance.themeOverrides as ThemeOverrides | null)?.cards },
+          animations: { ...resolvedDefinition.animations, ...(appearance.themeOverrides as ThemeOverrides | null)?.animations },
+          effects: { ...resolvedDefinition.effects, ...(appearance.themeOverrides as ThemeOverrides | null)?.effects },
+        },
+      }),
+    });
+    setThemeList((prev) => [...prev, created]);
+    await persistAppearance({ ...appearance, themeId: created.id, themeOverrides: null });
+  }
+
+  async function handleDuplicateTheme(theme: ThemeData) {
+    const definition = getResolvedDefinition(theme.key, theme.layout, theme.baseConfig);
+    try {
+      const created = await adminFetch<ThemeData>("/admin/themes", {
+        method: "POST",
+        body: JSON.stringify({
+          name: `${theme.name} (copia)`,
+          layout: definition.layout,
+          baseConfig: definition,
+        }),
+      });
+      setThemeList((prev) => [...prev, created]);
+      toast.success("Tema duplicado — ya está en la galería");
+    } catch {
+      toast.error("No se pudo duplicar el tema");
+    }
+  }
+
+  async function handleToggleFavorite(themeKey: string) {
+    const previous = favoriteThemeKeys;
+    const next = previous.includes(themeKey)
+      ? previous.filter((k) => k !== themeKey)
+      : [...previous, themeKey];
+    setFavoriteThemeKeys(next);
+    try {
+      await adminFetch(`/admin/themes/${themeKey}/favorite`, { method: "POST" });
+    } catch {
+      setFavoriteThemeKeys(previous);
+      toast.error("No se pudo actualizar favoritos");
+    }
+  }
+
+  const resolvedDefinition = getResolvedDefinition(
+    appearance.theme?.key,
+    appearance.theme?.layout,
+    appearance.theme?.baseConfig,
+  );
+  const themeOverrides = (appearance.themeOverrides ?? {}) as ThemeOverrides;
 
   return (
     <div className="glass grid overflow-hidden rounded-2xl lg:grid-cols-[220px_1fr_360px]">
@@ -383,6 +482,17 @@ export function DesignEditor({ initialProfile, initialAppearance, themes, links 
           </>
         )}
 
+        {activeTab === "gallery" && (
+          <ThemeGallery
+            themes={themeList}
+            activeThemeId={appearance.themeId}
+            favoriteThemeKeys={favoriteThemeKeys}
+            onApply={handleApplyTheme}
+            onToggleFavorite={handleToggleFavorite}
+            onDuplicate={handleDuplicateTheme}
+          />
+        )}
+
         {activeTab === "theme" && (
           <>
             <FieldSelect
@@ -390,19 +500,19 @@ export function DesignEditor({ initialProfile, initialAppearance, themes, links 
               label="Plantilla"
               value={appearance.themeId}
               onChange={(value) => setAppearance({ ...appearance, themeId: value })}
-              options={themes.map((theme) => ({ value: theme.id, label: theme.name }))}
+              options={themeList.map((theme) => ({ value: theme.id, label: theme.name }))}
             />
             <div className="grid gap-4 sm:grid-cols-2">
               <ColorField
                 id="primaryColor"
                 label="Color principal"
-                value={appearance.primaryColor ?? base.primaryColor ?? "#111827"}
+                value={appearance.primaryColor ?? resolvedDefinition.colors.primary}
                 onChange={(value) => setAppearance({ ...appearance, primaryColor: value })}
               />
               <ColorField
                 id="backgroundColor"
                 label="Color de fondo"
-                value={appearance.backgroundColor ?? base.backgroundColor ?? "#ffffff"}
+                value={appearance.backgroundColor ?? resolvedDefinition.colors.background}
                 onChange={(value) => setAppearance({ ...appearance, backgroundColor: value })}
               />
             </div>
@@ -410,28 +520,30 @@ export function DesignEditor({ initialProfile, initialAppearance, themes, links 
               <FieldSelect
                 id="borderStyle"
                 label="Estilo de borde"
-                value={appearance.borderStyle ?? base.borderStyle ?? "subtle"}
+                value={appearance.borderStyle ?? resolvedDefinition.cards.border}
                 onChange={(value) => setAppearance({ ...appearance, borderStyle: value })}
                 options={BORDER_STYLES}
               />
               <FieldSelect
                 id="shadowStyle"
                 label="Estilo de sombra"
-                value={appearance.shadowStyle ?? base.shadowStyle ?? "none"}
+                value={appearance.shadowStyle ?? resolvedDefinition.cards.shadow}
                 onChange={(value) => setAppearance({ ...appearance, shadowStyle: value })}
                 options={SHADOW_STYLES}
               />
             </div>
-            <FieldSelect
-              id="fontFamily"
-              label="Tipografía"
-              value={appearance.fontFamily ?? base.fontFamily ?? "Inter"}
-              onChange={(value) => setAppearance({ ...appearance, fontFamily: value })}
-              options={FONTS.map((font) => ({ value: font, label: font }))}
-            />
             <Button onClick={handleSaveAppearance} loading={savingAppearance} className="w-fit">
               {savingAppearance ? "Guardando…" : "Guardar apariencia"}
             </Button>
+
+            <ThemeCustomizePanel
+              definition={resolvedDefinition}
+              overrides={themeOverrides}
+              onPatch={handlePatchOverrides}
+              onSaveAsTheme={handleSaveAsTheme}
+              onDuplicateCurrent={() => handleDuplicateTheme(appearance.theme!)}
+              onReset={handleResetOverrides}
+            />
           </>
         )}
 
@@ -440,7 +552,7 @@ export function DesignEditor({ initialProfile, initialAppearance, themes, links 
             <FieldSelect
               id="buttonStyle"
               label="Estilo de botones"
-              value={appearance.buttonStyle ?? base.buttonStyle ?? "rounded"}
+              value={appearance.buttonStyle ?? resolvedDefinition.buttons.shape}
               onChange={(value) => setAppearance({ ...appearance, buttonStyle: value })}
               options={BUTTON_STYLES}
             />
@@ -454,7 +566,7 @@ export function DesignEditor({ initialProfile, initialAppearance, themes, links 
             <FieldSelect
               id="animation"
               label="Animación de entrada"
-              value={appearance.animation ?? base.animation ?? "fade"}
+              value={appearance.animation ?? resolvedDefinition.animations.entrance}
               onChange={(value) => setAppearance({ ...appearance, animation: value })}
               options={ANIMATIONS}
             />

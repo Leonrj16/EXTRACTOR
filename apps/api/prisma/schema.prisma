@@ -87,8 +87,12 @@ model Profile {
   isPublished Boolean  @default(true)
   customDomain String? @unique // reservado para el futuro (verificación DNS)
 
+  // Keys (Theme.key) marcadas como favoritas en la galería del Theme Engine.
+  favoriteThemeKeys String[] @default([])
+
   appearance  Appearance?
   links       Link[]
+  customThemes Theme[]         @relation("CustomThemes")
   analytics   AnalyticsEvent[]
 
   createdAt   DateTime @default(now())
@@ -183,14 +187,27 @@ model ContactSubmission {
 // ─────────────────────────────────────────────────────────────────────────
 
 // Catálogo de plantillas disponibles (crece agregando filas, no código).
+//
+// Los temas del sistema (isSystem: true) están definidos en código en
+// apps/web/src/themes/<key>/ (colores, tipografía, botones, cards,
+// animaciones, efectos — ver design-system/architecture/theme-engine.md)
+// y se siembran aquí vía prisma/seed.ts para que el catálogo sea
+// consultable por API igual que un tema personalizado. baseConfig guarda
+// la definición completa serializada (ThemeDefinition), no solo la
+// paleta — Appearance.themeOverrides es lo único que la sobreescribe.
 model Theme {
   id           String   @id @default(cuid())
-  key          String   @unique // slug estable usado por el frontend, ej. "minimal-dark"
+  key          String   @unique // slug estable usado por el frontend, ej. "midnight-dark"
   name         String
   previewUrl   String?
-  isSystem     Boolean  @default(true) // plantilla provista por la plataforma vs. custom futura
+  isSystem     Boolean  @default(true) // plantilla del catálogo vs. creada por un usuario (Guardar/Duplicar)
   layout       String   @default("list") // "list" | "grid" — estructura visual de la plantilla
-  baseConfig   Json     // paleta/estructura por defecto que Appearance puede sobreescribir
+  baseConfig   Json     // ThemeDefinition completo (colors/typography/buttons/cards/animations/effects/categories)
+
+  // Solo se usa para temas custom (isSystem: false) — a qué perfil
+  // pertenece el tema guardado/duplicado. Null para temas del sistema.
+  profileId    String?
+  profile      Profile? @relation("CustomThemes", fields: [profileId], references: [id], onDelete: Cascade)
 
   appearances  Appearance[]
 
@@ -217,6 +234,12 @@ model Appearance {
   fontFamily      String?
   animation       String?  // ej. "fade" | "slide" | "bounce" | "none"
   layout          String?  // sobreescribe Theme.layout: "list" | "grid"
+
+  // Personalización profunda del Theme Engine (color secundario/acento,
+  // tipo de fondo, tipografía avanzada, tratamiento de botón, glow) —
+  // capa final sobre baseConfig, igual que Link.styleOverrides para
+  // bloques. Ver design-system/architecture/theme-engine.md.
+  themeOverrides  Json?
 
   updatedAt       DateTime @updatedAt
 

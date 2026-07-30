@@ -2,10 +2,10 @@
 
 import { motion } from "framer-motion";
 import { MapPin, Mail, MessageCircle } from "lucide-react";
-import { resolveEntranceVariant } from "@/components/blocks/shared/animation-presets";
-import { resolveBorderStyle, resolveShadowStyle } from "@/components/blocks/shared/style-resolver";
 import { getBlockDefinition } from "@/components/blocks/registry";
 import type { BlockStyleOverrides } from "@/components/blocks/types";
+import { getResolvedDefinition, resolveTheme } from "@/themes/resolve-theme";
+import type { ThemeOverrides } from "@/themes/types";
 import type { LinkItem } from "@/types/link";
 import type { AppearanceData, ProfileData } from "@/types/profile";
 
@@ -18,21 +18,6 @@ interface ProfileViewProps {
   className?: string;
 }
 
-const BUTTON_RADIUS: Record<string, string> = {
-  rounded: "rounded-xl",
-  pill: "rounded-full",
-  square: "rounded-none",
-};
-
-// Taller block containers (form, product card, video/music fallback) can't
-// use the same "pill" radius as a short link button — rounded-full on a tall
-// box distorts into a lens/circle shape, so it's capped at a card-sized radius.
-const CARD_RADIUS: Record<string, string> = {
-  rounded: "rounded-xl",
-  pill: "rounded-2xl",
-  square: "rounded-none",
-};
-
 export function ProfileView({
   profile,
   appearance,
@@ -41,20 +26,46 @@ export function ProfileView({
   onContactSubmit,
   className,
 }: ProfileViewProps) {
-  const base = appearance.theme?.baseConfig ?? {};
-  const primaryColor = appearance.primaryColor ?? base.primaryColor ?? "#111827";
-  const backgroundColor = appearance.backgroundColor ?? base.backgroundColor ?? "#ffffff";
-  const buttonStyle = appearance.buttonStyle ?? base.buttonStyle ?? "rounded";
-  const fontFamily = appearance.fontFamily ?? base.fontFamily ?? "Inter";
-  const animation = appearance.animation ?? base.animation ?? "fade";
-  const layout = appearance.layout ?? appearance.theme?.layout ?? "list";
-  const borderStyleKey = appearance.borderStyle ?? base.borderStyle ?? "subtle";
-  const shadowStyleKey = appearance.shadowStyle ?? base.shadowStyle ?? "none";
-  const radius = BUTTON_RADIUS[buttonStyle] ?? "rounded-xl";
-  const cardRadius = CARD_RADIUS[buttonStyle] ?? "rounded-xl";
-  const variants = resolveEntranceVariant(animation);
-  const blockShadow = resolveShadowStyle(shadowStyleKey as BlockStyleOverrides["shadow"], primaryColor);
-  const blockBorder = resolveBorderStyle(borderStyleKey as BlockStyleOverrides["border"], primaryColor);
+  const definition = getResolvedDefinition(
+    appearance.theme?.key,
+    appearance.theme?.layout,
+    appearance.theme?.baseConfig,
+  );
+  const resolved = resolveTheme(
+    definition,
+    {
+      primaryColor: appearance.primaryColor,
+      backgroundColor: appearance.backgroundColor,
+      buttonStyle: appearance.buttonStyle,
+      borderStyle: appearance.borderStyle,
+      shadowStyle: appearance.shadowStyle,
+      fontFamily: appearance.fontFamily,
+      animation: appearance.animation,
+      layout: appearance.layout,
+    },
+    appearance.themeOverrides as ThemeOverrides | null,
+  );
+
+  const {
+    layout,
+    primaryColor,
+    secondaryColor,
+    accentColor,
+    backgroundColor,
+    fontFamilyCss,
+    headingWeight,
+    bodyWeight,
+    typographyStyle,
+    buttonRadiusClass: radius,
+    cardRadiusClass: cardRadius,
+    pageBorder: blockBorder,
+    pageShadow: blockShadow,
+    entranceVariant: variants,
+    buttonTreatment,
+    background,
+    glow,
+  } = resolved;
+
   // isActive filtering is the component's own responsibility, not each
   // caller's — the public page route already queries only active links,
   // but the design editor's live preview passes every link (so hiding a
@@ -69,24 +80,34 @@ export function ProfileView({
     return layout === "grid" && WIDE_TYPES.includes(link.type);
   }
 
-  const isAurora = Boolean(base.aurora);
-
   return (
     <div
       className={`relative flex min-h-full flex-col items-center gap-6 overflow-hidden px-6 py-14 text-center ${className ?? ""}`}
       style={{
-        backgroundColor,
+        ...background.style,
         color: primaryColor,
-        fontFamily,
-        backgroundImage: appearance.backgroundImage ? `url(${appearance.backgroundImage})` : undefined,
+        fontFamily: fontFamilyCss,
+        ...typographyStyle,
+        backgroundImage: appearance.backgroundImage
+          ? `url(${appearance.backgroundImage})`
+          : background.style.backgroundImage,
         backgroundSize: "cover",
       }}
     >
-      {isAurora && (
+      {background.decoration === "aurora" && (
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
-          <div className="absolute left-[-20%] top-[-15%] size-[70%] animate-[aurora-drift-1_22s_ease-in-out_infinite] rounded-full bg-brand-purple/40 blur-[90px]" />
-          <div className="absolute right-[-20%] top-[5%] size-[65%] animate-[aurora-drift-2_26s_ease-in-out_infinite] rounded-full bg-brand-blue/30 blur-[100px]" />
-          <div className="absolute bottom-[-25%] left-[10%] size-[60%] animate-[aurora-drift-3_30s_ease-in-out_infinite] rounded-full bg-brand-cyan/20 blur-[100px]" />
+          <div
+            className="absolute left-[-20%] top-[-15%] size-[70%] animate-[aurora-drift-1_22s_ease-in-out_infinite] rounded-full blur-[90px]"
+            style={{ backgroundColor: `${primaryColor}40` }}
+          />
+          <div
+            className="absolute right-[-20%] top-[5%] size-[65%] animate-[aurora-drift-2_26s_ease-in-out_infinite] rounded-full blur-[100px]"
+            style={{ backgroundColor: `${secondaryColor}30` }}
+          />
+          <div
+            className="absolute bottom-[-25%] left-[10%] size-[60%] animate-[aurora-drift-3_30s_ease-in-out_infinite] rounded-full blur-[100px]"
+            style={{ backgroundColor: `${accentColor}20` }}
+          />
         </div>
       )}
 
@@ -108,7 +129,7 @@ export function ProfileView({
         className="relative z-10 h-24 w-24 overflow-hidden rounded-full border-2"
         style={{
           borderColor: primaryColor,
-          boxShadow: isAurora ? `0 0 32px ${primaryColor}66` : undefined,
+          boxShadow: glow ? `0 0 32px ${primaryColor}66` : undefined,
           marginTop: profile.coverUrl ? "1.5rem" : undefined,
         }}
       >
@@ -121,8 +142,14 @@ export function ProfileView({
       </motion.div>
 
       <div className="relative z-10">
-        <h1 className="text-xl font-semibold">{profile.displayName}</h1>
-        {profile.bio && <p className="mt-2 max-w-xs text-sm opacity-80">{profile.bio}</p>}
+        <h1 className="text-xl" style={{ fontWeight: headingWeight }}>
+          {profile.displayName}
+        </h1>
+        {profile.bio && (
+          <p className="mt-2 max-w-xs text-sm opacity-80" style={{ fontWeight: bodyWeight }}>
+            {profile.bio}
+          </p>
+        )}
       </div>
 
       {(profile.location || profile.contactEmail || profile.whatsapp) && (
@@ -168,7 +195,16 @@ export function ProfileView({
                 link={link}
                 meta={link.metadata ?? {}}
                 styleOverrides={(link.styleOverrides ?? {}) as BlockStyleOverrides}
-                theme={{ primaryColor, radius, cardRadius, pageBorder: blockBorder, pageShadow: blockShadow }}
+                theme={{
+                  primaryColor,
+                  secondaryColor,
+                  accentColor,
+                  buttonTreatment,
+                  radius,
+                  cardRadius,
+                  pageBorder: blockBorder,
+                  pageShadow: blockShadow,
+                }}
                 index={index}
                 onLinkClick={onLinkClick}
                 onContactSubmit={onContactSubmit}
