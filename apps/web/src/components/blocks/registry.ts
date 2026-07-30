@@ -3,6 +3,16 @@ import { videoBlockDefinition } from "./VideoBlock";
 import { galleryBlockDefinition } from "./GalleryBlock";
 import { testimonialBlockDefinition } from "./TestimonialBlock";
 import { faqBlockDefinition } from "./FAQBlock";
+import { heroBlockDefinition } from "./HeroBlock";
+import { profileBlockDefinition } from "./ProfileBlock";
+import { productBlockDefinition } from "./ProductBlock";
+import { serviceBlockDefinition } from "./ServiceBlock";
+import { contactBlockDefinition } from "./ContactBlock";
+import { socialBlockDefinition } from "./SocialBlock";
+import { mapBlockDefinition } from "./MapBlock";
+import { countdownBlockDefinition } from "./CountdownBlock";
+import { pricingBlockDefinition } from "./PricingBlock";
+import { footerBlockDefinition } from "./FooterBlock";
 import type { BlockDefinition, BlockKind } from "./types";
 
 /**
@@ -16,10 +26,9 @@ import type { BlockDefinition, BlockKind } from "./types";
  * dispatch through `getBlockDefinition`, never through a per-kind
  * if/else, so adding a block never touches existing ones.
  *
- * Kinds not listed here (SOCIAL, WHATSAPP, EMAIL, LOCATION, PRODUCT,
- * FORM, MUSIC) still render through the legacy inline path in
- * profile-view.tsx / link-form-dialog.tsx until they're migrated to this
- * same pattern in a future pass.
+ * Kinds not listed here (WHATSAPP, EMAIL, MUSIC) still render through the
+ * legacy inline path in profile-view.tsx / link-form-dialog.tsx until
+ * they're migrated to this same pattern in a future pass.
  */
 // Each block owns its own TMeta (ButtonBlockMeta, VideoBlockMeta, ...); the
 // registry itself only needs to dispatch generically, so it's stored and
@@ -33,6 +42,16 @@ export const BLOCK_REGISTRY: Partial<Record<BlockKind, AnyBlockDefinition>> = {
   GALLERY: galleryBlockDefinition,
   TESTIMONIAL: testimonialBlockDefinition,
   FAQ: faqBlockDefinition,
+  HERO: heroBlockDefinition,
+  PROFILE: profileBlockDefinition,
+  PRODUCT: productBlockDefinition,
+  SERVICE: serviceBlockDefinition,
+  FORM: contactBlockDefinition,
+  SOCIAL: socialBlockDefinition,
+  LOCATION: mapBlockDefinition,
+  COUNTDOWN: countdownBlockDefinition,
+  PRICING: pricingBlockDefinition,
+  FOOTER: footerBlockDefinition,
 } as unknown as Partial<Record<BlockKind, AnyBlockDefinition>>;
 
 export function getBlockDefinition(kind: BlockKind): AnyBlockDefinition | undefined {

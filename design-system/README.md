@@ -33,17 +33,20 @@ en lugar de por número mágico.
 │   ├── 07-icons.md
 │   ├── 08-animations.md
 │   └── 09-states.md
-└── components/                    ← patrones de componente, con ejemplos
-    ├── buttons.md
-    ├── inputs.md
-    ├── cards.md
-    ├── badges.md
-    ├── modals.md
-    ├── dropdowns.md
-    ├── sidebar.md
-    ├── navbar.md
-    ├── tables.md
-    └── accordion.md
+├── components/                     ← patrones de componente, con ejemplos
+│   ├── buttons.md
+│   ├── inputs.md
+│   ├── cards.md
+│   ├── badges.md
+│   ├── modals.md
+│   ├── dropdowns.md
+│   ├── sidebar.md
+│   ├── navbar.md
+│   ├── tables.md
+│   └── accordion.md
+└── architecture/                  ← decisiones de arquitectura de features
+    └── blocks.md                  ← Page Builder: contrato de bloque, registro
+                                      central, cómo agregar un bloque nuevo
 ```
 
 ## Cómo se conecta con el código

@@ -1,11 +1,7 @@
 "use client";
 
-import { useState } from "react";
 import { motion } from "framer-motion";
 import { MapPin, Mail, MessageCircle } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { resolveEntranceVariant } from "@/components/blocks/shared/animation-presets";
 import { resolveBorderStyle, resolveShadowStyle } from "@/components/blocks/shared/style-resolver";
 import { getBlockDefinition } from "@/components/blocks/registry";
@@ -38,84 +34,6 @@ const CARD_RADIUS: Record<string, string> = {
   square: "rounded-none",
 };
 
-function FormBlock({
-  link,
-  radius,
-  blockStyle,
-  onContactSubmit,
-}: {
-  link: LinkItem;
-  radius: string;
-  blockStyle: React.CSSProperties;
-  onContactSubmit?: ProfileViewProps["onContactSubmit"];
-}) {
-  const [values, setValues] = useState({ name: "", email: "", message: "" });
-  const [sending, setSending] = useState(false);
-  const [sent, setSent] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!onContactSubmit) {
-      setSent(true);
-      return;
-    }
-    setSending(true);
-    setError(null);
-    try {
-      await onContactSubmit(link, values);
-      setSent(true);
-      setValues({ name: "", email: "", message: "" });
-    } catch {
-      setError("No se pudo enviar el mensaje, intenta de nuevo.");
-    } finally {
-      setSending(false);
-    }
-  }
-
-  if (sent) {
-    return (
-      <div className={`px-4 py-6 text-center text-sm ${radius}`} style={blockStyle}>
-        ¡Gracias! Tu mensaje fue enviado.
-      </div>
-    );
-  }
-
-  return (
-    <form
-      onSubmit={handleSubmit}
-      className={`flex flex-col gap-2 p-4 text-left ${radius}`}
-      style={blockStyle}
-    >
-      <p className="text-sm font-medium">{link.title}</p>
-      <Input
-        required
-        placeholder="Nombre"
-        value={values.name}
-        onChange={(e) => setValues({ ...values, name: e.target.value })}
-      />
-      <Input
-        required
-        type="email"
-        placeholder="Email"
-        value={values.email}
-        onChange={(e) => setValues({ ...values, email: e.target.value })}
-      />
-      <Textarea
-        required
-        rows={3}
-        placeholder="Mensaje"
-        value={values.message}
-        onChange={(e) => setValues({ ...values, message: e.target.value })}
-      />
-      {error && <p className="text-xs text-destructive">{error}</p>}
-      <Button type="submit" size="sm" loading={sending}>
-        {sending ? "Enviando…" : "Enviar"}
-      </Button>
-    </form>
-  );
-}
-
 export function ProfileView({
   profile,
   appearance,
@@ -145,11 +63,18 @@ export function ProfileView({
   // here regardless of what the caller passes in.
   const visibleLinks = links.filter((link) => link.isActive);
 
-  const isInteractiveBlock = (type: LinkItem["type"]) =>
-    type === "VIDEO" || type === "MUSIC" || type === "FORM";
+  // Legacy hover/tap opt-out for the fallback render path below — only
+  // reached by kinds not yet migrated to the block registry (WHATSAPP,
+  // EMAIL, MUSIC), since every other kind renders through its own
+  // BlockFrame (which handles its own hover/tap) instead.
+  const isInteractiveBlock = (type: LinkItem["type"]) => type === "MUSIC";
 
+  // Kinds tall/wide enough to deserve both grid columns instead of being
+  // squeezed into one — independent of whether a kind is migrated, since
+  // it also sizes the wrapper around registry-rendered blocks.
+  const WIDE_TYPES: LinkItem["type"][] = ["VIDEO", "MUSIC", "FORM", "HERO", "PROFILE", "FOOTER", "LOCATION"];
   function isWide(link: LinkItem) {
-    return layout === "grid" && isInteractiveBlock(link.type);
+    return layout === "grid" && WIDE_TYPES.includes(link.type);
   }
 
   function renderBlock(link: LinkItem) {
@@ -174,43 +99,6 @@ export function ProfileView({
             </div>
           )}
         </div>
-      );
-    }
-
-    if (link.type === "FORM") {
-      return (
-        <FormBlock
-          link={link}
-          radius={cardRadius}
-          blockStyle={{ ...blockBorder, boxShadow: blockShadow }}
-          onContactSubmit={onContactSubmit}
-        />
-      );
-    }
-
-    if (link.type === "PRODUCT") {
-      return (
-        <a
-          href={link.url ?? "#"}
-          target="_blank"
-          rel="noreferrer"
-          onClick={() => onLinkClick?.(link)}
-          className={`flex flex-col overflow-hidden outline-none transition-shadow focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current ${cardRadius}`}
-          style={{ ...blockBorder, boxShadow: blockShadow }}
-        >
-          {link.imageUrl && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={link.imageUrl} alt={link.title} className="aspect-square w-full object-cover" />
-          )}
-          <div className="flex items-center justify-between p-3">
-            <span className="text-sm font-medium">{link.title}</span>
-            {link.metadata?.price && (
-              <span className="text-sm font-semibold">
-                {link.metadata.currency ?? ""} {link.metadata.price}
-              </span>
-            )}
-          </div>
-        </a>
       );
     }
 

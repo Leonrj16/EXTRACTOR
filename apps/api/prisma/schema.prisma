@@ -103,17 +103,23 @@ model Profile {
 
 enum LinkType {
   LINK        // enlace genérico (Page Builder: ButtonBlock)
-  SOCIAL      // red social (Instagram, YouTube, TikTok, X, etc.)
+  SOCIAL      // red social (Page Builder: SocialBlock)
   WHATSAPP    // botón directo de WhatsApp
   EMAIL       // botón de contacto por email
-  LOCATION    // botón de ubicación / mapa
-  PRODUCT     // producto o servicio (usa metadata para precio/imagen)
-  FORM        // formulario de contacto embebido, guarda envíos en ContactSubmission
+  LOCATION    // ubicación con mapa embebido (Page Builder: MapBlock)
+  PRODUCT     // producto con precio/imagen/descuento (Page Builder: ProductBlock)
+  FORM        // formulario de contacto, guarda envíos en ContactSubmission (Page Builder: ContactBlock)
   VIDEO       // video embebido (YouTube/Vimeo) (Page Builder: VideoBlock)
   MUSIC       // embed de audio (Spotify)
   GALLERY     // galería de imágenes (Page Builder: GalleryBlock)
   TESTIMONIAL // testimonio con foto/nombre/cita/calificación (Page Builder: TestimonialBlock)
   FAQ         // acordeón de preguntas frecuentes (Page Builder: FAQBlock)
+  PROFILE     // tarjeta de perfil embebida (Page Builder: ProfileBlock)
+  HERO        // portada con imagen, título, descripción y botones (Page Builder: HeroBlock)
+  SERVICE     // servicio con ícono, descripción, precio y botón (Page Builder: ServiceBlock)
+  PRICING     // plan de precios con lista de features y CTA (Page Builder: PricingBlock)
+  COUNTDOWN   // cuenta regresiva a una fecha objetivo (Page Builder: CountdownBlock)
+  FOOTER      // pie de página con texto y enlaces (Page Builder: FooterBlock)
 }
 
 // Cada Link es un "bloque" del Page Builder — el nombre de la tabla y el

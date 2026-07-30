@@ -10,7 +10,13 @@ export type LinkType =
   | "MUSIC"
   | "GALLERY"
   | "TESTIMONIAL"
-  | "FAQ";
+  | "FAQ"
+  | "PROFILE"
+  | "HERO"
+  | "SERVICE"
+  | "PRICING"
+  | "COUNTDOWN"
+  | "FOOTER";
 
 // Opaque JSON envelope — each block kind defines its own, more specific
 // metadata shape in its own `types.ts` (e.g. blocks/GalleryBlock/types.ts)
@@ -50,4 +56,10 @@ export const LINK_TYPE_LABELS: Record<LinkType, string> = {
   GALLERY: "Galería",
   TESTIMONIAL: "Testimonio",
   FAQ: "Preguntas frecuentes",
+  PROFILE: "Perfil",
+  HERO: "Portada (Hero)",
+  SERVICE: "Servicio",
+  PRICING: "Plan de precios",
+  COUNTDOWN: "Cuenta regresiva",
+  FOOTER: "Pie de página",
 };
