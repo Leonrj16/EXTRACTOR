@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { CopyLinkButton } from "@/components/admin/copy-link-button";
+import { QrCodeButton } from "@/components/admin/qr-code-button";
 import { cn } from "@/lib/utils";
 import { DEVICES, type DeviceId } from "@/components/admin/design-editor";
 
@@ -131,6 +132,7 @@ export function EditorTopBar({
         </Button>
 
         <CopyLinkButton path={publicPath} />
+        <QrCodeButton path={publicPath} />
 
         <Button size="sm" onClick={onPublish} loading={publishing}>
           {!isPublished && <AlertTriangle className="size-3.5" />}

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Eye, MousePointerClick, Percent, Link2, Palette, BarChart3, ArrowUpRight } from "lucide-react";
 import { StatCard } from "@/components/admin/stat-card";
 import { CopyLinkButton } from "@/components/admin/copy-link-button";
+import { QrCodeButton } from "@/components/admin/qr-code-button";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button-variants";
 import { serverApiFetch } from "@/lib/api-server";
@@ -91,6 +92,7 @@ export default async function DashboardPage() {
         </div>
         <div className="flex items-center gap-2">
           <CopyLinkButton path={publicUrl} />
+          <QrCodeButton path={publicUrl} />
           <Link
             href={publicUrl}
             target="_blank"
