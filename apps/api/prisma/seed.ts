@@ -58,7 +58,11 @@ async function main() {
   const user = await prisma.user.upsert({
     where: { email },
     update: {},
-    create: { email, passwordHash, role: 'ADMIN' },
+    // emailVerifiedAt se marca desde el seed: este correo lo controla
+    // quien despliega la plataforma, no un usuario que se registró solo —
+    // no hay un flujo de registro público todavía que deje una cuenta sin
+    // verificar (ver auth.service.ts).
+    create: { email, passwordHash, role: 'ADMIN', emailVerifiedAt: new Date() },
   });
 
   const profile = await prisma.profile.upsert({

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { AuroraBackground } from "@/components/brand/aurora-background";
@@ -86,6 +87,12 @@ export default function AdminLoginPage() {
               <Button type="submit" size="lg" className="mt-1 w-full" loading={loading}>
                 {loading ? "Entrando…" : "Entrar"}
               </Button>
+              <Link
+                href="/admin/forgot-password"
+                className="text-center text-sm text-muted-foreground hover:text-foreground"
+              >
+                ¿Olvidaste tu contraseña?
+              </Link>
             </form>
           </CardContent>
         </Card>

@@ -1,12 +1,15 @@
 import { randomBytes } from 'node:crypto';
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import type { AppConfig } from '../../config/configuration';
+import { MailerService } from '../../common/mailer/mailer.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { UsersService } from '../users/users.service';
 import type { AuthenticatedUser } from '../../common/types/authenticated-user';
+
+const PASSWORD_RESET_TTL_MS = 60 * 60 * 1000; // 1 hora
 
 export interface TokenPair {
   accessToken: string;
@@ -20,6 +23,7 @@ export class AuthService {
     private readonly prisma: PrismaService,
     private readonly jwt: JwtService,
     private readonly config: ConfigService<AppConfig, true>,
+    private readonly mailer: MailerService,
   ) {}
 
   async login(email: string, password: string): Promise<TokenPair> {
@@ -58,6 +62,76 @@ export class AuthService {
       where: { id, revokedAt: null },
       data: { revokedAt: new Date() },
     });
+  }
+
+  /**
+   * Always resolves, whether or not the email matches an account — telling
+   * the caller "no existe esa cuenta" would let an attacker enumerate
+   * registered emails. The reset link only goes out over email, which only
+   * the real owner of that inbox can act on.
+   */
+  async requestPasswordReset(email: string): Promise<void> {
+    const user = await this.users.findByEmail(email);
+    if (!user) return;
+
+    const secret = randomBytes(32).toString('hex');
+    const tokenHash = await bcrypt.hash(secret, 10);
+    const record = await this.prisma.verificationToken.create({
+      data: {
+        userId: user.id,
+        tokenHash,
+        type: 'PASSWORD_RESET',
+        expiresAt: new Date(Date.now() + PASSWORD_RESET_TTL_MS),
+      },
+    });
+
+    const webUrl = this.config.get('webUrl', { infer: true });
+    const link = `${webUrl}/admin/reset-password?token=${record.id}.${secret}`;
+
+    await this.mailer.send({
+      to: user.email,
+      subject: 'Restablecer tu contraseña de Aura',
+      html: `
+        <p>Recibimos una solicitud para restablecer tu contraseña.</p>
+        <p><a href="${link}">Elegir una nueva contraseña</a></p>
+        <p>Este enlace vence en 1 hora. Si no pediste esto, ignora este correo.</p>
+      `,
+    });
+  }
+
+  async resetPassword(rawToken: string, newPassword: string): Promise<void> {
+    const [id, secret] = rawToken.split('.');
+    if (!id || !secret) {
+      throw new BadRequestException('Enlace de restablecimiento inválido');
+    }
+
+    const record = await this.prisma.verificationToken.findUnique({ where: { id } });
+    if (
+      !record ||
+      record.type !== 'PASSWORD_RESET' ||
+      record.usedAt ||
+      record.expiresAt < new Date()
+    ) {
+      throw new BadRequestException('Este enlace ya no es válido — pide uno nuevo');
+    }
+
+    const matches = await bcrypt.compare(secret, record.tokenHash);
+    if (!matches) {
+      throw new BadRequestException('Enlace de restablecimiento inválido');
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword, 10);
+
+    await this.prisma.$transaction([
+      this.prisma.user.update({ where: { id: record.userId }, data: { passwordHash } }),
+      this.prisma.verificationToken.update({ where: { id }, data: { usedAt: new Date() } }),
+      // Cambiar la contraseña invalida cualquier sesión existente — si
+      // alguien más tenía acceso, este es el momento de cortarlo.
+      this.prisma.refreshToken.updateMany({
+        where: { userId: record.userId, revokedAt: null },
+        data: { revokedAt: new Date() },
+      }),
+    ]);
   }
 
   private async resolveRefreshToken(rawRefreshToken: string) {

@@ -1,4 +1,4 @@
-import { UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, UnauthorizedException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { AuthService } from './auth.service';
 
@@ -13,6 +13,15 @@ describe('AuthService', () => {
       update: jest.fn(),
       updateMany: jest.fn(),
     },
+    verificationToken: {
+      create: jest.fn(),
+      findUnique: jest.fn(),
+      update: jest.fn(),
+    },
+    user: {
+      update: jest.fn(),
+    },
+    $transaction: jest.fn((ops: unknown[]) => Promise.all(ops)),
   };
   const jwtMock = { signAsync: jest.fn().mockResolvedValue('signed.jwt.token') };
   const configMock = {
@@ -21,10 +30,12 @@ describe('AuthService', () => {
         'jwt.accessSecret': 'secret',
         'jwt.accessExpiresIn': '15m',
         'jwt.refreshExpiresIn': '7d',
+        webUrl: 'http://localhost:3000',
       };
       return values[key];
     }),
   };
+  const mailerMock = { send: jest.fn().mockResolvedValue(undefined) };
 
   let authService: AuthService;
 
@@ -35,6 +46,7 @@ describe('AuthService', () => {
       prismaMock as any,
       jwtMock as any,
       configMock as any,
+      mailerMock as any,
     );
   });
 
@@ -134,6 +146,89 @@ describe('AuthService', () => {
         data: { revokedAt: expect.any(Date) },
       });
       expect(result.refreshToken).toMatch(/^rt2\./);
+    });
+  });
+
+  describe('requestPasswordReset', () => {
+    it('does nothing and never emails when the account does not exist', async () => {
+      usersMock.findByEmail.mockResolvedValue(null);
+
+      await authService.requestPasswordReset('nobody@example.com');
+
+      expect(prismaMock.verificationToken.create).not.toHaveBeenCalled();
+      expect(mailerMock.send).not.toHaveBeenCalled();
+    });
+
+    it('creates a token and emails a reset link when the account exists', async () => {
+      usersMock.findByEmail.mockResolvedValue({ id: 'u1', email: 'a@a.com' });
+      (bcrypt.hash as jest.Mock).mockResolvedValue('hashed-secret');
+      prismaMock.verificationToken.create.mockResolvedValue({ id: 'vt1' });
+
+      await authService.requestPasswordReset('a@a.com');
+
+      expect(prismaMock.verificationToken.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ userId: 'u1', type: 'PASSWORD_RESET' }),
+        }),
+      );
+      expect(mailerMock.send).toHaveBeenCalledWith(
+        expect.objectContaining({ to: 'a@a.com', html: expect.stringContaining('vt1.') }),
+      );
+    });
+  });
+
+  describe('resetPassword', () => {
+    it('rejects a malformed token', async () => {
+      await expect(authService.resetPassword('not-a-valid-token', 'newpassword1')).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
+    it('rejects an expired token', async () => {
+      prismaMock.verificationToken.findUnique.mockResolvedValue({
+        id: 'vt1',
+        tokenHash: 'hashed',
+        type: 'PASSWORD_RESET',
+        usedAt: null,
+        expiresAt: new Date(Date.now() - 1000),
+      });
+
+      await expect(authService.resetPassword('vt1.secret', 'newpassword1')).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
+    it('rejects an already-used token', async () => {
+      prismaMock.verificationToken.findUnique.mockResolvedValue({
+        id: 'vt1',
+        tokenHash: 'hashed',
+        type: 'PASSWORD_RESET',
+        usedAt: new Date(),
+        expiresAt: new Date(Date.now() + 10_000),
+      });
+
+      await expect(authService.resetPassword('vt1.secret', 'newpassword1')).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
+    it('updates the password, marks the token used, and revokes sessions on success', async () => {
+      prismaMock.verificationToken.findUnique.mockResolvedValue({
+        id: 'vt1',
+        userId: 'u1',
+        tokenHash: 'hashed',
+        type: 'PASSWORD_RESET',
+        usedAt: null,
+        expiresAt: new Date(Date.now() + 10_000),
+      });
+      (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+      (bcrypt.hash as jest.Mock).mockResolvedValue('new-hashed-password');
+
+      await authService.resetPassword('vt1.secret', 'newpassword1');
+
+      expect(prismaMock.$transaction).toHaveBeenCalled();
+      const ops = prismaMock.$transaction.mock.calls[0][0];
+      expect(ops).toHaveLength(3);
     });
   });
 });

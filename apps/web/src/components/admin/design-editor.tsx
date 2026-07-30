@@ -226,6 +226,8 @@ export function DesignEditor({ initialProfile, initialAppearance, themes: initia
           whatsapp: profile.whatsapp,
           contactEmail: profile.contactEmail,
           location: profile.location,
+          seoTitle: profile.seoTitle ?? "",
+          seoDescription: profile.seoDescription ?? "",
         }),
       });
       setProfile(updated);
@@ -533,6 +535,36 @@ export function DesignEditor({ initialProfile, initialAppearance, themes: initia
                 onChange={(e) => setProfile({ ...profile, location: e.target.value })}
               />
             </div>
+
+            <div className="flex flex-col gap-4 border-t border-border-subtle pt-4">
+              <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">SEO</p>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="seoTitle">Título SEO</Label>
+                <Input
+                  id="seoTitle"
+                  maxLength={70}
+                  placeholder={profile.displayName || "Ej: Diseñador freelance en Ciudad de México"}
+                  value={profile.seoTitle ?? ""}
+                  onChange={(e) => setProfile({ ...profile, seoTitle: e.target.value })}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Se ve como el título de la pestaña y al compartir tu enlace. {profile.seoTitle?.length ?? 0}/70
+                </p>
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="seoDescription">Descripción SEO</Label>
+                <Textarea
+                  id="seoDescription"
+                  rows={2}
+                  maxLength={160}
+                  placeholder={profile.bio || "Una frase que resuma tu página para buscadores y redes."}
+                  value={profile.seoDescription ?? ""}
+                  onChange={(e) => setProfile({ ...profile, seoDescription: e.target.value })}
+                />
+                <p className="text-xs text-muted-foreground">{profile.seoDescription?.length ?? 0}/160</p>
+              </div>
+            </div>
+
             <Button onClick={handleSaveProfile} loading={savingProfile} className="w-fit">
               {savingProfile ? "Guardando…" : "Guardar perfil"}
             </Button>

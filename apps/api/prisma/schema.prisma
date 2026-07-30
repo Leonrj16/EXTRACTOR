@@ -33,15 +33,40 @@ model User {
   passwordHash String
   role         Role       @default(ADMIN)
   status       UserStatus @default(ACTIVE)
+  emailVerifiedAt DateTime?
 
   profile      Profile?
   media        Media[]
   refreshTokens RefreshToken[]
+  verificationTokens VerificationToken[]
 
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
 
   @@map("users")
+}
+
+enum VerificationTokenType {
+  EMAIL_VERIFY
+  PASSWORD_RESET
+}
+
+// Tokens de un solo uso para verificar email y recuperar contraseña — el
+// token en claro solo existe en el link que se envía por correo, acá se
+// guarda su hash (mismo patrón que RefreshToken) para que un dump de la
+// base de datos no permita reusar un token filtrado.
+model VerificationToken {
+  id        String                @id @default(cuid())
+  tokenHash String                @unique
+  userId    String
+  user      User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      VerificationTokenType
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime              @default(now())
+
+  @@index([userId])
+  @@map("verification_tokens")
 }
 
 // Refresh tokens persistidos (hasheados) para poder revocar sesiones
@@ -85,7 +110,20 @@ model Profile {
   seoDescription String?
 
   isPublished Boolean  @default(true)
-  customDomain String? @unique // reservado para el futuro (verificación DNS)
+  customDomain String? @unique
+  // Token que el dueño del dominio debe publicar como registro TXT
+  // (_aura-verify.<dominio>) para probar que controla el DNS antes de que
+  // customDomainVerifiedAt se marque. Ver docs/architecture del dominio
+  // personalizado — el ruteo real del dominio hacia esta app es
+  // infraestructura fuera del alcance de este repo (ver custom-domain.md).
+  customDomainToken       String?
+  customDomainVerifiedAt  DateTime?
+
+  // Página con contraseña — pagePasswordHash nunca se expone al cliente,
+  // isPasswordProtected sí (para que la UI sepa si mostrar el candado sin
+  // tener que inferirlo de un campo hasheado presente/ausente).
+  isPasswordProtected Boolean @default(false)
+  pagePasswordHash    String?
 
   // Keys (Theme.key) marcadas como favoritas en la galería del Theme Engine.
   favoriteThemeKeys String[] @default([])
