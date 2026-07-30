@@ -177,6 +177,13 @@ ningún otro bloque.
 | CountdownBlock | `COUNTDOWN` | title | targetDate, expiredText |
 | PricingBlock | `PRICING` | title, url | price, currency, period, features[], buttonLabel, highlighted |
 | FooterBlock | `FOOTER` | title (copyright) | links[] |
+| WhatsAppBlock | `WHATSAPP` | title, url (fallback) | phone, message |
+| EmailBlock | `EMAIL` | title, url (fallback) | email, subject, body |
+| MusicBlock | `MUSIC` | title, url | — (el embed se deriva de la URL) |
 
-Kinds que aún no tienen una migración a esta arquitectura y siguen
-renderizándose por el camino legacy inline: `WHATSAPP`, `EMAIL`, `MUSIC`.
+Los 18 valores de `LinkType` están registrados — no queda ningún camino
+legacy en `profile-view.tsx` ni en `link-form-dialog.tsx`. WhatsAppBlock y
+EmailBlock aceptan un teléfono/email (arman el link `wa.me`/`mailto:`
+automáticamente) o, si se deja vacío, usan `link.url` tal cual — así las
+filas creadas antes de que estos bloques existieran (que ya guardaban una
+URL completa) siguen funcionando sin necesidad de una migración de datos.

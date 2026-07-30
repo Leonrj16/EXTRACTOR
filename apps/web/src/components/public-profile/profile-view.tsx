@@ -6,7 +6,6 @@ import { resolveEntranceVariant } from "@/components/blocks/shared/animation-pre
 import { resolveBorderStyle, resolveShadowStyle } from "@/components/blocks/shared/style-resolver";
 import { getBlockDefinition } from "@/components/blocks/registry";
 import type { BlockStyleOverrides } from "@/components/blocks/types";
-import { toMusicEmbedUrl } from "@/lib/embed";
 import type { LinkItem } from "@/types/link";
 import type { AppearanceData, ProfileData } from "@/types/profile";
 
@@ -63,57 +62,11 @@ export function ProfileView({
   // here regardless of what the caller passes in.
   const visibleLinks = links.filter((link) => link.isActive);
 
-  // Legacy hover/tap opt-out for the fallback render path below — only
-  // reached by kinds not yet migrated to the block registry (WHATSAPP,
-  // EMAIL, MUSIC), since every other kind renders through its own
-  // BlockFrame (which handles its own hover/tap) instead.
-  const isInteractiveBlock = (type: LinkItem["type"]) => type === "MUSIC";
-
   // Kinds tall/wide enough to deserve both grid columns instead of being
-  // squeezed into one — independent of whether a kind is migrated, since
-  // it also sizes the wrapper around registry-rendered blocks.
+  // squeezed into one.
   const WIDE_TYPES: LinkItem["type"][] = ["VIDEO", "MUSIC", "FORM", "HERO", "PROFILE", "FOOTER", "LOCATION"];
   function isWide(link: LinkItem) {
     return layout === "grid" && WIDE_TYPES.includes(link.type);
-  }
-
-  function renderBlock(link: LinkItem) {
-    if (link.type === "MUSIC") {
-      const embedUrl = link.url ? toMusicEmbedUrl(link.url) : null;
-      return (
-        <div>
-          {embedUrl ? (
-            <iframe
-              src={embedUrl}
-              className="w-full rounded-xl"
-              style={{ boxShadow: blockShadow }}
-              height="152"
-              allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-            />
-          ) : (
-            <div
-              className={`flex h-24 items-center justify-center text-xs opacity-60 ${cardRadius}`}
-              style={blockBorder}
-            >
-              URL de Spotify no válida
-            </div>
-          )}
-        </div>
-      );
-    }
-
-    return (
-      <a
-        href={link.url ?? "#"}
-        target="_blank"
-        rel="noreferrer"
-        onClick={() => onLinkClick?.(link)}
-        className={`block w-full px-4 py-3.5 text-center text-sm font-medium outline-none backdrop-blur-md transition-transform focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current ${radius}`}
-        style={{ ...blockBorder, backgroundColor: `${primaryColor}14`, boxShadow: blockShadow }}
-      >
-        {link.title}
-      </a>
-    );
   }
 
   const isAurora = Boolean(base.aurora);
@@ -203,36 +156,24 @@ export function ProfileView({
         }
       >
         {visibleLinks.map((link, index) => {
+          // Every LinkType kind has a registered block — this only stays
+          // undefined for a stale value from before a type was migrated,
+          // so it's skipped rather than crashing the whole page.
           const definition = getBlockDefinition(link.type);
-          if (definition) {
-            const Preview = definition.Preview;
-            return (
-              <div key={link.id} className={isWide(link) ? "col-span-2" : undefined}>
-                <Preview
-                  link={link}
-                  meta={link.metadata ?? {}}
-                  styleOverrides={(link.styleOverrides ?? {}) as BlockStyleOverrides}
-                  theme={{ primaryColor, radius, cardRadius, pageBorder: blockBorder, pageShadow: blockShadow }}
-                  index={index}
-                  onLinkClick={onLinkClick}
-                  onContactSubmit={onContactSubmit}
-                />
-              </div>
-            );
-          }
+          if (!definition) return null;
+          const Preview = definition.Preview;
           return (
-            <motion.div
-              key={link.id}
-              initial="hidden"
-              animate="visible"
-              variants={variants}
-              transition={{ duration: 0.3, delay: index * 0.05 }}
-              whileHover={isInteractiveBlock(link.type) ? undefined : { scale: 1.02 }}
-              whileTap={isInteractiveBlock(link.type) ? undefined : { scale: 0.98 }}
-              className={isWide(link) ? "col-span-2" : undefined}
-            >
-              {renderBlock(link)}
-            </motion.div>
+            <div key={link.id} className={isWide(link) ? "col-span-2" : undefined}>
+              <Preview
+                link={link}
+                meta={link.metadata ?? {}}
+                styleOverrides={(link.styleOverrides ?? {}) as BlockStyleOverrides}
+                theme={{ primaryColor, radius, cardRadius, pageBorder: blockBorder, pageShadow: blockShadow }}
+                index={index}
+                onLinkClick={onLinkClick}
+                onContactSubmit={onContactSubmit}
+              />
+            </div>
           );
         })}
       </div>

@@ -13,6 +13,9 @@ import { mapBlockDefinition } from "./MapBlock";
 import { countdownBlockDefinition } from "./CountdownBlock";
 import { pricingBlockDefinition } from "./PricingBlock";
 import { footerBlockDefinition } from "./FooterBlock";
+import { whatsAppBlockDefinition } from "./WhatsAppBlock";
+import { emailBlockDefinition } from "./EmailBlock";
+import { musicBlockDefinition } from "./MusicBlock";
 import type { BlockDefinition, BlockKind } from "./types";
 
 /**
@@ -26,9 +29,8 @@ import type { BlockDefinition, BlockKind } from "./types";
  * dispatch through `getBlockDefinition`, never through a per-kind
  * if/else, so adding a block never touches existing ones.
  *
- * Kinds not listed here (WHATSAPP, EMAIL, MUSIC) still render through the
- * legacy inline path in profile-view.tsx / link-form-dialog.tsx until
- * they're migrated to this same pattern in a future pass.
+ * Every LinkType kind is registered here — there is no legacy fallback
+ * path left in profile-view.tsx / link-form-dialog.tsx.
  */
 // Each block owns its own TMeta (ButtonBlockMeta, VideoBlockMeta, ...); the
 // registry itself only needs to dispatch generically, so it's stored and
@@ -52,6 +54,9 @@ export const BLOCK_REGISTRY: Partial<Record<BlockKind, AnyBlockDefinition>> = {
   COUNTDOWN: countdownBlockDefinition,
   PRICING: pricingBlockDefinition,
   FOOTER: footerBlockDefinition,
+  WHATSAPP: whatsAppBlockDefinition,
+  EMAIL: emailBlockDefinition,
+  MUSIC: musicBlockDefinition,
 } as unknown as Partial<Record<BlockKind, AnyBlockDefinition>>;
 
 export function getBlockDefinition(kind: BlockKind): AnyBlockDefinition | undefined {

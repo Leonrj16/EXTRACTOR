@@ -10,7 +10,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { NativeSelect } from "@/components/ui/native-select";
 import { getBlockDefinition } from "@/components/blocks/registry";
@@ -45,17 +44,6 @@ const EMPTY_FORM: LinkFormValues = {
   styleOverrides: {},
 };
 
-const URL_HELP: Partial<Record<LinkType, string>> = {
-  VIDEO: "Pega la URL de un video de YouTube o Vimeo",
-  MUSIC: "Pega la URL de una canción, álbum o playlist de Spotify",
-  PRODUCT: "URL de compra o más información (opcional)",
-};
-
-function metaString(metadata: Record<string, unknown>, key: string): string {
-  const v = metadata[key];
-  return typeof v === "string" ? v : "";
-}
-
 export function LinkFormDialog({ open, onOpenChange, link, onSubmit }: LinkFormDialogProps) {
   const [values, setValues] = useState<LinkFormValues>(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
@@ -87,8 +75,6 @@ export function LinkFormDialog({ open, onOpenChange, link, onSubmit }: LinkFormD
     }
   }
 
-  const isForm = values.type === "FORM";
-  const isProduct = values.type === "PRODUCT";
   const definition = getBlockDefinition(values.type);
 
   // The draft object the block's own Settings component edits — for a new
@@ -157,80 +143,9 @@ export function LinkFormDialog({ open, onOpenChange, link, onSubmit }: LinkFormD
               <BlockStylePanel value={values.styleOverrides} onChange={handleStyleChange} idPrefix="link-block" />
             </>
           ) : (
-            <>
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="link-title">Título</Label>
-                <Input
-                  id="link-title"
-                  required
-                  maxLength={100}
-                  value={values.title}
-                  onChange={(e) => setValues({ ...values, title: e.target.value })}
-                />
-              </div>
-
-              {!isForm && (
-                <div className="flex flex-col gap-2">
-                  <Label htmlFor="link-url">URL</Label>
-                  <Input
-                    id="link-url"
-                    type="url"
-                    placeholder="https://…"
-                    required={!isProduct}
-                    value={values.url}
-                    onChange={(e) => setValues({ ...values, url: e.target.value })}
-                  />
-                  {URL_HELP[values.type] && (
-                    <p className="text-xs text-muted-foreground">{URL_HELP[values.type]}</p>
-                  )}
-                </div>
-              )}
-
-              {isForm && (
-                <p className="rounded-xl border border-border bg-surface-2 p-4 text-xs leading-relaxed text-muted-foreground">
-                  Este bloque muestra un formulario (nombre, email y mensaje) en tu página
-                  pública. Los mensajes enviados quedan guardados y los puedes ver desde la
-                  lista de enlaces.
-                </p>
-              )}
-
-              {isProduct && (
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="flex flex-col gap-2">
-                    <Label htmlFor="link-price">Precio</Label>
-                    <Input
-                      id="link-price"
-                      inputMode="decimal"
-                      placeholder="19.99"
-                      value={metaString(values.metadata, "price")}
-                      onChange={(e) => handleBlockMetaChange({ price: e.target.value })}
-                    />
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <Label htmlFor="link-currency">Moneda</Label>
-                    <Input
-                      id="link-currency"
-                      maxLength={3}
-                      placeholder="USD"
-                      value={metaString(values.metadata, "currency") || "USD"}
-                      onChange={(e) => handleBlockMetaChange({ currency: e.target.value.toUpperCase() })}
-                    />
-                  </div>
-                </div>
-              )}
-
-              {!isForm && (
-                <div className="flex flex-col gap-2">
-                  <Label htmlFor="link-icon">Ícono (opcional)</Label>
-                  <Input
-                    id="link-icon"
-                    placeholder="instagram, whatsapp, link…"
-                    value={values.icon}
-                    onChange={(e) => setValues({ ...values, icon: e.target.value })}
-                  />
-                </div>
-              )}
-            </>
+            <p className="rounded-xl border border-border bg-surface-2 p-4 text-xs leading-relaxed text-muted-foreground">
+              Este tipo de bloque no tiene un editor disponible todavía.
+            </p>
           )}
 
           <DialogFooter>
