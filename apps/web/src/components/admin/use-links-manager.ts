@@ -16,16 +16,15 @@ import type { LinkFormValues } from "./link-form-dialog";
 
 function buildPayload(values: LinkFormValues) {
   const isForm = values.type === "FORM";
-  const isProduct = values.type === "PRODUCT";
 
   return {
     type: values.type,
     title: values.title,
     url: isForm ? undefined : values.url || undefined,
     icon: values.icon || undefined,
-    metadata: isProduct
-      ? { price: values.price || undefined, currency: values.currency || undefined }
-      : undefined,
+    imageUrl: values.imageUrl || undefined,
+    metadata: Object.keys(values.metadata).length ? values.metadata : undefined,
+    styleOverrides: Object.keys(values.styleOverrides).length ? values.styleOverrides : undefined,
   };
 }
 
@@ -129,6 +128,7 @@ export function useLinksManager(initialLinks: LinkItem[]) {
           icon: link.icon ?? undefined,
           imageUrl: link.imageUrl ?? undefined,
           metadata: link.metadata ?? undefined,
+          styleOverrides: link.styleOverrides ?? undefined,
         }),
       });
       const originalIndex = links.findIndex((l) => l.id === link.id);

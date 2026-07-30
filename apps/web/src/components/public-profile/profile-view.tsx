@@ -1,12 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { motion, type Variants } from "framer-motion";
+import { motion } from "framer-motion";
 import { MapPin, Mail, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { toMusicEmbedUrl, toVideoEmbedUrl } from "@/lib/embed";
+import { resolveEntranceVariant } from "@/components/blocks/shared/animation-presets";
+import { resolveBorderStyle, resolveShadowStyle } from "@/components/blocks/shared/style-resolver";
+import { getBlockDefinition } from "@/components/blocks/registry";
+import type { BlockStyleOverrides } from "@/components/blocks/types";
+import { toMusicEmbedUrl } from "@/lib/embed";
 import type { LinkItem } from "@/types/link";
 import type { AppearanceData, ProfileData } from "@/types/profile";
 
@@ -32,34 +36,6 @@ const CARD_RADIUS: Record<string, string> = {
   rounded: "rounded-xl",
   pill: "rounded-2xl",
   square: "rounded-none",
-};
-
-// Border/shadow are a single setting applied uniformly to every block type
-// (link button, form, product card, video/music fallback) — one dial for
-// the whole page instead of each block hardcoding its own border opacity.
-const BORDER_WIDTH: Record<string, number> = { none: 0, subtle: 1, solid: 1.5, thick: 2.5 };
-const BORDER_ALPHA: Record<string, string> = { none: "00", subtle: "33", solid: "ff", thick: "ff" };
-
-function getBorderStyle(borderStyle: string, primaryColor: string): React.CSSProperties {
-  const width = BORDER_WIDTH[borderStyle] ?? BORDER_WIDTH.subtle;
-  const alpha = BORDER_ALPHA[borderStyle] ?? BORDER_ALPHA.subtle;
-  return { borderWidth: `${width}px`, borderStyle: "solid", borderColor: `${primaryColor}${alpha}` };
-}
-
-function getShadow(shadowStyle: string, primaryColor: string): string | undefined {
-  if (shadowStyle === "glow") return `0 0 24px ${primaryColor}66`;
-  if (shadowStyle === "soft") return "0 8px 24px rgba(0,0,0,0.25)";
-  return undefined;
-}
-
-const ANIMATION_VARIANTS: Record<string, Variants> = {
-  fade: { hidden: { opacity: 0, y: 8 }, visible: { opacity: 1, y: 0 } },
-  slide: { hidden: { opacity: 0, x: -24 }, visible: { opacity: 1, x: 0 } },
-  bounce: {
-    hidden: { opacity: 0, scale: 0.85 },
-    visible: { opacity: 1, scale: 1, transition: { type: "spring", stiffness: 300, damping: 15 } },
-  },
-  none: { hidden: { opacity: 1 }, visible: { opacity: 1 } },
 };
 
 function FormBlock({
@@ -159,9 +135,9 @@ export function ProfileView({
   const shadowStyleKey = appearance.shadowStyle ?? base.shadowStyle ?? "none";
   const radius = BUTTON_RADIUS[buttonStyle] ?? "rounded-xl";
   const cardRadius = CARD_RADIUS[buttonStyle] ?? "rounded-xl";
-  const variants = ANIMATION_VARIANTS[animation] ?? ANIMATION_VARIANTS.fade;
-  const blockShadow = getShadow(shadowStyleKey, primaryColor);
-  const blockBorder = getBorderStyle(borderStyleKey, primaryColor);
+  const variants = resolveEntranceVariant(animation);
+  const blockShadow = resolveShadowStyle(shadowStyleKey as BlockStyleOverrides["shadow"], primaryColor);
+  const blockBorder = resolveBorderStyle(borderStyleKey as BlockStyleOverrides["border"], primaryColor);
   // isActive filtering is the component's own responsibility, not each
   // caller's — the public page route already queries only active links,
   // but the design editor's live preview passes every link (so hiding a
@@ -177,31 +153,6 @@ export function ProfileView({
   }
 
   function renderBlock(link: LinkItem) {
-    if (link.type === "VIDEO") {
-      const embedUrl = link.url ? toVideoEmbedUrl(link.url) : null;
-      return (
-        <div className={`overflow-hidden ${cardRadius}`}>
-          <p className="mb-1 text-sm font-medium">{link.title}</p>
-          {embedUrl ? (
-            <iframe
-              src={embedUrl}
-              className={`aspect-video w-full ${cardRadius}`}
-              style={{ boxShadow: blockShadow }}
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            />
-          ) : (
-            <div
-              className={`flex aspect-video items-center justify-center text-xs opacity-60 ${cardRadius}`}
-              style={blockBorder}
-            >
-              URL de video no válida
-            </div>
-          )}
-        </div>
-      );
-    }
-
     if (link.type === "MUSIC") {
       const embedUrl = link.url ? toMusicEmbedUrl(link.url) : null;
       return (
@@ -363,20 +314,39 @@ export function ProfileView({
             : "relative z-10 flex w-full max-w-sm flex-col gap-3"
         }
       >
-        {visibleLinks.map((link, index) => (
-          <motion.div
-            key={link.id}
-            initial="hidden"
-            animate="visible"
-            variants={variants}
-            transition={{ duration: 0.3, delay: index * 0.05 }}
-            whileHover={isInteractiveBlock(link.type) ? undefined : { scale: 1.02 }}
-            whileTap={isInteractiveBlock(link.type) ? undefined : { scale: 0.98 }}
-            className={isWide(link) ? "col-span-2" : undefined}
-          >
-            {renderBlock(link)}
-          </motion.div>
-        ))}
+        {visibleLinks.map((link, index) => {
+          const definition = getBlockDefinition(link.type);
+          if (definition) {
+            const Preview = definition.Preview;
+            return (
+              <div key={link.id} className={isWide(link) ? "col-span-2" : undefined}>
+                <Preview
+                  link={link}
+                  meta={link.metadata ?? {}}
+                  styleOverrides={(link.styleOverrides ?? {}) as BlockStyleOverrides}
+                  theme={{ primaryColor, radius, cardRadius, pageBorder: blockBorder, pageShadow: blockShadow }}
+                  index={index}
+                  onLinkClick={onLinkClick}
+                  onContactSubmit={onContactSubmit}
+                />
+              </div>
+            );
+          }
+          return (
+            <motion.div
+              key={link.id}
+              initial="hidden"
+              animate="visible"
+              variants={variants}
+              transition={{ duration: 0.3, delay: index * 0.05 }}
+              whileHover={isInteractiveBlock(link.type) ? undefined : { scale: 1.02 }}
+              whileTap={isInteractiveBlock(link.type) ? undefined : { scale: 0.98 }}
+              className={isWide(link) ? "col-span-2" : undefined}
+            >
+              {renderBlock(link)}
+            </motion.div>
+          );
+        })}
       </div>
     </div>
   );

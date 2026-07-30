@@ -19,9 +19,10 @@ import {
   Smartphone,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ColorField } from "@/components/ui/color-field";
+import { FieldSelect } from "@/components/ui/field-select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { NativeSelect } from "@/components/ui/native-select";
 import { Textarea } from "@/components/ui/textarea";
 import { ProfileView } from "@/components/public-profile/profile-view";
 import { adminFetch } from "@/lib/api-client";
@@ -88,65 +89,6 @@ const DEVICE_FRAME: Record<DeviceId, { width: number; height: number; className:
   tablet: { width: 420, height: 560, className: "rounded-[1.4rem] border-4 border-border" },
   desktop: { width: 640, height: 460, className: "rounded-xl border border-border" },
 };
-
-function FieldSelect({
-  id,
-  label,
-  value,
-  onChange,
-  options,
-}: {
-  id: string;
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  options: Array<{ value: string; label: string }>;
-}) {
-  return (
-    <div className="flex flex-col gap-2">
-      <Label htmlFor={id}>{label}</Label>
-      <NativeSelect id={id} value={value} onChange={(e) => onChange(e.target.value)}>
-        {options.map((option) => (
-          <option key={option.value} value={option.value} className="bg-[#12131c]">
-            {option.label}
-          </option>
-        ))}
-      </NativeSelect>
-    </div>
-  );
-}
-
-function ColorField({
-  id,
-  label,
-  value,
-  onChange,
-}: {
-  id: string;
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-}) {
-  return (
-    <div className="flex flex-col gap-2">
-      <Label htmlFor={id}>{label}</Label>
-      <div className="relative flex h-10 items-center gap-2 rounded-xl border border-border bg-surface-2 px-2">
-        <div
-          className="size-6 shrink-0 rounded-lg border border-border-hover"
-          style={{ backgroundColor: value }}
-        />
-        <span className="text-sm text-muted-foreground uppercase">{value}</span>
-        <input
-          id={id}
-          type="color"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
-        />
-      </div>
-    </div>
-  );
-}
 
 // The right-hand column has a fixed width, so a wider device frame (tablet,
 // desktop) can't just render at its "native" size — it has to shrink to

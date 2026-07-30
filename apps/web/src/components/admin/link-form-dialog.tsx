@@ -13,15 +13,19 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { NativeSelect } from "@/components/ui/native-select";
-import { LINK_TYPE_LABELS, type LinkItem, type LinkType } from "@/types/link";
+import { getBlockDefinition } from "@/components/blocks/registry";
+import { BlockStylePanel } from "@/components/blocks/shared/style-panel";
+import type { BlockStyleOverrides } from "@/components/blocks/types";
+import { LINK_TYPE_LABELS, type LinkItem, type LinkMetadata, type LinkType } from "@/types/link";
 
 export interface LinkFormValues {
   type: LinkType;
   title: string;
   url: string;
   icon: string;
-  price: string;
-  currency: string;
+  imageUrl: string;
+  metadata: Record<string, unknown>;
+  styleOverrides: BlockStyleOverrides;
 }
 
 interface LinkFormDialogProps {
@@ -36,8 +40,9 @@ const EMPTY_FORM: LinkFormValues = {
   title: "",
   url: "",
   icon: "",
-  price: "",
-  currency: "USD",
+  imageUrl: "",
+  metadata: {},
+  styleOverrides: {},
 };
 
 const URL_HELP: Partial<Record<LinkType, string>> = {
@@ -45,6 +50,11 @@ const URL_HELP: Partial<Record<LinkType, string>> = {
   MUSIC: "Pega la URL de una canción, álbum o playlist de Spotify",
   PRODUCT: "URL de compra o más información (opcional)",
 };
+
+function metaString(metadata: Record<string, unknown>, key: string): string {
+  const v = metadata[key];
+  return typeof v === "string" ? v : "";
+}
 
 export function LinkFormDialog({ open, onOpenChange, link, onSubmit }: LinkFormDialogProps) {
   const [values, setValues] = useState<LinkFormValues>(EMPTY_FORM);
@@ -57,8 +67,9 @@ export function LinkFormDialog({ open, onOpenChange, link, onSubmit }: LinkFormD
         title: link.title,
         url: link.url ?? "",
         icon: link.icon ?? "",
-        price: link.metadata?.price ?? "",
-        currency: link.metadata?.currency ?? "USD",
+        imageUrl: link.imageUrl ?? "",
+        metadata: (link.metadata as Record<string, unknown>) ?? {},
+        styleOverrides: (link.styleOverrides as BlockStyleOverrides) ?? {},
       });
     } else {
       setValues(EMPTY_FORM);
@@ -78,6 +89,41 @@ export function LinkFormDialog({ open, onOpenChange, link, onSubmit }: LinkFormD
 
   const isForm = values.type === "FORM";
   const isProduct = values.type === "PRODUCT";
+  const definition = getBlockDefinition(values.type);
+
+  // The draft object the block's own Settings component edits — for a new
+  // (unsaved) block this is a stand-in LinkItem, since Settings always
+  // expects a full link, not a partial form.
+  const draftLink: LinkItem = {
+    id: link?.id ?? "draft",
+    type: values.type,
+    title: values.title,
+    url: values.url || null,
+    icon: values.icon || null,
+    imageUrl: values.imageUrl || null,
+    metadata: values.metadata as LinkMetadata,
+    styleOverrides: values.styleOverrides as Record<string, unknown>,
+    isActive: link?.isActive ?? true,
+    order: link?.order ?? 0,
+  };
+
+  function handleBlockPatch(patch: Partial<Pick<LinkItem, "title" | "url" | "icon" | "imageUrl">>) {
+    setValues((v) => ({
+      ...v,
+      ...(patch.title !== undefined ? { title: patch.title ?? "" } : {}),
+      ...(patch.url !== undefined ? { url: patch.url ?? "" } : {}),
+      ...(patch.icon !== undefined ? { icon: patch.icon ?? "" } : {}),
+      ...(patch.imageUrl !== undefined ? { imageUrl: patch.imageUrl ?? "" } : {}),
+    }));
+  }
+
+  function handleBlockMetaChange(metaPatch: Record<string, unknown>) {
+    setValues((v) => ({ ...v, metadata: { ...v.metadata, ...metaPatch } }));
+  }
+
+  function handleStyleChange(patch: Partial<BlockStyleOverrides>) {
+    setValues((v) => ({ ...v, styleOverrides: { ...v.styleOverrides, ...patch } }));
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -100,77 +146,91 @@ export function LinkFormDialog({ open, onOpenChange, link, onSubmit }: LinkFormD
               ))}
             </NativeSelect>
           </div>
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="link-title">Título</Label>
-            <Input
-              id="link-title"
-              required
-              maxLength={100}
-              value={values.title}
-              onChange={(e) => setValues({ ...values, title: e.target.value })}
-            />
-          </div>
-
-          {!isForm && (
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="link-url">URL</Label>
-              <Input
-                id="link-url"
-                type="url"
-                placeholder="https://…"
-                required={!isProduct}
-                value={values.url}
-                onChange={(e) => setValues({ ...values, url: e.target.value })}
+          {definition ? (
+            <>
+              <definition.Settings
+                link={draftLink}
+                meta={values.metadata}
+                onPatch={handleBlockPatch}
+                onMetaChange={handleBlockMetaChange}
               />
-              {URL_HELP[values.type] && (
-                <p className="text-xs text-muted-foreground">{URL_HELP[values.type]}</p>
+              <BlockStylePanel value={values.styleOverrides} onChange={handleStyleChange} idPrefix="link-block" />
+            </>
+          ) : (
+            <>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="link-title">Título</Label>
+                <Input
+                  id="link-title"
+                  required
+                  maxLength={100}
+                  value={values.title}
+                  onChange={(e) => setValues({ ...values, title: e.target.value })}
+                />
+              </div>
+
+              {!isForm && (
+                <div className="flex flex-col gap-2">
+                  <Label htmlFor="link-url">URL</Label>
+                  <Input
+                    id="link-url"
+                    type="url"
+                    placeholder="https://…"
+                    required={!isProduct}
+                    value={values.url}
+                    onChange={(e) => setValues({ ...values, url: e.target.value })}
+                  />
+                  {URL_HELP[values.type] && (
+                    <p className="text-xs text-muted-foreground">{URL_HELP[values.type]}</p>
+                  )}
+                </div>
               )}
-            </div>
-          )}
 
-          {isForm && (
-            <p className="rounded-xl border border-border bg-surface-2 p-4 text-xs leading-relaxed text-muted-foreground">
-              Este bloque muestra un formulario (nombre, email y mensaje) en tu página
-              pública. Los mensajes enviados quedan guardados y los puedes ver desde la
-              lista de enlaces.
-            </p>
-          )}
+              {isForm && (
+                <p className="rounded-xl border border-border bg-surface-2 p-4 text-xs leading-relaxed text-muted-foreground">
+                  Este bloque muestra un formulario (nombre, email y mensaje) en tu página
+                  pública. Los mensajes enviados quedan guardados y los puedes ver desde la
+                  lista de enlaces.
+                </p>
+              )}
 
-          {isProduct && (
-            <div className="grid grid-cols-2 gap-4">
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="link-price">Precio</Label>
-                <Input
-                  id="link-price"
-                  inputMode="decimal"
-                  placeholder="19.99"
-                  value={values.price}
-                  onChange={(e) => setValues({ ...values, price: e.target.value })}
-                />
-              </div>
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="link-currency">Moneda</Label>
-                <Input
-                  id="link-currency"
-                  maxLength={3}
-                  placeholder="USD"
-                  value={values.currency}
-                  onChange={(e) => setValues({ ...values, currency: e.target.value.toUpperCase() })}
-                />
-              </div>
-            </div>
-          )}
+              {isProduct && (
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex flex-col gap-2">
+                    <Label htmlFor="link-price">Precio</Label>
+                    <Input
+                      id="link-price"
+                      inputMode="decimal"
+                      placeholder="19.99"
+                      value={metaString(values.metadata, "price")}
+                      onChange={(e) => handleBlockMetaChange({ price: e.target.value })}
+                    />
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <Label htmlFor="link-currency">Moneda</Label>
+                    <Input
+                      id="link-currency"
+                      maxLength={3}
+                      placeholder="USD"
+                      value={metaString(values.metadata, "currency") || "USD"}
+                      onChange={(e) => handleBlockMetaChange({ currency: e.target.value.toUpperCase() })}
+                    />
+                  </div>
+                </div>
+              )}
 
-          {!isForm && (
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="link-icon">Ícono (opcional)</Label>
-              <Input
-                id="link-icon"
-                placeholder="instagram, whatsapp, link…"
-                value={values.icon}
-                onChange={(e) => setValues({ ...values, icon: e.target.value })}
-              />
-            </div>
+              {!isForm && (
+                <div className="flex flex-col gap-2">
+                  <Label htmlFor="link-icon">Ícono (opcional)</Label>
+                  <Input
+                    id="link-icon"
+                    placeholder="instagram, whatsapp, link…"
+                    value={values.icon}
+                    onChange={(e) => setValues({ ...values, icon: e.target.value })}
+                  />
+                </div>
+              )}
+            </>
           )}
 
           <DialogFooter>
