@@ -117,6 +117,63 @@ export function useLinksManager(initialLinks: LinkItem[]) {
     }
   }
 
+  /**
+   * Low-level PATCH used by the Visual Editor's canvas/right-panel edits
+   * (and by its undo/redo history) — same endpoint `handleSubmit` uses,
+   * but takes a raw partial patch instead of a full `LinkFormValues` so a
+   * single field (a color, a style override, a title) can be saved
+   * without going through the form dialog.
+   */
+  async function patchLink(id: string, patch: Record<string, unknown>) {
+    const previous = links;
+    setLinks((prev) => prev.map((l) => (l.id === id ? { ...l, ...patch } : l)));
+    try {
+      const updated = await adminFetch<LinkItem>(`/admin/links/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify(patch),
+      });
+      setLinks((prev) => prev.map((l) => (l.id === id ? updated : l)));
+    } catch {
+      setLinks(previous);
+      toast.error("No se pudo guardar el cambio");
+    }
+  }
+
+  /** Applies (and persists) a full reordered block list — used by the
+   * Layers panel drag-reorder and by undo/redo of a reorder. */
+  async function applyOrder(order: LinkItem[]) {
+    setLinks(order);
+    await persistOrder(order);
+  }
+
+  /**
+   * Creates a block with sane defaults and appends it, skipping the modal
+   * entirely — the Visual Editor's Block Library panel calls this so
+   * clicking a block type drops it straight onto the canvas, already
+   * selected for editing in the right-hand panel.
+   */
+  async function createBlock(
+    type: LinkItem["type"],
+    defaults: { title: string; metadata?: Record<string, unknown> },
+  ): Promise<LinkItem | null> {
+    try {
+      const created = await adminFetch<LinkItem>("/admin/links", {
+        method: "POST",
+        body: JSON.stringify({
+          type,
+          title: defaults.title,
+          metadata: defaults.metadata && Object.keys(defaults.metadata).length ? defaults.metadata : undefined,
+        }),
+      });
+      setLinks((prev) => [...prev, created]);
+      toast.success("Bloque agregado");
+      return created;
+    } catch {
+      toast.error("No se pudo agregar el bloque");
+      return null;
+    }
+  }
+
   async function handleDuplicate(link: LinkItem) {
     try {
       const created = await adminFetch<LinkItem>("/admin/links", {
@@ -177,5 +234,8 @@ export function useLinksManager(initialLinks: LinkItem[]) {
     handleDuplicate,
     handleDragStart,
     handleDragEnd,
+    patchLink,
+    applyOrder,
+    createBlock,
   };
 }

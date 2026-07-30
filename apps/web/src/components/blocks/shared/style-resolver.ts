@@ -113,3 +113,29 @@ export function resolveBlockStyle(
 
   return style;
 }
+
+/**
+ * `styleOverrides.hiddenOn` → a Tailwind visibility className, so hiding a
+ * block "on mobile" is a real CSS media query on the public page (not a JS
+ * check that would flash-then-hide). Breakpoint mapping: mobile = base
+ * (<640px), tablet = sm..lg (640-1024px), desktop = lg+ (1024px+) — the
+ * same 3 buckets the editor's device switcher uses.
+ */
+const RESPONSIVE_VISIBILITY_CLASS: Record<string, string> = {
+  "": "",
+  mobile: "hidden sm:block",
+  tablet: "sm:hidden lg:block",
+  desktop: "lg:hidden",
+  "mobile,tablet": "hidden lg:block",
+  "mobile,desktop": "hidden sm:block lg:hidden",
+  "tablet,desktop": "sm:hidden",
+  "mobile,tablet,desktop": "hidden",
+};
+
+export function resolveResponsiveVisibility(
+  hiddenOn: BlockStyleOverrides["hiddenOn"] | undefined,
+): string {
+  if (!hiddenOn || hiddenOn.length === 0) return "";
+  const key = [...hiddenOn].sort().join(",");
+  return RESPONSIVE_VISIBILITY_CLASS[key] ?? "";
+}

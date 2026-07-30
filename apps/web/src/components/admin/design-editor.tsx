@@ -3,17 +3,10 @@
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 import {
-  DndContext,
-  DragOverlay,
-  closestCenter,
-} from "@dnd-kit/core";
-import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
-import {
   User,
   Palette,
   LayoutGrid,
   Blocks,
-  Plus,
   Monitor,
   Tablet,
   Smartphone,
@@ -32,12 +25,11 @@ import { getResolvedDefinition } from "@/themes/resolve-theme";
 import type { ThemeOverrides } from "@/themes/types";
 import type { LinkItem } from "@/types/link";
 import type { AppearanceData, ProfileData, ThemeData } from "@/types/profile";
-import { LinkFormDialog } from "./link-form-dialog";
-import { LinkRow, SortableLinkRow } from "./sortable-link-row";
 import { SubmissionsDialog } from "./submissions-dialog";
 import { ThemeCustomizePanel } from "./theme-customize-panel";
 import { ThemeGallery } from "./theme-gallery";
 import { useLinksManager } from "./use-links-manager";
+import { VisualEditorWorkspace } from "./visual-editor/workspace";
 
 const BUTTON_STYLES = [
   { value: "rounded", label: "Redondeado" },
@@ -81,18 +73,18 @@ const TABS = [
   { id: "gallery", label: "Galería", icon: LayoutTemplate },
   { id: "theme", label: "Tema", icon: Palette },
   { id: "structure", label: "Estructura", icon: LayoutGrid },
-  { id: "blocks", label: "Bloques", icon: Blocks },
+  { id: "blocks", label: "Editor Visual", icon: Blocks },
 ] as const;
 
 type TabId = (typeof TABS)[number]["id"];
 
-const DEVICES = [
+export const DEVICES = [
   { id: "desktop", label: "Escritorio", icon: Monitor },
   { id: "tablet", label: "Tablet", icon: Tablet },
   { id: "mobile", label: "Móvil", icon: Smartphone },
 ] as const;
 
-type DeviceId = (typeof DEVICES)[number]["id"];
+export type DeviceId = (typeof DEVICES)[number]["id"];
 
 const DEVICE_FRAME: Record<DeviceId, { width: number; height: number; className: string }> = {
   mobile: { width: 300, height: 560, className: "rounded-[2.2rem] border-4 border-border" },
@@ -106,9 +98,17 @@ const DEVICE_FRAME: Record<DeviceId, { width: number; height: number; className:
 // letting it overflow the panel.
 const PREVIEW_CONTAINER_WIDTH = 300;
 
-function PreviewFrame({ device, children }: { device: DeviceId; children: React.ReactNode }) {
+export function PreviewFrame({
+  device,
+  children,
+  containerWidth = PREVIEW_CONTAINER_WIDTH,
+}: {
+  device: DeviceId;
+  children: React.ReactNode;
+  containerWidth?: number;
+}) {
   const frame = DEVICE_FRAME[device];
-  const scale = Math.min(1, PREVIEW_CONTAINER_WIDTH / frame.width);
+  const scale = Math.min(1, containerWidth / frame.width);
   const scaledHeight = frame.height * scale;
 
   const frameContent =
@@ -137,7 +137,7 @@ function PreviewFrame({ device, children }: { device: DeviceId; children: React.
   return (
     <div
       className="mx-auto"
-      style={{ width: PREVIEW_CONTAINER_WIDTH, height: scaledHeight }}
+      style={{ width: containerWidth, height: scaledHeight }}
     >
       <div
         className={cn("glow-purple-sm relative overflow-hidden bg-[#07080c]", frame.className)}
@@ -234,6 +234,21 @@ export function DesignEditor({ initialProfile, initialAppearance, themes: initia
       toast.error("No se pudo guardar el perfil");
     } finally {
       setSavingProfile(false);
+    }
+  }
+
+  async function handlePublish(): Promise<boolean> {
+    try {
+      const updated = await adminFetch<ProfileData>("/admin/profile", {
+        method: "PATCH",
+        body: JSON.stringify({ isPublished: true }),
+      });
+      setProfile(updated);
+      toast.success("Tu página está publicada");
+      return true;
+    } catch {
+      toast.error("No se pudo publicar la página");
+      return false;
     }
   }
 
@@ -351,6 +366,48 @@ export function DesignEditor({ initialProfile, initialAppearance, themes: initia
     appearance.theme?.baseConfig,
   );
   const themeOverrides = (appearance.themeOverrides ?? {}) as ThemeOverrides;
+
+  if (activeTab === "blocks") {
+    return (
+      <div className="glass grid overflow-hidden rounded-2xl lg:grid-cols-[220px_1fr]">
+        {/* Left rail — sections */}
+        <div className="flex gap-1 border-b border-border-subtle p-3 lg:flex-col lg:border-b-0 lg:border-r lg:p-4">
+          {TABS.map(({ id, label, icon: Icon }) => (
+            <button
+              key={id}
+              onClick={() => setActiveTab(id)}
+              aria-current={activeTab === id ? "true" : undefined}
+              aria-label={label}
+              className={cn(
+                "flex flex-1 items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring/40 lg:flex-none",
+                activeTab === id
+                  ? "bg-surface-6 text-foreground"
+                  : "text-muted-foreground hover:bg-surface-3 hover:text-foreground",
+              )}
+            >
+              <Icon className="size-4" />
+              <span className="hidden sm:inline">{label}</span>
+            </button>
+          ))}
+        </div>
+
+        <VisualEditorWorkspace
+          profile={profile}
+          appearance={appearance}
+          linksManager={linksManager}
+          device={device}
+          onDeviceChange={setDevice}
+          onPublish={handlePublish}
+          onViewMessages={linksManager.setMessagesLink}
+        />
+
+        <SubmissionsDialog
+          link={linksManager.messagesLink}
+          onOpenChange={(open) => !open && linksManager.setMessagesLink(null)}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="glass grid overflow-hidden rounded-2xl lg:grid-cols-[220px_1fr_360px]">
@@ -576,56 +633,6 @@ export function DesignEditor({ initialProfile, initialAppearance, themes: initia
           </>
         )}
 
-        {activeTab === "blocks" && (
-          <>
-            <div className="flex items-center justify-between">
-              <p className="text-sm text-muted-foreground">
-                Agrega, reordena, duplica u oculta los bloques de tu página.
-              </p>
-              <Button size="sm" onClick={linksManager.openCreateDialog}>
-                <Plus className="size-4" />
-                Nuevo bloque
-              </Button>
-            </div>
-
-            {linksManager.links.length === 0 ? (
-              <p className="rounded-xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
-                Todavía no tienes bloques. Crea el primero.
-              </p>
-            ) : (
-              <DndContext
-                sensors={linksManager.sensors}
-                collisionDetection={closestCenter}
-                onDragStart={linksManager.handleDragStart}
-                onDragEnd={linksManager.handleDragEnd}
-              >
-                <SortableContext
-                  items={linksManager.links.map((l) => l.id)}
-                  strategy={verticalListSortingStrategy}
-                >
-                  <div className="flex flex-col gap-3">
-                    {linksManager.links.map((link) => (
-                      <SortableLinkRow
-                        key={link.id}
-                        link={link}
-                        onToggleActive={linksManager.handleToggleActive}
-                        onEdit={linksManager.openEditDialog}
-                        onDuplicate={linksManager.handleDuplicate}
-                        onDelete={linksManager.handleDelete}
-                        onViewMessages={
-                          link.type === "FORM" ? linksManager.setMessagesLink : undefined
-                        }
-                      />
-                    ))}
-                  </div>
-                </SortableContext>
-                <DragOverlay>
-                  {linksManager.activeLink && <LinkRow link={linksManager.activeLink} overlay />}
-                </DragOverlay>
-              </DndContext>
-            )}
-          </>
-        )}
       </div>
 
       {/* Right — live preview */}
@@ -653,16 +660,14 @@ export function DesignEditor({ initialProfile, initialAppearance, themes: initia
           ))}
         </div>
         <PreviewFrame device={device}>
-          <ProfileView profile={profile} appearance={appearance} links={linksManager.links} />
+          <ProfileView
+            profile={profile}
+            appearance={appearance}
+            links={linksManager.links}
+            previewDevice={device}
+          />
         </PreviewFrame>
       </div>
-
-      <LinkFormDialog
-        open={linksManager.dialogOpen}
-        onOpenChange={linksManager.setDialogOpen}
-        link={linksManager.editingLink}
-        onSubmit={linksManager.handleSubmit}
-      />
 
       <SubmissionsDialog
         link={linksManager.messagesLink}

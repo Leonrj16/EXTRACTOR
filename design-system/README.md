@@ -47,8 +47,10 @@ en lugar de por número mágico.
 └── architecture/                  ← decisiones de arquitectura de features
     ├── blocks.md                  ← Page Builder: contrato de bloque, registro
     │                                 central, cómo agregar un bloque nuevo
-    └── theme-engine.md            ← Theme Engine: contrato de tema, resolución
-                                      en cascada, cómo agregar un tema nuevo
+    ├── theme-engine.md            ← Theme Engine: contrato de tema, resolución
+    │                                 en cascada, cómo agregar un tema nuevo
+    └── visual-editor.md           ← Editor Visual: lienzo, capas, historial,
+                                      validación de publicación
 ```
 
 ## Cómo se conecta con el código

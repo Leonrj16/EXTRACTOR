@@ -16,6 +16,18 @@ interface ProfileViewProps {
   onLinkClick?: (link: LinkItem) => void;
   onContactSubmit?: (link: LinkItem, values: { name: string; email: string; message: string }) => Promise<void>;
   className?: string;
+  /**
+   * Only set by the design editor's simulated device frames. Those frames
+   * fake a screen size with a CSS transform on a fixed-width box, so the
+   * real `sm:`/`lg:` media queries `resolveResponsiveVisibility` emits
+   * would evaluate against the *actual* browser viewport, not the
+   * simulated one — wrong in the editor. Passing the selected device here
+   * hides `hiddenOn` blocks explicitly in JS instead, only in that
+   * context. The real public page never sets this and relies purely on
+   * the CSS classes, which is correct there (a real visitor has a real
+   * viewport).
+   */
+  previewDevice?: "desktop" | "tablet" | "mobile";
 }
 
 export function ProfileView({
@@ -25,6 +37,7 @@ export function ProfileView({
   onLinkClick,
   onContactSubmit,
   className,
+  previewDevice,
 }: ProfileViewProps) {
   const definition = getResolvedDefinition(
     appearance.theme?.key,
@@ -188,6 +201,8 @@ export function ProfileView({
           // so it's skipped rather than crashing the whole page.
           const definition = getBlockDefinition(link.type);
           if (!definition) return null;
+          const hiddenOn = (link.styleOverrides as BlockStyleOverrides | null)?.hiddenOn;
+          if (previewDevice && hiddenOn?.includes(previewDevice)) return null;
           const Preview = definition.Preview;
           return (
             <div key={link.id} className={isWide(link) ? "col-span-2" : undefined}>

@@ -2,7 +2,8 @@
 
 import type { CSSProperties, ReactNode } from "react";
 import { motion } from "framer-motion";
-import { resolveEntranceVariant, BLOCK_HOVER_TAP } from "./animation-presets";
+import { resolveEntranceVariant, resolveHoverEffect } from "./animation-presets";
+import { resolveResponsiveVisibility } from "./style-resolver";
 import type { BlockStyleOverrides } from "../types";
 
 /**
@@ -18,6 +19,7 @@ export function BlockFrame({
   className,
   style,
   wide,
+  glowColor = "#7c3aed",
   children,
 }: {
   styleOverrides: BlockStyleOverrides;
@@ -26,19 +28,35 @@ export function BlockFrame({
   className?: string;
   style?: CSSProperties;
   wide?: boolean;
+  /** Color the "glow" hover effect uses — defaults to brand purple since
+   * not every block's preview.tsx threads theme.primaryColor through yet
+   * (see design-system/architecture/visual-editor.md). */
+  glowColor?: string;
   children: ReactNode;
 }) {
   const variants = resolveEntranceVariant(styleOverrides.animation);
+  const hover = interactive ? { whileHover: undefined, whileTap: undefined } : resolveHoverEffect(styleOverrides.hoverEffect, glowColor);
+  const visibilityClass = resolveResponsiveVisibility(styleOverrides.hiddenOn);
+
+  const mergedClassName = [
+    wide ? "col-span-2" : "",
+    className ?? "",
+    visibilityClass,
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   return (
     <motion.div
       initial="hidden"
-      animate="visible"
+      {...(styleOverrides.animateOnScroll
+        ? { whileInView: "visible", viewport: { once: true, margin: "-80px" } }
+        : { animate: "visible" })}
       variants={variants}
       transition={{ duration: 0.3, delay: index * 0.05 }}
-      whileHover={interactive ? undefined : BLOCK_HOVER_TAP.whileHover}
-      whileTap={interactive ? undefined : BLOCK_HOVER_TAP.whileTap}
-      className={wide ? `col-span-2 ${className ?? ""}` : className}
+      whileHover={hover.whileHover}
+      whileTap={hover.whileTap}
+      className={mergedClassName || undefined}
       style={style}
     >
       {children}

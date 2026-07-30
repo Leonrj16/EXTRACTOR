@@ -27,7 +27,25 @@ export interface BlockStyleOverrides {
   align?: "left" | "center" | "right";
   width?: "auto" | "full";
   opacity?: number; // 0-100
-  animation?: "fade" | "slide" | "scale" | "none";
+  animation?: "fade" | "slide" | "scale" | "rotate" | "bounce" | "none";
+  /**
+   * Visual Editor additions (see design-system/architecture/visual-editor.md).
+   * These are editor/rendering concerns, not new database columns — they
+   * live inside the same styleOverrides JSON blob a block already had.
+   */
+  /** Purely an editor-UX flag: the Layers panel and canvas refuse to drag,
+   * duplicate, or delete a locked block until it's unlocked. No effect on
+   * the public page render. */
+  locked?: boolean;
+  /** Hides the block on specific breakpoints of the public page — the
+   * "responsive visibility" slice of per-device properties (see the doc
+   * above for what's deferred: per-field padding/size/order overrides). */
+  hiddenOn?: Array<"desktop" | "tablet" | "mobile">;
+  /** Hover micro-interaction, independent of the entrance animation. */
+  hoverEffect?: "lift" | "scale" | "glow" | "none";
+  /** Plays the entrance animation when the block scrolls into view
+   * (Framer Motion `whileInView`) instead of once on mount. */
+  animateOnScroll?: boolean;
 }
 
 /** Resolved page-level theme every block's preview renders against. */

@@ -2,6 +2,9 @@
 
 import { ColorField } from "@/components/ui/color-field";
 import { FieldSelect } from "@/components/ui/field-select";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Monitor, Tablet, Smartphone } from "lucide-react";
 import type { BlockStyleOverrides } from "../types";
 
 const PADDING_OPTIONS = [
@@ -49,7 +52,22 @@ const ANIMATION_OPTIONS = [
   { value: "fade", label: "Aparecer" },
   { value: "slide", label: "Deslizar" },
   { value: "scale", label: "Escala" },
+  { value: "rotate", label: "Rotar" },
+  { value: "bounce", label: "Rebote" },
   { value: "none", label: "Sin animación" },
+];
+
+const HOVER_EFFECT_OPTIONS = [
+  { value: "scale", label: "Escala" },
+  { value: "lift", label: "Elevar" },
+  { value: "glow", label: "Resplandor" },
+  { value: "none", label: "Sin efecto" },
+];
+
+const RESPONSIVE_DEVICES = [
+  { value: "desktop" as const, label: "Escritorio", Icon: Monitor },
+  { value: "tablet" as const, label: "Tablet", Icon: Tablet },
+  { value: "mobile" as const, label: "Móvil", Icon: Smartphone },
 ];
 
 /**
@@ -146,6 +164,63 @@ export function BlockStylePanel({
           onChange={(v) => onChange({ animation: v as BlockStyleOverrides["animation"] })}
           options={ANIMATION_OPTIONS}
         />
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <FieldSelect
+          id={`${idPrefix}-hover-effect`}
+          label="Efecto al pasar el cursor"
+          value={value.hoverEffect ?? "scale"}
+          onChange={(v) => onChange({ hoverEffect: v as BlockStyleOverrides["hoverEffect"] })}
+          options={HOVER_EFFECT_OPTIONS}
+        />
+        <div className="flex items-center justify-between rounded-xl border border-border bg-surface-2 px-3.5 py-2.5">
+          <div>
+            <Label htmlFor={`${idPrefix}-scroll`}>Animar al hacer scroll</Label>
+            <p className="text-xs text-muted-foreground">
+              En vez de solo una vez al cargar la página
+            </p>
+          </div>
+          <Switch
+            id={`${idPrefix}-scroll`}
+            checked={value.animateOnScroll ?? false}
+            onCheckedChange={(animateOnScroll) => onChange({ animateOnScroll })}
+            aria-label="Animar al hacer scroll"
+          />
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <p className="text-xs font-medium text-muted-foreground">
+          Ocultar este bloque en
+        </p>
+        <div className="flex gap-2">
+          {RESPONSIVE_DEVICES.map(({ value: device, label, Icon }) => {
+            const hidden = value.hiddenOn?.includes(device) ?? false;
+            return (
+              <button
+                key={device}
+                type="button"
+                aria-pressed={hidden}
+                onClick={() => {
+                  const current = value.hiddenOn ?? [];
+                  const next = hidden
+                    ? current.filter((d) => d !== device)
+                    : [...current, device];
+                  onChange({ hiddenOn: next });
+                }}
+                className={`flex flex-1 flex-col items-center gap-1 rounded-xl border px-2 py-2 text-xs transition-colors ${
+                  hidden
+                    ? "border-destructive/50 bg-destructive/10 text-destructive"
+                    : "border-border bg-surface-2 text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <Icon className="size-4" />
+                {label}
+              </button>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
