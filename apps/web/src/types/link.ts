@@ -16,7 +16,13 @@ export type LinkType =
   | "SERVICE"
   | "PRICING"
   | "COUNTDOWN"
-  | "FOOTER";
+  | "FOOTER"
+  | "TEXT"
+  | "IMAGE"
+  | "CALENDAR"
+  | "CUSTOM_HTML"
+  | "COUNTER"
+  | "DIVIDER";
 
 // Opaque JSON envelope — each block kind defines its own, more specific
 // metadata shape in its own `types.ts` (e.g. blocks/GalleryBlock/types.ts)
@@ -62,4 +68,10 @@ export const LINK_TYPE_LABELS: Record<LinkType, string> = {
   PRICING: "Plan de precios",
   COUNTDOWN: "Cuenta regresiva",
   FOOTER: "Pie de página",
+  TEXT: "Texto",
+  IMAGE: "Imagen",
+  CALENDAR: "Calendario",
+  CUSTOM_HTML: "HTML personalizado",
+  COUNTER: "Contador",
+  DIVIDER: "Separador",
 };

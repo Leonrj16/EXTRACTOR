@@ -180,10 +180,30 @@ ningún otro bloque.
 | WhatsAppBlock | `WHATSAPP` | title, url (fallback) | phone, message |
 | EmailBlock | `EMAIL` | title, url (fallback) | email, subject, body |
 | MusicBlock | `MUSIC` | title, url | — (el embed se deriva de la URL) |
+| TextBlock | `TEXT` | title (opcional) | body, size |
+| ImageBlock | `IMAGE` | title (leyenda), imageUrl, url (enlace opcional) | fit |
+| CalendarBlock | `CALENDAR` | title, url (link de reservas) | description, buttonLabel |
+| CustomHtmlBlock | `CUSTOM_HTML` | — | html, height (ver nota de seguridad abajo) |
+| CounterBlock | `COUNTER` | title (etiqueta) | value, prefix, suffix |
+| DividerBlock | `DIVIDER` | — | style, label |
 
-Los 18 valores de `LinkType` están registrados — no queda ningún camino
+Los 24 valores de `LinkType` están registrados — no queda ningún camino
 legacy en `profile-view.tsx` ni en `link-form-dialog.tsx`. WhatsAppBlock y
 EmailBlock aceptan un teléfono/email (arman el link `wa.me`/`mailto:`
 automáticamente) o, si se deja vacío, usan `link.url` tal cual — así las
 filas creadas antes de que estos bloques existieran (que ya guardaban una
 URL completa) siguen funcionando sin necesidad de una migración de datos.
+
+## Nota de seguridad: `CustomHtmlBlock`
+
+Este es el único bloque cuyo contenido es HTML arbitrario escrito por el
+usuario — un vector de XSS obvio si se renderizara con
+`dangerouslySetInnerHTML` directo en la página. En vez de eso,
+`CustomHtmlBlock/preview.tsx` lo renderiza en un
+`<iframe sandbox="allow-same-origin" srcDoc={html}>` sin `allow-scripts`:
+un iframe con sandbox y sin ese permiso no ejecuta ningún `<script>` ni
+manejador de eventos inline, así que no hay forma de que el HTML pegado
+corra JavaScript — sin necesidad de una librería de sanitización nueva.
+El costo es que el iframe no puede reportar su propia altura (eso
+requeriría JS adentro), así que el usuario fija un alto en píxeles a
+mano en vez de que se autoajuste.

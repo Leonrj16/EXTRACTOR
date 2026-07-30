@@ -101,7 +101,7 @@ export function Canvas({
     background,
   } = resolved;
 
-  const WIDE_TYPES: LinkItem["type"][] = ["VIDEO", "MUSIC", "FORM", "HERO", "PROFILE", "FOOTER", "LOCATION"];
+  const WIDE_TYPES: LinkItem["type"][] = ["VIDEO", "MUSIC", "FORM", "HERO", "PROFILE", "FOOTER", "LOCATION", "CUSTOM_HTML"];
   function isWide(link: LinkItem) {
     return layout === "grid" && WIDE_TYPES.includes(link.type);
   }

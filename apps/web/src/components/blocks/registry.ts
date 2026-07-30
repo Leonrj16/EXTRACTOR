@@ -16,6 +16,12 @@ import { footerBlockDefinition } from "./FooterBlock";
 import { whatsAppBlockDefinition } from "./WhatsAppBlock";
 import { emailBlockDefinition } from "./EmailBlock";
 import { musicBlockDefinition } from "./MusicBlock";
+import { textBlockDefinition } from "./TextBlock";
+import { imageBlockDefinition } from "./ImageBlock";
+import { calendarBlockDefinition } from "./CalendarBlock";
+import { customHtmlBlockDefinition } from "./CustomHtmlBlock";
+import { counterBlockDefinition } from "./CounterBlock";
+import { dividerBlockDefinition } from "./DividerBlock";
 import type { BlockDefinition, BlockKind } from "./types";
 
 /**
@@ -57,6 +63,12 @@ export const BLOCK_REGISTRY: Partial<Record<BlockKind, AnyBlockDefinition>> = {
   WHATSAPP: whatsAppBlockDefinition,
   EMAIL: emailBlockDefinition,
   MUSIC: musicBlockDefinition,
+  TEXT: textBlockDefinition,
+  IMAGE: imageBlockDefinition,
+  CALENDAR: calendarBlockDefinition,
+  CUSTOM_HTML: customHtmlBlockDefinition,
+  COUNTER: counterBlockDefinition,
+  DIVIDER: dividerBlockDefinition,
 } as unknown as Partial<Record<BlockKind, AnyBlockDefinition>>;
 
 export function getBlockDefinition(kind: BlockKind): AnyBlockDefinition | undefined {

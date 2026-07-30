@@ -13,20 +13,20 @@ export interface BlockCategory {
  * masonry (see GalleryBlock/config.ts), so it covers both "Galería" and
  * "Carrusel" instead of needing a second, near-duplicate block.
  *
- * Categories with an empty `kinds` array are ones the spec's taxonomy asks
- * for that don't have a real block behind them yet (Texto, Imagen,
- * Calendario, HTML personalizado, Contador, Separadores) — the panel shows
- * them as "Próximamente" instead of hiding them, so the requested category
- * list is visible today even though not every block exists. "Música" and
- * "Precios" aren't in the original spec list but are added here since
- * MusicBlock/PricingBlock already exist and need a home in the library.
+ * All 24 kinds are registered — the 6 categories that used to show
+ * "Próximamente" (Texto, Imagen, Calendario, HTML personalizado, Contador,
+ * Separadores) now have a real block each (TextBlock, ImageBlock,
+ * CalendarBlock, CustomHtmlBlock, CounterBlock, DividerBlock). "Música" and
+ * "Precios" aren't in the original spec's category list but are added here
+ * since MusicBlock/PricingBlock already exist and need a home in the
+ * library.
  */
 export const BLOCK_CATEGORIES: BlockCategory[] = [
   { key: "profile", label: "Perfil", kinds: ["PROFILE"] },
   { key: "hero", label: "Hero", kinds: ["HERO"] },
   { key: "buttons", label: "Botones", kinds: ["LINK"] },
-  { key: "text", label: "Texto", kinds: [] },
-  { key: "image", label: "Imagen", kinds: [] },
+  { key: "text", label: "Texto", kinds: ["TEXT"] },
+  { key: "image", label: "Imagen", kinds: ["IMAGE"] },
   { key: "video", label: "Video", kinds: ["VIDEO"] },
   { key: "music", label: "Música", kinds: ["MUSIC"] },
   { key: "gallery", label: "Galería", kinds: ["GALLERY"] },
@@ -38,11 +38,11 @@ export const BLOCK_CATEGORIES: BlockCategory[] = [
   { key: "faq", label: "FAQ", kinds: ["FAQ"] },
   { key: "form", label: "Formulario", kinds: ["FORM"] },
   { key: "map", label: "Mapa", kinds: ["LOCATION"] },
-  { key: "calendar", label: "Calendario", kinds: [] },
+  { key: "calendar", label: "Calendario", kinds: ["CALENDAR"] },
   { key: "social", label: "Redes Sociales", kinds: ["SOCIAL", "WHATSAPP", "EMAIL"] },
-  { key: "html", label: "HTML personalizado", kinds: [] },
-  { key: "counter", label: "Contador", kinds: [] },
+  { key: "html", label: "HTML personalizado", kinds: ["CUSTOM_HTML"] },
+  { key: "counter", label: "Contador", kinds: ["COUNTER"] },
   { key: "countdown", label: "Cuenta regresiva", kinds: ["COUNTDOWN"] },
-  { key: "divider", label: "Separadores", kinds: [] },
+  { key: "divider", label: "Separadores", kinds: ["DIVIDER"] },
   { key: "footer", label: "Footer", kinds: ["FOOTER"] },
 ];

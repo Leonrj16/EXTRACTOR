@@ -124,6 +124,12 @@ enum LinkType {
   PRICING     // plan de precios con lista de features y CTA (Page Builder: PricingBlock)
   COUNTDOWN   // cuenta regresiva a una fecha objetivo (Page Builder: CountdownBlock)
   FOOTER      // pie de página con texto y enlaces (Page Builder: FooterBlock)
+  TEXT        // párrafo de texto libre (Page Builder: TextBlock)
+  IMAGE       // imagen individual con leyenda opcional (Page Builder: ImageBlock)
+  CALENDAR    // tarjeta para agendar una cita (Calendly/Cal.com) (Page Builder: CalendarBlock)
+  CUSTOM_HTML // HTML libre, renderizado en un iframe sandboxed sin scripts (Page Builder: CustomHtmlBlock)
+  COUNTER     // número animado con etiqueta (Page Builder: CounterBlock)
+  DIVIDER     // separador visual entre bloques (Page Builder: DividerBlock)
 }
 
 // Cada Link es un "bloque" del Page Builder — el nombre de la tabla y el

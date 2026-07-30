@@ -86,17 +86,27 @@ export function InspectorPanel({ link, onClose, onPatch, onViewMessages }: Inspe
   }
 
   function handleMetaChange(metaPatch: Record<string, unknown>) {
+    // Merge onto whatever metadata is already pending (not just the last
+    // rendered `meta` prop) — two edits fired back-to-back, before React
+    // re-renders with the first one applied, would otherwise each build
+    // their patch from the same stale `meta` snapshot, and the second
+    // patch's `metadata` object would silently overwrite the first's when
+    // debouncedPatch merges top-level keys (metadata is a single key, so
+    // that merge can't combine two different nested objects on its own).
+    const pendingMeta = (pendingRef.current?.patch.metadata as Record<string, unknown> | undefined) ?? meta;
     const beforeMeta = Object.fromEntries(Object.keys(metaPatch).map((k) => [k, (meta as Record<string, unknown>)[k]]));
     debouncedPatch(
-      { metadata: { ...meta, ...metaPatch } },
+      { metadata: { ...pendingMeta, ...metaPatch } },
       { metadata: { ...meta, ...beforeMeta } },
     );
   }
 
   function handleStyleChange(patch: Partial<BlockStyleOverrides>) {
+    // Same reasoning as handleMetaChange above, for styleOverrides.
+    const pendingStyle = (pendingRef.current?.patch.styleOverrides as Record<string, unknown> | undefined) ?? styleOverrides;
     const beforeStyle = Object.fromEntries(Object.keys(patch).map((k) => [k, (styleOverrides as Record<string, unknown>)[k]]));
     debouncedPatch(
-      { styleOverrides: { ...styleOverrides, ...patch } },
+      { styleOverrides: { ...pendingStyle, ...patch } },
       { styleOverrides: { ...styleOverrides, ...beforeStyle } },
     );
   }

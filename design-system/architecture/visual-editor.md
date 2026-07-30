@@ -137,13 +137,20 @@ entrada, no una por tecla.
 sin URL, un Hero sin imagen, una galería sin fotos) se muestran pero no
 bloquean — el usuario decide. `PublishDialog` es la UI de esta validación.
 
+## Actualización: los 24 bloques de la biblioteca
+
+Las 6 categorías que al lanzar el Editor Visual mostraban "Próximamente"
+(Texto, Imagen, Calendario, HTML personalizado, Contador, Separadores) ya
+tienen un bloque real cada una — `TextBlock`, `ImageBlock`,
+`CalendarBlock`, `CustomHtmlBlock`, `CounterBlock`, `DividerBlock`,
+siguiendo exactamente el contrato de `blocks.md`. `CustomHtmlBlock` es el
+único caso especial: renderiza HTML arbitrario del usuario dentro de un
+`<iframe sandbox="allow-same-origin">` sin `allow-scripts` — ningún
+`<script>` pegado ahí se ejecuta nunca, así que no es un vector de XSS (ver
+la nota de seguridad en `blocks.md`).
+
 ## Qué queda fuera de esta fase (explícitamente diferido)
 
-- **6 categorías de la biblioteca sin bloque real todavía**: Texto,
-  Imagen, Calendario, HTML personalizado, Contador, Separadores —
-  `blocks/categories.ts` las marca "Próximamente" en vez de ocultarlas.
-  Agregar cualquiera es seguir el patrón de `blocks.md`, no un cambio de
-  arquitectura.
 - **Selección múltiple real y agrupar/desagrupar bloques** — el lienzo
   selecciona un bloque a la vez.
 - **Historial persistido en servidor** — solo en memoria de esta sesión de

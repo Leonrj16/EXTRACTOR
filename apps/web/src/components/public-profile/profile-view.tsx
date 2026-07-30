@@ -88,7 +88,7 @@ export function ProfileView({
 
   // Kinds tall/wide enough to deserve both grid columns instead of being
   // squeezed into one.
-  const WIDE_TYPES: LinkItem["type"][] = ["VIDEO", "MUSIC", "FORM", "HERO", "PROFILE", "FOOTER", "LOCATION"];
+  const WIDE_TYPES: LinkItem["type"][] = ["VIDEO", "MUSIC", "FORM", "HERO", "PROFILE", "FOOTER", "LOCATION", "CUSTOM_HTML"];
   function isWide(link: LinkItem) {
     return layout === "grid" && WIDE_TYPES.includes(link.type);
   }
