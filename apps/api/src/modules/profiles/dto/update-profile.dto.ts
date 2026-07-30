@@ -1,4 +1,4 @@
-import { IsBoolean, IsEmail, IsOptional, IsString, IsUrl, Matches, MaxLength } from 'class-validator';
+import { IsBoolean, IsEmail, IsOptional, IsString, IsUrl, Matches, MaxLength, MinLength } from 'class-validator';
 
 export class UpdateProfileDto {
   @IsOptional()
@@ -55,4 +55,18 @@ export class UpdateProfileDto {
   @IsOptional()
   @IsBoolean()
   isPublished?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  isPasswordProtected?: boolean;
+
+  /** Plaintext, in-memory only for the length of this request — the
+   * service hashes it before it ever reaches Prisma. Leave unset (not an
+   * empty string) to keep the current password when only toggling
+   * isPasswordProtected. */
+  @IsOptional()
+  @IsString()
+  @MinLength(4)
+  @MaxLength(100)
+  pagePassword?: string;
 }

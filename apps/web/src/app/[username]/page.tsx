@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import { PasswordGate } from "@/components/public-profile/password-gate";
 import { PublicProfileClient } from "@/components/public-profile/public-profile-client";
 import type { LinkItem } from "@/types/link";
 import type { AppearanceData, ProfileData } from "@/types/profile";
@@ -10,10 +11,28 @@ interface PublicProfilePageProps {
   params: Promise<{ username: string }>;
 }
 
-interface PublicProfileResponse extends ProfileData {
+interface FullProfileResponse extends ProfileData {
   appearance: AppearanceData;
   links: LinkItem[];
 }
+
+// What the API returns for a password-protected profile instead of the
+// full payload above — see PublicService.getPublicProfile. The real
+// content only comes back from a client-side unlock call (PasswordGate),
+// never through this server-rendered, ISR-cached route, since that cache
+// is shared across every visitor regardless of whether they know the
+// password.
+interface GatedProfileResponse {
+  isPasswordProtected: true;
+  username: string;
+  displayName: string;
+  avatarUrl: string | null;
+  bio: string | null;
+  seoTitle: string | null;
+  seoDescription: string | null;
+}
+
+type PublicProfileResponse = FullProfileResponse | GatedProfileResponse;
 
 const API_URL = process.env.API_URL ?? "http://localhost:3001/api";
 
@@ -45,6 +64,10 @@ export default async function PublicProfilePage({ params }: PublicProfilePagePro
 
   if (!profile) {
     notFound();
+  }
+
+  if (!("links" in profile)) {
+    return <PasswordGate username={username} displayName={profile.displayName} avatarUrl={profile.avatarUrl} />;
   }
 
   const { appearance, links, ...profileData } = profile;

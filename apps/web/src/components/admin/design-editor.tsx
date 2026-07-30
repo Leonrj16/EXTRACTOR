@@ -17,6 +17,7 @@ import { ColorField } from "@/components/ui/color-field";
 import { FieldSelect } from "@/components/ui/field-select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { ProfileView } from "@/components/public-profile/profile-view";
 import { adminFetch } from "@/lib/api-client";
@@ -172,6 +173,10 @@ export function DesignEditor({ initialProfile, initialAppearance, themes: initia
   const [savingAppearance, setSavingAppearance] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [uploadingCover, setUploadingCover] = useState(false);
+  // Plaintext page-password draft — kept out of `profile` state on
+  // purpose, since the server never sends the real password back (only a
+  // hash), so there's nothing to initialize this from except a blank field.
+  const [pagePasswordDraft, setPagePasswordDraft] = useState("");
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
 
@@ -228,8 +233,11 @@ export function DesignEditor({ initialProfile, initialAppearance, themes: initia
           location: profile.location,
           seoTitle: profile.seoTitle ?? "",
           seoDescription: profile.seoDescription ?? "",
+          isPasswordProtected: profile.isPasswordProtected,
+          ...(pagePasswordDraft ? { pagePassword: pagePasswordDraft } : {}),
         }),
       });
+      setPagePasswordDraft("");
       setProfile(updated);
       toast.success("Perfil actualizado");
     } catch {
@@ -563,6 +571,34 @@ export function DesignEditor({ initialProfile, initialAppearance, themes: initia
                 />
                 <p className="text-xs text-muted-foreground">{profile.seoDescription?.length ?? 0}/160</p>
               </div>
+            </div>
+
+            <div className="flex flex-col gap-4 border-t border-border-subtle pt-4">
+              <div className="flex items-center justify-between gap-4 rounded-xl border border-border bg-surface-2 px-3.5 py-2.5">
+                <div>
+                  <Label htmlFor="password-protected">Página con contraseña</Label>
+                  <p className="text-xs text-muted-foreground">
+                    Los visitantes deben ingresar una contraseña antes de ver tu página.
+                  </p>
+                </div>
+                <Switch
+                  id="password-protected"
+                  checked={profile.isPasswordProtected}
+                  onCheckedChange={(isPasswordProtected) => setProfile({ ...profile, isPasswordProtected })}
+                />
+              </div>
+              {profile.isPasswordProtected && (
+                <div className="flex flex-col gap-2">
+                  <Label htmlFor="pagePassword">Contraseña de la página</Label>
+                  <Input
+                    id="pagePassword"
+                    type="password"
+                    placeholder="Dejar en blanco para no cambiarla"
+                    value={pagePasswordDraft}
+                    onChange={(e) => setPagePasswordDraft(e.target.value)}
+                  />
+                </div>
+              )}
             </div>
 
             <Button onClick={handleSaveProfile} loading={savingProfile} className="w-fit">

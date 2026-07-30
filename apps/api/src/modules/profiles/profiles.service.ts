@@ -1,4 +1,6 @@
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import * as bcrypt from 'bcrypt';
+import type { Profile, Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { RESERVED_USERNAMES } from '../../common/constants/reserved-usernames';
 import type { UpdateProfileDto } from './dto/update-profile.dto';
@@ -12,7 +14,7 @@ export class ProfilesService {
     if (!profile) {
       throw new NotFoundException('Perfil no encontrado');
     }
-    return profile;
+    return this.omitSecrets(profile);
   }
 
   async update(userId: string, dto: UpdateProfileDto) {
@@ -29,9 +31,22 @@ export class ProfilesService {
       }
     }
 
-    return this.prisma.profile.update({
-      where: { userId },
-      data: dto,
-    });
+    const { pagePassword, ...rest } = dto;
+    const data: Prisma.ProfileUpdateInput = { ...rest };
+    if (pagePassword) {
+      data.pagePasswordHash = await bcrypt.hash(pagePassword, 10);
+    }
+
+    const profile = await this.prisma.profile.update({ where: { userId }, data });
+    return this.omitSecrets(profile);
+  }
+
+  /** Never send the page-password hash or the domain-verification token to
+   * the client — even the owner's own browser doesn't need them, and a
+   * compromised admin session shouldn't be able to exfiltrate a hash for
+   * offline cracking. */
+  private omitSecrets(profile: Profile) {
+    const { pagePasswordHash: _pagePasswordHash, customDomainToken: _customDomainToken, ...rest } = profile;
+    return rest;
   }
 }

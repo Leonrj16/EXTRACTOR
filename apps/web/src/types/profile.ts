@@ -11,6 +11,9 @@ export interface ProfileData {
   seoTitle: string | null;
   seoDescription: string | null;
   isPublished: boolean;
+  isPasswordProtected: boolean;
+  customDomain: string | null;
+  customDomainVerifiedAt: string | null;
 }
 
 export interface ThemeData {

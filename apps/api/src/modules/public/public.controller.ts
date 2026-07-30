@@ -5,6 +5,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { AnalyticsService } from '../analytics/analytics.service';
 import { TrackEventDto } from '../analytics/dto/track-event.dto';
 import { SubmitContactDto } from './dto/submit-contact.dto';
+import { UnlockProfileDto } from './dto/unlock-profile.dto';
 import { PublicService } from './public.service';
 
 @Public()
@@ -60,5 +61,11 @@ export class PublicController {
   @Post(':username/contact')
   submitContact(@Param('username') username: string, @Body() dto: SubmitContactDto) {
     return this.publicService.submitContact(username, dto);
+  }
+
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  @Post(':username/unlock')
+  unlock(@Param('username') username: string, @Body() dto: UnlockProfileDto) {
+    return this.publicService.unlockProfile(username, dto.password);
   }
 }
