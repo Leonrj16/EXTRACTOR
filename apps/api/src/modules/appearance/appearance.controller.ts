@@ -1,4 +1,12 @@
-import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  Put,
+} from '@nestjs/common';
 import { Role } from '@prisma/client';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
@@ -31,12 +39,18 @@ export class AppearanceController {
   }
 
   @Delete('themes/:id')
-  deleteCustomTheme(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string) {
+  deleteCustomTheme(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id') id: string,
+  ) {
     return this.appearanceService.deleteCustomTheme(user.id, id);
   }
 
   @Post('themes/:key/favorite')
-  toggleFavoriteTheme(@CurrentUser() user: AuthenticatedUser, @Param('key') key: string) {
+  toggleFavoriteTheme(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('key') key: string,
+  ) {
     return this.appearanceService.toggleFavoriteTheme(user.id, key);
   }
 

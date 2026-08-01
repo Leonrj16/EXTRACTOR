@@ -29,7 +29,23 @@ export default tseslint.config(
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-floating-promises': 'warn',
       '@typescript-eslint/no-unsafe-argument': 'warn',
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { ignoreRestSiblings: true, argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
+      ],
       "prettier/prettier": ["error", { endOfLine: "auto" }],
+    },
+  },
+  {
+    // Jest mocks (jest.fn(), expect.any(), mockImplementation callbacks)
+    // are inherently loosely typed — enforcing full type-safety here would
+    // fight the mocking library itself rather than catch real bugs.
+    files: ['**/*.spec.ts'],
+    rules: {
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/no-unsafe-return': 'off',
     },
   },
 );

@@ -22,13 +22,17 @@ describe('PublicService', () => {
     it('throws NotFoundException for a profile that does not exist', async () => {
       prismaMock.profile.findUnique.mockResolvedValue(null);
 
-      await expect(service.getPublicProfile('nobody')).rejects.toThrow(NotFoundException);
+      await expect(service.getPublicProfile('nobody')).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('throws NotFoundException for an unpublished profile', async () => {
       prismaMock.profile.findUnique.mockResolvedValue({ isPublished: false });
 
-      await expect(service.getPublicProfile('me')).rejects.toThrow(NotFoundException);
+      await expect(service.getPublicProfile('me')).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('returns only the gated shape for a password-protected profile — no links, no appearance, no hash', async () => {
@@ -91,7 +95,9 @@ describe('PublicService', () => {
       });
       (bcrypt.compare as jest.Mock).mockResolvedValue(false);
 
-      await expect(service.unlockProfile('me', 'wrong')).rejects.toThrow(UnauthorizedException);
+      await expect(service.unlockProfile('me', 'wrong')).rejects.toThrow(
+        UnauthorizedException,
+      );
     });
 
     it('returns the full profile (minus secrets) on a correct password', async () => {

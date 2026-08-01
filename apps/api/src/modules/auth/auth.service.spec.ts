@@ -23,7 +23,9 @@ describe('AuthService', () => {
     },
     $transaction: jest.fn((ops: unknown[]) => Promise.all(ops)),
   };
-  const jwtMock = { signAsync: jest.fn().mockResolvedValue('signed.jwt.token') };
+  const jwtMock = {
+    signAsync: jest.fn().mockResolvedValue('signed.jwt.token'),
+  };
   const configMock = {
     get: jest.fn((key: string) => {
       const values: Record<string, string> = {
@@ -54,9 +56,9 @@ describe('AuthService', () => {
     it('throws UnauthorizedException when the user does not exist', async () => {
       usersMock.findByEmail.mockResolvedValue(null);
 
-      await expect(authService.login('nobody@example.com', 'password123')).rejects.toThrow(
-        UnauthorizedException,
-      );
+      await expect(
+        authService.login('nobody@example.com', 'password123'),
+      ).rejects.toThrow(UnauthorizedException);
     });
 
     it('throws UnauthorizedException when the user is disabled', async () => {
@@ -83,9 +85,9 @@ describe('AuthService', () => {
       });
       (bcrypt.compare as jest.Mock).mockResolvedValue(false);
 
-      await expect(authService.login('a@a.com', 'wrong-password')).rejects.toThrow(
-        UnauthorizedException,
-      );
+      await expect(
+        authService.login('a@a.com', 'wrong-password'),
+      ).rejects.toThrow(UnauthorizedException);
     });
 
     it('returns a token pair on valid credentials', async () => {
@@ -124,7 +126,9 @@ describe('AuthService', () => {
         user: { id: 'u1', email: 'a@a.com', role: 'ADMIN' },
       });
 
-      await expect(authService.refresh('rt1.secret')).rejects.toThrow(UnauthorizedException);
+      await expect(authService.refresh('rt1.secret')).rejects.toThrow(
+        UnauthorizedException,
+      );
     });
 
     it('rotates the refresh token and returns a new pair when valid', async () => {
@@ -168,20 +172,26 @@ describe('AuthService', () => {
 
       expect(prismaMock.verificationToken.create).toHaveBeenCalledWith(
         expect.objectContaining({
-          data: expect.objectContaining({ userId: 'u1', type: 'PASSWORD_RESET' }),
+          data: expect.objectContaining({
+            userId: 'u1',
+            type: 'PASSWORD_RESET',
+          }),
         }),
       );
       expect(mailerMock.send).toHaveBeenCalledWith(
-        expect.objectContaining({ to: 'a@a.com', html: expect.stringContaining('vt1.') }),
+        expect.objectContaining({
+          to: 'a@a.com',
+          html: expect.stringContaining('vt1.'),
+        }),
       );
     });
   });
 
   describe('resetPassword', () => {
     it('rejects a malformed token', async () => {
-      await expect(authService.resetPassword('not-a-valid-token', 'newpassword1')).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(
+        authService.resetPassword('not-a-valid-token', 'newpassword1'),
+      ).rejects.toThrow(BadRequestException);
     });
 
     it('rejects an expired token', async () => {
@@ -193,9 +203,9 @@ describe('AuthService', () => {
         expiresAt: new Date(Date.now() - 1000),
       });
 
-      await expect(authService.resetPassword('vt1.secret', 'newpassword1')).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(
+        authService.resetPassword('vt1.secret', 'newpassword1'),
+      ).rejects.toThrow(BadRequestException);
     });
 
     it('rejects an already-used token', async () => {
@@ -207,9 +217,9 @@ describe('AuthService', () => {
         expiresAt: new Date(Date.now() + 10_000),
       });
 
-      await expect(authService.resetPassword('vt1.secret', 'newpassword1')).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(
+        authService.resetPassword('vt1.secret', 'newpassword1'),
+      ).rejects.toThrow(BadRequestException);
     });
 
     it('updates the password, marks the token used, and revokes sessions on success', async () => {

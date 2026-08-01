@@ -1,6 +1,11 @@
 import { randomBytes } from 'node:crypto';
 import { resolveTxt } from 'node:dns/promises';
-import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import type { Profile, Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -41,7 +46,10 @@ export class ProfilesService {
       data.pagePasswordHash = await bcrypt.hash(pagePassword, 10);
     }
 
-    const profile = await this.prisma.profile.update({ where: { userId }, data });
+    const profile = await this.prisma.profile.update({
+      where: { userId },
+      data,
+    });
     return this.omitSecrets(profile);
   }
 
@@ -58,7 +66,9 @@ export class ProfilesService {
   async setCustomDomain(userId: string, domain: string) {
     const normalized = domain.toLowerCase().trim();
 
-    const existing = await this.prisma.profile.findUnique({ where: { customDomain: normalized } });
+    const existing = await this.prisma.profile.findUnique({
+      where: { customDomain: normalized },
+    });
     if (existing && existing.userId !== userId) {
       throw new ConflictException('Ese dominio ya está en uso por otro perfil');
     }
@@ -66,7 +76,11 @@ export class ProfilesService {
     const customDomainToken = randomBytes(16).toString('hex');
     const profile = await this.prisma.profile.update({
       where: { userId },
-      data: { customDomain: normalized, customDomainToken, customDomainVerifiedAt: null },
+      data: {
+        customDomain: normalized,
+        customDomainToken,
+        customDomainVerifiedAt: null,
+      },
     });
     return this.omitSecrets(profile);
   }
@@ -74,7 +88,11 @@ export class ProfilesService {
   async removeCustomDomain(userId: string) {
     const profile = await this.prisma.profile.update({
       where: { userId },
-      data: { customDomain: null, customDomainToken: null, customDomainVerifiedAt: null },
+      data: {
+        customDomain: null,
+        customDomainToken: null,
+        customDomainVerifiedAt: null,
+      },
     });
     return this.omitSecrets(profile);
   }
@@ -85,7 +103,9 @@ export class ProfilesService {
       throw new NotFoundException('Perfil no encontrado');
     }
     if (!profile.customDomain || !profile.customDomainToken) {
-      throw new BadRequestException('Primero configura un dominio personalizado');
+      throw new BadRequestException(
+        'Primero configura un dominio personalizado',
+      );
     }
 
     const recordName = `${VERIFICATION_SUBDOMAIN}.${profile.customDomain}`;
@@ -98,7 +118,9 @@ export class ProfilesService {
       );
     }
 
-    const matches = records.some((chunks) => chunks.join('').trim() === profile.customDomainToken);
+    const matches = records.some(
+      (chunks) => chunks.join('').trim() === profile.customDomainToken,
+    );
     if (!matches) {
       throw new BadRequestException(
         `Encontramos un registro TXT en ${recordName}, pero no coincide con el valor esperado.`,

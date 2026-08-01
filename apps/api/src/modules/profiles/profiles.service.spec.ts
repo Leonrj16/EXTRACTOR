@@ -17,25 +17,27 @@ describe('ProfilesService', () => {
   });
 
   it('rejects a reserved username like "admin"', async () => {
-    await expect(service.update('user-1', { username: 'admin' })).rejects.toThrow(
-      BadRequestException,
-    );
+    await expect(
+      service.update('user-1', { username: 'admin' }),
+    ).rejects.toThrow(BadRequestException);
     expect(prismaMock.profile.update).not.toHaveBeenCalled();
   });
 
   it('rejects a username already taken by another profile', async () => {
     prismaMock.profile.findUnique.mockResolvedValue({ userId: 'someone-else' });
 
-    await expect(service.update('user-1', { username: 'taken' })).rejects.toThrow(
-      ConflictException,
-    );
+    await expect(
+      service.update('user-1', { username: 'taken' }),
+    ).rejects.toThrow(ConflictException);
   });
 
   it('allows keeping your own username', async () => {
     prismaMock.profile.findUnique.mockResolvedValue({ userId: 'user-1' });
     prismaMock.profile.update.mockResolvedValue({ username: 'user-1-name' });
 
-    await expect(service.update('user-1', { username: 'user-1-name' })).resolves.toBeDefined();
+    await expect(
+      service.update('user-1', { username: 'user-1-name' }),
+    ).resolves.toBeDefined();
   });
 
   it('never returns pagePasswordHash from getByUserId, but keeps customDomainToken (the owner needs it to configure DNS)', async () => {
@@ -53,11 +55,17 @@ describe('ProfilesService', () => {
   });
 
   it('hashes a plaintext pagePassword before saving and never returns the hash', async () => {
-    prismaMock.profile.update.mockImplementation(({ data }: { data: Record<string, unknown> }) =>
-      Promise.resolve({ username: 'me', pagePasswordHash: data.pagePasswordHash }),
+    prismaMock.profile.update.mockImplementation(
+      ({ data }: { data: Record<string, unknown> }) =>
+        Promise.resolve({
+          username: 'me',
+          pagePasswordHash: data.pagePasswordHash,
+        }),
     );
 
-    const result = await service.update('user-1', { pagePassword: 'plain-text-password' });
+    const result = await service.update('user-1', {
+      pagePassword: 'plain-text-password',
+    });
 
     const updateCall = prismaMock.profile.update.mock.calls[0][0];
     expect(updateCall.data.pagePasswordHash).toEqual(expect.any(String));
@@ -77,18 +85,21 @@ describe('ProfilesService', () => {
 
   describe('setCustomDomain', () => {
     it('rejects a domain already claimed by another profile', async () => {
-      prismaMock.profile.findUnique.mockResolvedValue({ userId: 'someone-else' });
+      prismaMock.profile.findUnique.mockResolvedValue({
+        userId: 'someone-else',
+      });
 
-      await expect(service.setCustomDomain('user-1', 'taken.com')).rejects.toThrow(
-        ConflictException,
-      );
+      await expect(
+        service.setCustomDomain('user-1', 'taken.com'),
+      ).rejects.toThrow(ConflictException);
       expect(prismaMock.profile.update).not.toHaveBeenCalled();
     });
 
     it('issues a fresh token and resets verification when the domain changes', async () => {
       prismaMock.profile.findUnique.mockResolvedValue(null);
-      prismaMock.profile.update.mockImplementation(({ data }: { data: Record<string, unknown> }) =>
-        Promise.resolve({ username: 'me', ...data }),
+      prismaMock.profile.update.mockImplementation(
+        ({ data }: { data: Record<string, unknown> }) =>
+          Promise.resolve({ username: 'me', ...data }),
       );
 
       const result = await service.setCustomDomain('user-1', 'MyDomain.com');
@@ -97,17 +108,22 @@ describe('ProfilesService', () => {
       expect(updateCall.data.customDomain).toBe('mydomain.com');
       expect(updateCall.data.customDomainToken).toEqual(expect.any(String));
       expect(updateCall.data.customDomainVerifiedAt).toBeNull();
-      expect((result as { customDomainToken: string }).customDomainToken).toEqual(
-        expect.any(String),
-      );
+      expect(
+        (result as { customDomainToken: string }).customDomainToken,
+      ).toEqual(expect.any(String));
     });
   });
 
   describe('verifyCustomDomain', () => {
     it('rejects when no domain has been configured yet', async () => {
-      prismaMock.profile.findUnique.mockResolvedValue({ customDomain: null, customDomainToken: null });
+      prismaMock.profile.findUnique.mockResolvedValue({
+        customDomain: null,
+        customDomainToken: null,
+      });
 
-      await expect(service.verifyCustomDomain('user-1')).rejects.toThrow(BadRequestException);
+      await expect(service.verifyCustomDomain('user-1')).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('rejects when the TXT record lookup fails (not propagated yet)', async () => {
@@ -117,7 +133,9 @@ describe('ProfilesService', () => {
       });
       (dns.resolveTxt as jest.Mock).mockRejectedValue(new Error('ENOTFOUND'));
 
-      await expect(service.verifyCustomDomain('user-1')).rejects.toThrow(BadRequestException);
+      await expect(service.verifyCustomDomain('user-1')).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('rejects when the TXT record exists but does not match the token', async () => {
@@ -127,7 +145,9 @@ describe('ProfilesService', () => {
       });
       (dns.resolveTxt as jest.Mock).mockResolvedValue([['some-other-value']]);
 
-      await expect(service.verifyCustomDomain('user-1')).rejects.toThrow(BadRequestException);
+      await expect(service.verifyCustomDomain('user-1')).rejects.toThrow(
+        BadRequestException,
+      );
       expect(prismaMock.profile.update).not.toHaveBeenCalled();
     });
 
@@ -137,12 +157,16 @@ describe('ProfilesService', () => {
         customDomainToken: 'expected-token',
       });
       (dns.resolveTxt as jest.Mock).mockResolvedValue([['expected-token']]);
-      prismaMock.profile.update.mockResolvedValue({ customDomainVerifiedAt: new Date() });
+      prismaMock.profile.update.mockResolvedValue({
+        customDomainVerifiedAt: new Date(),
+      });
 
       await service.verifyCustomDomain('user-1');
 
       expect(prismaMock.profile.update).toHaveBeenCalledWith(
-        expect.objectContaining({ data: { customDomainVerifiedAt: expect.any(Date) } }),
+        expect.objectContaining({
+          data: { customDomainVerifiedAt: expect.any(Date) },
+        }),
       );
     });
   });

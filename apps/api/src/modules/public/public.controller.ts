@@ -1,4 +1,13 @@
-import { BadRequestException, Controller, Get, Headers, Ip, Param, Post, Body } from '@nestjs/common';
+import {
+  BadRequestException,
+  Controller,
+  Get,
+  Headers,
+  Ip,
+  Param,
+  Post,
+  Body,
+} from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
 import { Public } from '../../common/decorators/public.decorator';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -39,7 +48,9 @@ export class PublicController {
     }
 
     if (dto.linkId) {
-      const link = await this.prisma.link.findUnique({ where: { id: dto.linkId } });
+      const link = await this.prisma.link.findUnique({
+        where: { id: dto.linkId },
+      });
       if (!link || link.profileId !== profile.id) {
         throw new BadRequestException('Enlace inválido para este perfil');
       }
@@ -59,7 +70,10 @@ export class PublicController {
 
   @Throttle({ default: { limit: 10, ttl: 60_000 } })
   @Post(':username/contact')
-  submitContact(@Param('username') username: string, @Body() dto: SubmitContactDto) {
+  submitContact(
+    @Param('username') username: string,
+    @Body() dto: SubmitContactDto,
+  ) {
     return this.publicService.submitContact(username, dto);
   }
 

@@ -18,12 +18,18 @@ export class ProfilesController {
   }
 
   @Patch()
-  updateMyProfile(@CurrentUser() user: AuthenticatedUser, @Body() dto: UpdateProfileDto) {
+  updateMyProfile(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() dto: UpdateProfileDto,
+  ) {
     return this.profilesService.update(user.id, dto);
   }
 
   @Post('custom-domain')
-  setCustomDomain(@CurrentUser() user: AuthenticatedUser, @Body() dto: SetCustomDomainDto) {
+  setCustomDomain(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() dto: SetCustomDomainDto,
+  ) {
     return this.profilesService.setCustomDomain(user.id, dto.domain);
   }
 

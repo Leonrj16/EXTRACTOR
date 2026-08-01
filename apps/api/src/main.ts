@@ -13,7 +13,10 @@ async function bootstrap() {
   const config = app.get(ConfigService<AppConfig, true>);
 
   app.use(helmet({ crossOriginResourcePolicy: false }));
-  app.enableCors({ origin: config.get('corsOrigin', { infer: true }), credentials: true });
+  app.enableCors({
+    origin: config.get('corsOrigin', { infer: true }),
+    credentials: true,
+  });
   app.setGlobalPrefix('api');
   app.useGlobalFilters(new HttpExceptionFilter());
   app.useGlobalPipes(
@@ -23,9 +26,12 @@ async function bootstrap() {
       transform: true,
     }),
   );
-  app.useStaticAssets(join(process.cwd(), config.get('storage.localPath', { infer: true })), {
-    prefix: '/uploads',
-  });
+  app.useStaticAssets(
+    join(process.cwd(), config.get('storage.localPath', { infer: true })),
+    {
+      prefix: '/uploads',
+    },
+  );
 
   await app.listen(config.get('port', { infer: true }));
 }

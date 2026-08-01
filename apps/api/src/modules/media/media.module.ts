@@ -6,6 +6,9 @@ import { STORAGE_PROVIDER } from './storage/storage-provider';
 
 @Module({
   controllers: [MediaController],
-  providers: [MediaService, { provide: STORAGE_PROVIDER, useClass: LocalStorageProvider }],
+  providers: [
+    MediaService,
+    { provide: STORAGE_PROVIDER, useClass: LocalStorageProvider },
+  ],
 })
 export class MediaModule {}

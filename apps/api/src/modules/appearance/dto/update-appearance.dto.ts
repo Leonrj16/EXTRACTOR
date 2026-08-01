@@ -1,4 +1,10 @@
-import { IsHexColor, IsIn, IsObject, IsOptional, IsString } from 'class-validator';
+import {
+  IsHexColor,
+  IsIn,
+  IsObject,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 
 const ANIMATION_PRESETS = [
   'fade',

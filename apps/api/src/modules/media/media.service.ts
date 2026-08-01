@@ -1,8 +1,16 @@
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { STORAGE_PROVIDER, type StorageProvider } from './storage/storage-provider';
+import {
+  STORAGE_PROVIDER,
+  type StorageProvider,
+} from './storage/storage-provider';
 
-const ALLOWED_MIME_TYPES = new Set(['image/png', 'image/jpeg', 'image/webp', 'image/gif']);
+const ALLOWED_MIME_TYPES = new Set([
+  'image/png',
+  'image/jpeg',
+  'image/webp',
+  'image/gif',
+]);
 const MAX_SIZE_BYTES = 5 * 1024 * 1024;
 
 @Injectable()

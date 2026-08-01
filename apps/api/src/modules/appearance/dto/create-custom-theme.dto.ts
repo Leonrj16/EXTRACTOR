@@ -1,4 +1,10 @@
-import { IsIn, IsObject, IsOptional, IsString, MaxLength } from 'class-validator';
+import {
+  IsIn,
+  IsObject,
+  IsOptional,
+  IsString,
+  MaxLength,
+} from 'class-validator';
 
 // Un tema custom se crea a partir de una definición ya resuelta que el
 // frontend calcula (clon de un tema del catálogo, o la personalización

@@ -1,4 +1,8 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import type { CreateLinkDto } from './dto/create-link.dto';
@@ -72,12 +76,17 @@ export class LinksService {
     });
 
     if (owned.length !== ids.length) {
-      throw new ForbiddenException('Uno o más enlaces no pertenecen a este perfil');
+      throw new ForbiddenException(
+        'Uno o más enlaces no pertenecen a este perfil',
+      );
     }
 
     await this.prisma.$transaction(
       dto.items.map((item) =>
-        this.prisma.link.update({ where: { id: item.id }, data: { order: item.order } }),
+        this.prisma.link.update({
+          where: { id: item.id },
+          data: { order: item.order },
+        }),
       ),
     );
 

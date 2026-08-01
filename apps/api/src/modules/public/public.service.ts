@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -57,7 +62,9 @@ export class PublicService {
       throw new BadRequestException('Perfil no encontrado');
     }
 
-    const link = await this.prisma.link.findUnique({ where: { id: dto.linkId } });
+    const link = await this.prisma.link.findUnique({
+      where: { id: dto.linkId },
+    });
     if (!link || link.profileId !== profile.id || link.type !== 'FORM') {
       throw new BadRequestException('Formulario inválido para este perfil');
     }
@@ -73,7 +80,9 @@ export class PublicService {
     });
   }
 
-  private async findPublishedProfile(username: string): Promise<ProfileWithContent> {
+  private async findPublishedProfile(
+    username: string,
+  ): Promise<ProfileWithContent> {
     const profile = await this.prisma.profile.findUnique({
       where: { username },
       ...PROFILE_WITH_CONTENT,
@@ -89,7 +98,11 @@ export class PublicService {
   /** pagePasswordHash and customDomainToken never leave this service — not
    * even to an authenticated-and-correctly-unlocked visitor. */
   private omitSecrets(profile: ProfileWithContent) {
-    const { pagePasswordHash: _pagePasswordHash, customDomainToken: _customDomainToken, ...rest } = profile;
+    const {
+      pagePasswordHash: _pagePasswordHash,
+      customDomainToken: _customDomainToken,
+      ...rest
+    } = profile;
     return rest;
   }
 

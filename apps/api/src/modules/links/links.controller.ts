@@ -1,4 +1,12 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+} from '@nestjs/common';
 import { Role } from '@prisma/client';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
@@ -24,7 +32,10 @@ export class LinksController {
   }
 
   @Patch('reorder')
-  reorder(@CurrentUser() user: AuthenticatedUser, @Body() dto: ReorderLinksDto) {
+  reorder(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() dto: ReorderLinksDto,
+  ) {
     return this.linksService.reorder(user.id, dto);
   }
 
@@ -43,7 +54,10 @@ export class LinksController {
   }
 
   @Get(':id/submissions')
-  listSubmissions(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string) {
+  listSubmissions(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id') id: string,
+  ) {
     return this.linksService.listSubmissions(user.id, id);
   }
 }

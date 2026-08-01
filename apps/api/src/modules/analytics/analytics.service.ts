@@ -2,9 +2,18 @@ import { createHash } from 'node:crypto';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import type { AnalyticsEventType } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
-import { detectBrowser, detectDevice, detectOs } from '../../common/utils/device.util';
+import {
+  detectBrowser,
+  detectDevice,
+  detectOs,
+} from '../../common/utils/device.util';
 
-const RANGE_TO_DAYS: Record<string, number> = { '1d': 1, '7d': 7, '30d': 30, '90d': 90 };
+const RANGE_TO_DAYS: Record<string, number> = {
+  '1d': 1,
+  '7d': 7,
+  '30d': 30,
+  '90d': 90,
+};
 
 interface RecordEventInput {
   profileId: string;
@@ -29,7 +38,9 @@ export class AnalyticsService {
         device: detectDevice(input.userAgent),
         browser: detectBrowser(input.userAgent),
         os: detectOs(input.userAgent),
-        ipHash: input.ip ? createHash('sha256').update(input.ip).digest('hex') : undefined,
+        ipHash: input.ip
+          ? createHash('sha256').update(input.ip).digest('hex')
+          : undefined,
       },
     });
   }
@@ -48,10 +59,18 @@ export class AnalyticsService {
 
     const [totalViews, totalClicks, topLinksRaw] = await Promise.all([
       this.prisma.analyticsEvent.count({
-        where: { profileId: profile.id, type: 'PAGE_VIEW', createdAt: { gte: since } },
+        where: {
+          profileId: profile.id,
+          type: 'PAGE_VIEW',
+          createdAt: { gte: since },
+        },
       }),
       this.prisma.analyticsEvent.count({
-        where: { profileId: profile.id, type: 'LINK_CLICK', createdAt: { gte: since } },
+        where: {
+          profileId: profile.id,
+          type: 'LINK_CLICK',
+          createdAt: { gte: since },
+        },
       }),
       this.prisma.analyticsEvent.groupBy({
         by: ['linkId'],
@@ -67,7 +86,9 @@ export class AnalyticsService {
       }),
     ]);
 
-    const linkIds = topLinksRaw.map((row) => row.linkId).filter((id): id is string => !!id);
+    const linkIds = topLinksRaw
+      .map((row) => row.linkId)
+      .filter((id): id is string => !!id);
     const links = await this.prisma.link.findMany({
       where: { id: { in: linkIds } },
       select: { id: true, title: true },
@@ -78,7 +99,8 @@ export class AnalyticsService {
       range,
       totalViews,
       totalClicks,
-      clickThroughRate: totalViews > 0 ? Number((totalClicks / totalViews).toFixed(4)) : 0,
+      clickThroughRate:
+        totalViews > 0 ? Number((totalClicks / totalViews).toFixed(4)) : 0,
       topLinks: topLinksRaw.map((row) => ({
         linkId: row.linkId as string,
         title: titleById.get(row.linkId as string) ?? 'Enlace eliminado',

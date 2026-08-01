@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import type { CreateCustomThemeDto } from './dto/create-custom-theme.dto';
@@ -91,7 +95,9 @@ export class AppearanceService {
 
   async deleteCustomTheme(userId: string, themeId: string) {
     const profileId = await this.getProfileId(userId);
-    const theme = await this.prisma.theme.findFirst({ where: { id: themeId, profileId } });
+    const theme = await this.prisma.theme.findFirst({
+      where: { id: themeId, profileId },
+    });
     if (!theme) {
       throw new NotFoundException('Tema no encontrado');
     }

@@ -1,4 +1,12 @@
-import { IsEnum, IsInt, IsObject, IsOptional, IsString, IsUrl, MaxLength } from 'class-validator';
+import {
+  IsEnum,
+  IsInt,
+  IsObject,
+  IsOptional,
+  IsString,
+  IsUrl,
+  MaxLength,
+} from 'class-validator';
 import { LinkType } from '@prisma/client';
 
 export class CreateLinkDto {

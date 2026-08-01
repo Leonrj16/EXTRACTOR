@@ -42,7 +42,9 @@ export default (): AppConfig => ({
     refreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN ?? '7d',
   },
   storage: {
-    provider: (process.env.STORAGE_PROVIDER as AppConfig['storage']['provider']) ?? 'local',
+    provider:
+      (process.env.STORAGE_PROVIDER as AppConfig['storage']['provider']) ??
+      'local',
     localPath: process.env.STORAGE_LOCAL_PATH ?? './uploads',
   },
   mail: {

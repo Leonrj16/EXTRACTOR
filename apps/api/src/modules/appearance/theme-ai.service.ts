@@ -24,23 +24,94 @@ export class ThemeAiService {
   private readonly KEYWORDS: Record<string, string[]> = {
     minimalist: ['minimalista', 'minimal', 'simple', 'limpio', 'limpia'],
     dark: ['oscuro', 'oscura', 'noche', 'negro', 'nocturno'],
-    professional: ['profesional', 'serio', 'seria', 'formal', 'confianza', 'jurídico', 'jurídica', 'abogado', 'abogada', 'despacho', 'legal', 'consultoría'],
-    creative: ['creativo', 'creativa', 'arte', 'artístico', 'artística', 'diseño', 'original', 'diseñador', 'diseñadora'],
-    business: ['negocio', 'negocios', 'empresa', 'empresarial', 'startup', 'marca', 'corporativo', 'estudio'],
-    fashion: ['moda', 'fashion', 'estilo', 'elegante', 'elegancia', 'boutique', 'lujo'],
-    health: ['salud', 'médico', 'médica', 'doctor', 'doctora', 'clínica', 'bienestar', 'wellness', 'consultorio'],
-    restaurant: ['restaurante', 'comida', 'chef', 'cocina', 'café', 'bar', 'gastronomía'],
-    technology: ['tecnología', 'tech', 'software', 'digital', 'innovación', 'app', 'saas'],
+    professional: [
+      'profesional',
+      'serio',
+      'seria',
+      'formal',
+      'confianza',
+      'jurídico',
+      'jurídica',
+      'abogado',
+      'abogada',
+      'despacho',
+      'legal',
+      'consultoría',
+    ],
+    creative: [
+      'creativo',
+      'creativa',
+      'arte',
+      'artístico',
+      'artística',
+      'diseño',
+      'original',
+      'diseñador',
+      'diseñadora',
+    ],
+    business: [
+      'negocio',
+      'negocios',
+      'empresa',
+      'empresarial',
+      'startup',
+      'marca',
+      'corporativo',
+      'estudio',
+    ],
+    fashion: [
+      'moda',
+      'fashion',
+      'estilo',
+      'elegante',
+      'elegancia',
+      'boutique',
+      'lujo',
+    ],
+    health: [
+      'salud',
+      'médico',
+      'médica',
+      'doctor',
+      'doctora',
+      'clínica',
+      'bienestar',
+      'wellness',
+      'consultorio',
+    ],
+    restaurant: [
+      'restaurante',
+      'comida',
+      'chef',
+      'cocina',
+      'café',
+      'bar',
+      'gastronomía',
+    ],
+    technology: [
+      'tecnología',
+      'tech',
+      'software',
+      'digital',
+      'innovación',
+      'app',
+      'saas',
+    ],
   };
 
   async suggest(prompt: string) {
     const normalized = prompt.toLowerCase();
-    const themes = await this.prisma.theme.findMany({ where: { isSystem: true } });
+    const themes = await this.prisma.theme.findMany({
+      where: { isSystem: true },
+    });
 
     let best: { theme: (typeof themes)[number]; score: number } | null = null;
 
     for (const theme of themes) {
-      const config = theme.baseConfig as { categories?: string[]; tagline?: string };
+      const config = theme.baseConfig as {
+        categories?: string[];
+        tagline?: string;
+      };
       const categories = config.categories ?? [];
       let score = 0;
 
@@ -64,7 +135,8 @@ export class ThemeAiService {
         key: null,
         name: null,
         matched: false,
-        reason: 'No encontramos un tema que encaje claramente — prueba a mencionar un estilo (oscuro, minimalista, elegante...) o un rubro (salud, moda, restaurante...).',
+        reason:
+          'No encontramos un tema que encaje claramente — prueba a mencionar un estilo (oscuro, minimalista, elegante...) o un rubro (salud, moda, restaurante...).',
       };
     }
 
@@ -74,7 +146,9 @@ export class ThemeAiService {
       key: best.theme.key,
       name: best.theme.name,
       matched: true,
-      reason: config.tagline ?? `"${best.theme.name}" es la mejor coincidencia para esa descripción.`,
+      reason:
+        config.tagline ??
+        `"${best.theme.name}" es la mejor coincidencia para esa descripción.`,
     };
   }
 }

@@ -23,10 +23,12 @@ export class HttpExceptionFilter implements ExceptionFilter {
         ? exception.getResponse()
         : { message: 'Internal server error' };
 
-    response.status(status).json(
-      typeof body === 'string'
-        ? { statusCode: status, message: body }
-        : { statusCode: status, ...(body as Record<string, unknown>) },
-    );
+    response
+      .status(status)
+      .json(
+        typeof body === 'string'
+          ? { statusCode: status, message: body }
+          : { statusCode: status, ...(body as Record<string, unknown>) },
+      );
   }
 }

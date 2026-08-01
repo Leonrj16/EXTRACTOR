@@ -12,7 +12,10 @@ export class AnalyticsController {
   constructor(private readonly analyticsService: AnalyticsService) {}
 
   @Get('summary')
-  getSummary(@CurrentUser() user: AuthenticatedUser, @Query() query: SummaryQueryDto) {
+  getSummary(
+    @CurrentUser() user: AuthenticatedUser,
+    @Query() query: SummaryQueryDto,
+  ) {
     return this.analyticsService.getSummary(user.id, query.range);
   }
 }

@@ -1,5 +1,9 @@
 import { randomBytes } from 'node:crypto';
-import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
@@ -37,7 +41,11 @@ export class AuthService {
       throw new UnauthorizedException('Credenciales inválidas');
     }
 
-    return this.issueTokenPair({ id: user.id, email: user.email, role: user.role });
+    return this.issueTokenPair({
+      id: user.id,
+      email: user.email,
+      role: user.role,
+    });
   }
 
   async refresh(rawRefreshToken: string): Promise<TokenPair> {
@@ -105,14 +113,18 @@ export class AuthService {
       throw new BadRequestException('Enlace de restablecimiento inválido');
     }
 
-    const record = await this.prisma.verificationToken.findUnique({ where: { id } });
+    const record = await this.prisma.verificationToken.findUnique({
+      where: { id },
+    });
     if (
       !record ||
       record.type !== 'PASSWORD_RESET' ||
       record.usedAt ||
       record.expiresAt < new Date()
     ) {
-      throw new BadRequestException('Este enlace ya no es válido — pide uno nuevo');
+      throw new BadRequestException(
+        'Este enlace ya no es válido — pide uno nuevo',
+      );
     }
 
     const matches = await bcrypt.compare(secret, record.tokenHash);
@@ -123,8 +135,14 @@ export class AuthService {
     const passwordHash = await bcrypt.hash(newPassword, 10);
 
     await this.prisma.$transaction([
-      this.prisma.user.update({ where: { id: record.userId }, data: { passwordHash } }),
-      this.prisma.verificationToken.update({ where: { id }, data: { usedAt: new Date() } }),
+      this.prisma.user.update({
+        where: { id: record.userId },
+        data: { passwordHash },
+      }),
+      this.prisma.verificationToken.update({
+        where: { id },
+        data: { usedAt: new Date() },
+      }),
       // Cambiar la contraseña invalida cualquier sesión existente — si
       // alguien más tenía acceso, este es el momento de cortarlo.
       this.prisma.refreshToken.updateMany({
@@ -168,7 +186,9 @@ export class AuthService {
 
     const secret = randomBytes(48).toString('hex');
     const tokenHash = await bcrypt.hash(secret, 10);
-    const refreshExpiresIn = this.config.get('jwt.refreshExpiresIn', { infer: true });
+    const refreshExpiresIn = this.config.get('jwt.refreshExpiresIn', {
+      infer: true,
+    });
 
     const record = await this.prisma.refreshToken.create({
       data: {
@@ -188,6 +208,11 @@ function addDuration(date: Date, duration: string): Date {
 
   const value = Number(match[1]);
   const unit = match[2];
-  const unitMs: Record<string, number> = { s: 1000, m: 60_000, h: 3_600_000, d: 86_400_000 };
+  const unitMs: Record<string, number> = {
+    s: 1000,
+    m: 60_000,
+    h: 3_600_000,
+    d: 86_400_000,
+  };
   return new Date(date.getTime() + value * unitMs[unit]);
 }
