@@ -176,6 +176,32 @@ al cambiar de bloque o desmontar) para no disparar un PATCH por cada
 tecla — pero el historial registra la edición completa como una sola
 entrada, no una por tecla.
 
+## Historial persistido en servidor (versiones nombradas)
+
+Complementa el undo/redo de arriba exactamente donde ese no llega: crear
+y eliminar bloques. `PageVersion` (modelo Prisma, `page-versions.service.ts`)
+guarda, a pedido explícito del usuario (botón "Guardar" en el diálogo
+"Versiones guardadas", dentro del menú "Historial" de `EditorTopBar`), un
+snapshot con los campos de Page Builder de cada `Link` del perfil en ese
+momento — sin ids (una restauración siempre crea filas nuevas) y sin
+Appearance/tema (esto es historial de bloques, no del Theme Engine).
+`PageVersion.blockCount` guarda la cantidad de bloques por separado del
+JSON del snapshot, para que listar versiones no tenga que traer el
+snapshot completo solo para mostrar "8 bloques".
+
+Restaurar (`POST /admin/page-versions/:id/restore`) reemplaza *todo* el
+conjunto de bloques actuales del perfil en una sola transacción
+(`deleteMany` + un `create` por bloque del snapshot) — no es un merge con
+lo que exista en ese momento, es "volver a este punto". Por eso la UI pide
+una confirmación extra (el botón "Restaurar" se convierte en "¿Confirmar?"
+y hay que hacer clic de nuevo) en vez de ejecutar en un solo clic como el
+resto de las acciones del editor: al ser una sustitución total, el costo
+de un clic accidental es mucho mayor que el de un delete de un solo
+bloque. Las versiones guardadas nunca se purgan automáticamente — a
+diferencia del stack de undo (con tope de 50 entradas anónimas), estas
+son artefactos nombrados y creados a propósito por el usuario, así que
+solo desaparecen si el usuario mismo las borra.
+
 ## Selección múltiple y acciones en lote
 
 `workspace.tsx` mantiene `selectedIds: string[]` en vez de un único id.
@@ -239,8 +265,9 @@ la nota de seguridad en `blocks.md`).
   implementadas, ver más arriba; agrupar varios bloques bajo un contenedor
   propio es una estructura de datos distinta (anidamiento) que esta fase
   no cubre.
-- **Historial persistido en servidor** — solo en memoria de esta sesión de
-  edición (ver arriba).
+- **Historial de Appearance/tema** — las versiones nombradas sí están
+  implementadas para bloques (ver arriba); un historial equivalente para
+  cambios de tema/Appearance no existe todavía.
 - **Orden de bloques por dispositivo** — padding/margin/ancho por
   dispositivo sí están implementados (ver más arriba); reordenar bloques
   distinto según el breakpoint es una estructura de datos aparte (un

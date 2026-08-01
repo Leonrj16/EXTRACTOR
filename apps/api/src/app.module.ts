@@ -10,6 +10,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 import { ProfilesModule } from './modules/profiles/profiles.module';
 import { LinksModule } from './modules/links/links.module';
+import { PageVersionsModule } from './modules/page-versions/page-versions.module';
 import { AppearanceModule } from './modules/appearance/appearance.module';
 import { MediaModule } from './modules/media/media.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
@@ -25,6 +26,7 @@ import { HealthModule } from './modules/health/health.module';
     UsersModule,
     ProfilesModule,
     LinksModule,
+    PageVersionsModule,
     AppearanceModule,
     MediaModule,
     AnalyticsModule,

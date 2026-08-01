@@ -132,6 +132,7 @@ model Profile {
   links       Link[]
   customThemes Theme[]         @relation("CustomThemes")
   analytics   AnalyticsEvent[]
+  pageVersions PageVersion[]
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -206,6 +207,34 @@ model Link {
 
   @@index([profileId, order])
   @@map("links")
+}
+
+// Un checkpoint nombrado del Page Builder, guardado a pedido del usuario
+// (ver design-system/architecture/visual-editor.md — "Historial persistido
+// en servidor"). Complementa el undo/redo en memoria de use-editor-history.ts,
+// que no cubre crear/eliminar bloques: restaurar una versión reemplaza todo
+// el conjunto de bloques del perfil de una sola vez (con ids nuevos), algo
+// que la pila de undo no puede hacer sin arriesgar inconsistencias.
+model PageVersion {
+  id        String   @id @default(cuid())
+  profileId String
+  profile   Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  name     String
+  // Snapshot de los campos de cada Link relevantes al Page Builder — ver
+  // PageVersionSnapshot en page-versions.service.ts. No incluye ids
+  // (se generan de nuevo al restaurar) ni Appearance (esto es historial
+  // del Editor Visual/bloques, no de temas).
+  snapshot   Json
+  // Cantidad de bloques en el snapshot, calculada al crear la versión —
+  // así el listado no necesita traer el JSON completo solo para mostrar
+  // "8 bloques" en la UI.
+  blockCount Int
+
+  createdAt DateTime @default(now())
+
+  @@index([profileId, createdAt])
+  @@map("page_versions")
 }
 
 // Envíos de un bloque tipo FORM. Se guardan en BD (no requiere proveedor de

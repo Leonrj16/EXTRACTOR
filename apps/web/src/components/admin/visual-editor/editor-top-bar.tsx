@@ -1,11 +1,12 @@
 "use client";
 
-import { AlertTriangle, Check, Eye, EyeOff, History, Redo2, Undo2 } from "lucide-react";
+import { AlertTriangle, Check, Eye, EyeOff, History, Redo2, Save, Undo2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuTrigger,
@@ -33,6 +34,7 @@ interface EditorTopBarProps {
   publicPath: string;
   onPublish: () => void;
   publishing: boolean;
+  onOpenVersions: () => void;
 }
 
 const SAVE_STATE_LABEL: Record<SaveState, string> = {
@@ -61,6 +63,7 @@ export function EditorTopBar({
   publicPath,
   onPublish,
   publishing,
+  onOpenVersions,
 }: EditorTopBarProps) {
   return (
     <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border-subtle bg-surface-1/60 px-3 py-2">
@@ -92,18 +95,24 @@ export function EditorTopBar({
             Historial
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Historial de cambios</DropdownMenuLabel>
-            <DropdownMenuItem disabled>
-              {historySize > 0 ? `${historySize} cambio${historySize === 1 ? "" : "s"} en esta sesión` : "Sin cambios todavía"}
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={onUndo} disabled={!canUndo}>
-              <Undo2 />
-              Deshacer último cambio
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={onRedo} disabled={!canRedo}>
-              <Redo2 />
-              Rehacer
-            </DropdownMenuItem>
+            <DropdownMenuGroup>
+              <DropdownMenuLabel>Historial de cambios</DropdownMenuLabel>
+              <DropdownMenuItem disabled>
+                {historySize > 0 ? `${historySize} cambio${historySize === 1 ? "" : "s"} en esta sesión` : "Sin cambios todavía"}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={onUndo} disabled={!canUndo}>
+                <Undo2 />
+                Deshacer último cambio
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={onRedo} disabled={!canRedo}>
+                <Redo2 />
+                Rehacer
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={onOpenVersions}>
+                <Save />
+                Versiones guardadas…
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
           </DropdownMenuContent>
         </DropdownMenu>
 

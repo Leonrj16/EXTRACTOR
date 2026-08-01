@@ -146,6 +146,15 @@ export function useLinksManager(initialLinks: LinkItem[]) {
     await persistOrder(order);
   }
 
+  /** Swaps the local block list for one the server already persisted —
+   * used after restoring a saved page version (page-versions-panel.tsx),
+   * whose restore endpoint replaces every block server-side in one
+   * transaction and returns the new set. No PATCH here: persisting is
+   * already done, this only makes the UI catch up. */
+  function replaceAll(newLinks: LinkItem[]) {
+    setLinks(newLinks);
+  }
+
   /**
    * Creates a block with sane defaults and appends it, skipping the modal
    * entirely — the Visual Editor's Block Library panel calls this so
@@ -338,6 +347,7 @@ export function useLinksManager(initialLinks: LinkItem[]) {
     handleDragEnd,
     patchLink,
     applyOrder,
+    replaceAll,
     createBlock,
   };
 }

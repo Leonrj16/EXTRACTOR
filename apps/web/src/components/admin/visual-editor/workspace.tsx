@@ -13,6 +13,7 @@ import { Canvas } from "./canvas";
 import { InspectorPanel } from "./inspector-panel";
 import { LayersPanel } from "./layers-panel";
 import { EditorTopBar, type SaveState } from "./editor-top-bar";
+import { PageVersionsDialog } from "./page-versions-dialog";
 import { PublishDialog } from "./publish-dialog";
 import { SelectionToolbar } from "./selection-toolbar";
 import { validateForPublish } from "./publish-validation";
@@ -61,11 +62,13 @@ export function VisualEditorWorkspace({
   const [saveState, setSaveState] = useState<SaveState>("saved");
   const [publishDialogOpen, setPublishDialogOpen] = useState(false);
   const [publishing, setPublishing] = useState(false);
+  const [versionsDialogOpen, setVersionsDialogOpen] = useState(false);
 
   const {
     links,
     patchLink,
     applyOrder,
+    replaceAll,
     createBlock,
     handleDuplicate,
     handleDelete,
@@ -73,6 +76,11 @@ export function VisualEditorWorkspace({
     handleBulkDuplicate,
     handleBulkSetActive,
   } = linksManager;
+
+  function handleVersionRestored(restoredLinks: LinkItem[]) {
+    replaceAll(restoredLinks);
+    clearSelection();
+  }
 
   function clearSelection() {
     setSelectedIds([]);
@@ -221,6 +229,7 @@ export function VisualEditorWorkspace({
         publicPath={`/${profile.username}`}
         onPublish={() => setPublishDialogOpen(true)}
         publishing={publishing}
+        onOpenVersions={() => setVersionsDialogOpen(true)}
       />
 
       <div className="grid flex-1 grid-cols-[220px_1fr_320px] overflow-hidden">
@@ -295,6 +304,13 @@ export function VisualEditorWorkspace({
         onConfirm={handleConfirmPublish}
         publishing={publishing}
         isPublished={profile.isPublished}
+      />
+
+      <PageVersionsDialog
+        open={versionsDialogOpen}
+        onOpenChange={setVersionsDialogOpen}
+        currentBlockCount={links.length}
+        onRestored={handleVersionRestored}
       />
     </div>
   );
