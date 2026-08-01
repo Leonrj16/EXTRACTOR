@@ -118,10 +118,19 @@ mismo `Appearance.buttonStyle` de siempre). `resolveButtonTreatment()`
 en `themes/shared/button-treatments.ts` traduce un tratamiento a
 className + estilos inline.
 
-**Alcance de esta pasada**: `ButtonBlock` y `ThemePreviewCard` ya lo
-consumen. Los otros 17 bloques del Page Builder todavía no —
-extenderlo es agregar la misma llamada a `resolveButtonTreatment()` que
-ya tiene `ButtonBlock/preview.tsx`, no requiere cambiar el contrato.
+Los 24 bloques del Page Builder que renderizan un botón o CTA lo
+consumen: `ButtonBlock`, `CalendarBlock`, `ContactBlock` (modo enlace
+directo), `EmailBlock`, `HeroBlock`, `MapBlock`, `PricingBlock`,
+`ProductBlock`, `ProfileBlock` (íconos sociales), `ServiceBlock`,
+`SocialBlock`, `WhatsAppBlock` y `ThemePreviewCard`. Los que no tienen
+botón (Texto, Imagen sin enlace, Separador, Footer con links de texto
+subrayado...) correctamente no lo necesitan. Cada uno sigue el mismo
+patrón: `resolveButtonTreatment(theme.buttonTreatment ?? "filled",
+theme.primaryColor, theme.secondaryColor)`, con el resultado como base y
+cualquier `styleOverrides` propio del bloque ganando encima (mismo orden
+`{...treatment.style, ...style}` que `ButtonBlock/preview.tsx` ya usaba).
+Agregar un bloque nuevo con botón es seguir ese mismo patrón, no un
+cambio de contrato.
 
 ## Fondos
 

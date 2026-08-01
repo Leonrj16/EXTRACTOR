@@ -2,6 +2,7 @@
 
 import { BlockFrame } from "../shared/block-frame";
 import { resolveBlockStyle } from "../shared/style-resolver";
+import { resolveButtonTreatment } from "@/themes/shared/button-treatments";
 import type { BlockPreviewProps } from "../types";
 import { SERVICE_BLOCK_DEFAULT_META, SERVICE_ICON_MAP } from "./config";
 import { SERVICE_BLOCK_INTERACTIVE } from "./animation";
@@ -18,6 +19,7 @@ export function ServiceBlockPreview({
 }: BlockPreviewProps<ServiceBlockMeta>) {
   const resolved = { ...SERVICE_BLOCK_DEFAULT_META, ...meta };
   const Icon = SERVICE_ICON_MAP[resolved.icon ?? "sparkles"];
+  const treatment = resolveButtonTreatment(theme.buttonTreatment ?? "filled", theme.primaryColor, theme.secondaryColor);
 
   const style = resolveBlockStyle(styleOverrides, {
     primaryColor: theme.primaryColor,
@@ -43,8 +45,8 @@ export function ServiceBlockPreview({
           target="_blank"
           rel="noreferrer"
           onClick={() => onLinkClick?.(link)}
-          className={`${SERVICE_BUTTON_CLASS} ${theme.radius}`}
-          style={{ backgroundColor: `${theme.primaryColor}14` }}
+          className={`${SERVICE_BUTTON_CLASS} ${theme.radius} ${treatment.className}`}
+          style={treatment.style}
         >
           {resolved.buttonLabel ?? "Ver más"}
         </a>

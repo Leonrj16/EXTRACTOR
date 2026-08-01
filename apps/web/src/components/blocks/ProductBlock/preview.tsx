@@ -2,6 +2,7 @@
 
 import { BlockFrame } from "../shared/block-frame";
 import { resolveBlockStyle } from "../shared/style-resolver";
+import { resolveButtonTreatment } from "@/themes/shared/button-treatments";
 import type { BlockPreviewProps } from "../types";
 import { PRODUCT_BLOCK_DEFAULT_META } from "./config";
 import { PRODUCT_BLOCK_INTERACTIVE } from "./animation";
@@ -17,6 +18,7 @@ export function ProductBlockPreview({
   onLinkClick,
 }: BlockPreviewProps<ProductBlockMeta>) {
   const resolved = { ...PRODUCT_BLOCK_DEFAULT_META, ...meta };
+  const treatment = resolveButtonTreatment(theme.buttonTreatment ?? "filled", theme.primaryColor, theme.secondaryColor);
 
   const style = resolveBlockStyle(styleOverrides, {
     primaryColor: theme.primaryColor,
@@ -53,7 +55,7 @@ export function ProductBlockPreview({
               </span>
             )}
           </div>
-          <span className={`${PRODUCT_BUY_BUTTON_CLASS} ${theme.radius}`} style={{ backgroundColor: `${theme.primaryColor}14` }}>
+          <span className={`${PRODUCT_BUY_BUTTON_CLASS} ${theme.radius} ${treatment.className}`} style={treatment.style}>
             {resolved.buttonLabel ?? "Comprar"}
           </span>
         </div>

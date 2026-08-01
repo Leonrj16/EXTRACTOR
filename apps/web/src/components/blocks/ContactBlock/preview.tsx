@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { BlockFrame } from "../shared/block-frame";
 import { resolveBlockStyle } from "../shared/style-resolver";
+import { resolveButtonTreatment } from "@/themes/shared/button-treatments";
 import type { BlockPreviewProps } from "../types";
 import { CONTACT_BLOCK_DEFAULT_META } from "./config";
 import { CONTACT_BLOCK_INTERACTIVE } from "./animation";
@@ -129,6 +130,7 @@ export function ContactBlockPreview({
 }: BlockPreviewProps<ContactBlockMeta>) {
   const resolved = { ...CONTACT_BLOCK_DEFAULT_META, ...meta };
   const mode = resolved.mode ?? "form";
+  const treatment = resolveButtonTreatment(theme.buttonTreatment ?? "filled", theme.primaryColor, theme.secondaryColor);
 
   const style = resolveBlockStyle(styleOverrides, {
     primaryColor: theme.primaryColor,
@@ -145,8 +147,8 @@ export function ContactBlockPreview({
           mode={mode}
           contact={resolved.contact ?? ""}
           label={link.title}
-          className={`${CONTACT_BUTTON_CLASS} ${theme.radius}`}
-          style={{ ...style, backgroundColor: style.backgroundColor ?? `${theme.primaryColor}14` }}
+          className={`${CONTACT_BUTTON_CLASS} ${theme.radius} ${treatment.className}`}
+          style={{ ...treatment.style, ...style }}
           onClick={() => onLinkClick?.(link)}
         />
       )}

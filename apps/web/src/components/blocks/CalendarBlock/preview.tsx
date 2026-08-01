@@ -3,6 +3,7 @@
 import { CalendarClock } from "lucide-react";
 import { BlockFrame } from "../shared/block-frame";
 import { resolveBlockStyle } from "../shared/style-resolver";
+import { resolveButtonTreatment } from "@/themes/shared/button-treatments";
 import type { BlockPreviewProps } from "../types";
 import { CALENDAR_BLOCK_DEFAULT_META } from "./config";
 import { CALENDAR_BLOCK_INTERACTIVE } from "./animation";
@@ -18,6 +19,7 @@ export function CalendarBlockPreview({
   onLinkClick,
 }: BlockPreviewProps<CalendarBlockMeta>) {
   const resolved = { ...CALENDAR_BLOCK_DEFAULT_META, ...meta };
+  const treatment = resolveButtonTreatment(theme.buttonTreatment ?? "filled", theme.primaryColor, theme.secondaryColor);
 
   const style = resolveBlockStyle(styleOverrides, {
     primaryColor: theme.primaryColor,
@@ -41,8 +43,8 @@ export function CalendarBlockPreview({
           target="_blank"
           rel="noreferrer"
           onClick={() => onLinkClick?.(link)}
-          className={`${CALENDAR_BUTTON_CLASS} ${theme.radius}`}
-          style={{ backgroundColor: `${theme.primaryColor}14` }}
+          className={`${CALENDAR_BUTTON_CLASS} ${theme.radius} ${treatment.className}`}
+          style={treatment.style}
         >
           {resolved.buttonLabel ?? "Agendar"}
         </a>

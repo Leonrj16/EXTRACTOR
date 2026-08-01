@@ -3,6 +3,7 @@
 import { BlockFrame } from "../shared/block-frame";
 import { resolveBlockStyle } from "../shared/style-resolver";
 import { SOCIAL_PLATFORM_ICON } from "../shared/social-icons";
+import { resolveButtonTreatment } from "@/themes/shared/button-treatments";
 import type { BlockPreviewProps } from "../types";
 import { SOCIAL_BLOCK_DEFAULT_META } from "./config";
 import { SOCIAL_BLOCK_INTERACTIVE } from "./animation";
@@ -20,6 +21,7 @@ export function SocialBlockPreview({
   const resolved = { ...SOCIAL_BLOCK_DEFAULT_META, ...meta };
   const platform = resolved.platform ?? "instagram";
   const Icon = SOCIAL_PLATFORM_ICON[platform];
+  const treatment = resolveButtonTreatment(theme.buttonTreatment ?? "filled", theme.primaryColor, theme.secondaryColor);
 
   const style = resolveBlockStyle(styleOverrides, {
     primaryColor: theme.primaryColor,
@@ -34,8 +36,8 @@ export function SocialBlockPreview({
         target="_blank"
         rel="noreferrer"
         onClick={() => onLinkClick?.(link)}
-        className={`${SOCIAL_BUTTON_CLASS} ${theme.radius}`}
-        style={{ ...style, backgroundColor: style.backgroundColor ?? `${theme.primaryColor}14` }}
+        className={`${SOCIAL_BUTTON_CLASS} ${theme.radius} ${treatment.className}`}
+        style={{ ...treatment.style, ...style }}
       >
         <Icon className="size-4" />
         {link.title}

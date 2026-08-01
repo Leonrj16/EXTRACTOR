@@ -2,6 +2,7 @@
 
 import { BlockFrame } from "../shared/block-frame";
 import { resolveBlockStyle } from "../shared/style-resolver";
+import { resolveButtonTreatment } from "@/themes/shared/button-treatments";
 import type { BlockPreviewProps } from "../types";
 import { EMAIL_BLOCK_DEFAULT_META, EMAIL_BLOCK_ICON } from "./config";
 import { EMAIL_BLOCK_INTERACTIVE } from "./animation";
@@ -26,6 +27,7 @@ export function EmailBlockPreview({
   const query = params.toString();
   const href = resolved.email ? `mailto:${resolved.email}${query ? `?${query}` : ""}` : (link.url ?? "#");
   const Icon = EMAIL_BLOCK_ICON;
+  const treatment = resolveButtonTreatment(theme.buttonTreatment ?? "filled", theme.primaryColor, theme.secondaryColor);
 
   const style = resolveBlockStyle(styleOverrides, {
     primaryColor: theme.primaryColor,
@@ -38,8 +40,8 @@ export function EmailBlockPreview({
       <a
         href={href}
         onClick={() => onLinkClick?.(link)}
-        className={`${EMAIL_BUTTON_CLASS} ${theme.radius}`}
-        style={{ ...style, backgroundColor: style.backgroundColor ?? `${theme.primaryColor}14` }}
+        className={`${EMAIL_BUTTON_CLASS} ${theme.radius} ${treatment.className}`}
+        style={{ ...treatment.style, ...style }}
       >
         <Icon className="size-4" />
         {link.title}

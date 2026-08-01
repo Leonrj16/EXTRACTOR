@@ -3,6 +3,7 @@
 import { Check } from "lucide-react";
 import { BlockFrame } from "../shared/block-frame";
 import { resolveBlockStyle } from "../shared/style-resolver";
+import { resolveButtonTreatment } from "@/themes/shared/button-treatments";
 import type { BlockPreviewProps } from "../types";
 import { PRICING_BLOCK_DEFAULT_META, PRICING_PERIOD_LABEL } from "./config";
 import { PRICING_BLOCK_INTERACTIVE } from "./animation";
@@ -19,6 +20,7 @@ export function PricingBlockPreview({
 }: BlockPreviewProps<PricingBlockMeta>) {
   const resolved = { ...PRICING_BLOCK_DEFAULT_META, ...meta };
   const features = resolved.features ?? [];
+  const treatment = resolveButtonTreatment(theme.buttonTreatment ?? "filled", theme.primaryColor, theme.secondaryColor);
 
   const style = resolveBlockStyle(styleOverrides, {
     primaryColor: theme.primaryColor,
@@ -60,8 +62,8 @@ export function PricingBlockPreview({
             target="_blank"
             rel="noreferrer"
             onClick={() => onLinkClick?.(link)}
-            className={`${PRICING_BUTTON_CLASS} ${theme.radius}`}
-            style={{ backgroundColor: `${theme.primaryColor}14` }}
+            className={`${PRICING_BUTTON_CLASS} ${theme.radius} ${treatment.className}`}
+            style={treatment.style}
           >
             {resolved.buttonLabel ?? "Elegir plan"}
           </a>
