@@ -11,6 +11,9 @@ import {
   Tablet,
   Smartphone,
   LayoutTemplate,
+  CheckCircle2,
+  Copy,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ColorField } from "@/components/ui/color-field";
@@ -20,7 +23,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { ProfileView } from "@/components/public-profile/profile-view";
-import { adminFetch } from "@/lib/api-client";
+import { adminFetch, ApiError } from "@/lib/api-client";
 import { cn } from "@/lib/utils";
 import { getResolvedDefinition } from "@/themes/resolve-theme";
 import type { ThemeOverrides } from "@/themes/types";
@@ -155,6 +158,20 @@ export function PreviewFrame({
   );
 }
 
+/** adminFetch's ApiError carries the raw response text, which for a
+ * NestJS validation/exception response is a JSON body like
+ * `{ statusCode, message, error }` — this pulls the human-readable
+ * `message` out instead of toasting the raw JSON string. */
+function extractErrorMessage(error: unknown): string | null {
+  if (!(error instanceof ApiError)) return null;
+  try {
+    const body = JSON.parse(error.message) as { message?: string | string[] };
+    return Array.isArray(body.message) ? body.message[0] : (body.message ?? null);
+  } catch {
+    return null;
+  }
+}
+
 interface DesignEditorProps {
   initialProfile: ProfileData;
   initialAppearance: AppearanceData;
@@ -177,6 +194,9 @@ export function DesignEditor({ initialProfile, initialAppearance, themes: initia
   // purpose, since the server never sends the real password back (only a
   // hash), so there's nothing to initialize this from except a blank field.
   const [pagePasswordDraft, setPagePasswordDraft] = useState("");
+  const [domainDraft, setDomainDraft] = useState(initialProfile.customDomain ?? "");
+  const [savingDomain, setSavingDomain] = useState(false);
+  const [verifyingDomain, setVerifyingDomain] = useState(false);
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
 
@@ -244,6 +264,53 @@ export function DesignEditor({ initialProfile, initialAppearance, themes: initia
       toast.error("No se pudo guardar el perfil");
     } finally {
       setSavingProfile(false);
+    }
+  }
+
+  async function handleSaveDomain() {
+    setSavingDomain(true);
+    try {
+      const updated = await adminFetch<ProfileData>("/admin/profile/custom-domain", {
+        method: "POST",
+        body: JSON.stringify({ domain: domainDraft.trim() }),
+      });
+      setProfile(updated);
+      toast.success("Dominio guardado — agrega el registro TXT para verificarlo");
+    } catch (error) {
+      toast.error(extractErrorMessage(error) ?? "No se pudo guardar el dominio");
+    } finally {
+      setSavingDomain(false);
+    }
+  }
+
+  async function handleRemoveDomain() {
+    setSavingDomain(true);
+    try {
+      const updated = await adminFetch<ProfileData>("/admin/profile/custom-domain", {
+        method: "DELETE",
+      });
+      setProfile(updated);
+      setDomainDraft("");
+      toast.success("Dominio quitado");
+    } catch {
+      toast.error("No se pudo quitar el dominio");
+    } finally {
+      setSavingDomain(false);
+    }
+  }
+
+  async function handleVerifyDomain() {
+    setVerifyingDomain(true);
+    try {
+      const updated = await adminFetch<ProfileData>("/admin/profile/custom-domain/verify", {
+        method: "POST",
+      });
+      setProfile(updated);
+      toast.success("Dominio verificado");
+    } catch (error) {
+      toast.error(extractErrorMessage(error) ?? "No se pudo verificar el dominio");
+    } finally {
+      setVerifyingDomain(false);
     }
   }
 
@@ -604,6 +671,80 @@ export function DesignEditor({ initialProfile, initialAppearance, themes: initia
             <Button onClick={handleSaveProfile} loading={savingProfile} className="w-fit">
               {savingProfile ? "Guardando…" : "Guardar perfil"}
             </Button>
+
+            <div className="flex flex-col gap-4 border-t border-border-subtle pt-4">
+              <div>
+                <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+                  Dominio personalizado
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Conectar el dominio con tu página requiere configurar DNS y hosting aparte — acá
+                  solo verificamos que sos el dueño.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Input
+                  placeholder="midominio.com"
+                  value={domainDraft}
+                  onChange={(e) => setDomainDraft(e.target.value)}
+                  disabled={!!profile.customDomain}
+                />
+                {profile.customDomain ? (
+                  <Button type="button" variant="outline" onClick={handleRemoveDomain} loading={savingDomain}>
+                    <X className="size-3.5" />
+                    Quitar
+                  </Button>
+                ) : (
+                  <Button type="button" onClick={handleSaveDomain} loading={savingDomain} disabled={!domainDraft.trim()}>
+                    Guardar dominio
+                  </Button>
+                )}
+              </div>
+
+              {profile.customDomain && (
+                <div className="flex flex-col gap-3 rounded-xl border border-border bg-surface-2 p-4">
+                  {profile.customDomainVerifiedAt ? (
+                    <p className="flex items-center gap-2 text-sm text-brand-success">
+                      <CheckCircle2 className="size-4" />
+                      Dominio verificado
+                    </p>
+                  ) : (
+                    <>
+                      <p className="text-sm text-muted-foreground">
+                        Agrega este registro TXT en tu proveedor de DNS y después verificá:
+                      </p>
+                      <div className="flex flex-col gap-1 text-xs">
+                        <div className="flex items-center justify-between gap-2 rounded-lg bg-surface-4 px-3 py-2">
+                          <span className="text-muted-foreground">Nombre</span>
+                          <code>_aura-verify.{profile.customDomain}</code>
+                        </div>
+                        <div className="flex items-center justify-between gap-2 rounded-lg bg-surface-4 px-3 py-2">
+                          <span className="text-muted-foreground">Valor</span>
+                          <div className="flex items-center gap-1.5">
+                            <code className="truncate">{profile.customDomainToken}</code>
+                            <button
+                              type="button"
+                              aria-label="Copiar valor del registro TXT"
+                              onClick={() => {
+                                navigator.clipboard.writeText(profile.customDomainToken ?? "");
+                                toast.success("Copiado");
+                              }}
+                              className="shrink-0 rounded p-1 text-muted-foreground hover:text-foreground"
+                            >
+                              <Copy className="size-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                      <Button type="button" variant="outline" size="sm" className="w-fit" onClick={handleVerifyDomain} loading={verifyingDomain}>
+                        Verificar
+                      </Button>
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
           </>
         )}
 

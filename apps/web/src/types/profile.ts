@@ -13,6 +13,7 @@ export interface ProfileData {
   isPublished: boolean;
   isPasswordProtected: boolean;
   customDomain: string | null;
+  customDomainToken: string | null;
   customDomainVerifiedAt: string | null;
 }
 

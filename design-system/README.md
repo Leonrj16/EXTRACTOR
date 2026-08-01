@@ -49,8 +49,10 @@ en lugar de por número mágico.
     │                                 central, cómo agregar un bloque nuevo
     ├── theme-engine.md            ← Theme Engine: contrato de tema, resolución
     │                                 en cascada, cómo agregar un tema nuevo
-    └── visual-editor.md           ← Editor Visual: lienzo, capas, historial,
-                                      validación de publicación
+    ├── visual-editor.md           ← Editor Visual: lienzo, capas, historial,
+    │                                 validación de publicación
+    └── custom-domain.md           ← Dominio personalizado: qué verifica esta
+                                      app y qué queda para infraestructura
 ```
 
 ## Cómo se conecta con el código
