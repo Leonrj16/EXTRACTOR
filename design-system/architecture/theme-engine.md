@@ -209,16 +209,25 @@ persiste lo que el cliente ya resolvió:
 - **Favorito**: `Profile.favoriteThemeKeys` (array nativo de Postgres),
   `POST /admin/themes/:key/favorite` alterna la key.
 
-## Temas inteligentes (arquitectura preparada para IA)
+## Temas inteligentes (Claude + fallback determinístico)
 
-`POST /admin/themes/suggest { prompt }` (`ThemeAiService`) hoy hace
-matching determinístico por palabras clave contra las categorías/tagline
-de cada tema — no hay ningún modelo de lenguaje conectado. El punto de
-tener esto en su propia clase con una interfaz de entrada/salida estable
-(`{ prompt } → { themeId, key, name, matched, reason }`) es que
-conectar un LLM real más adelante es reemplazar el cuerpo de
-`ThemeAiService.suggest()`, no rediseñar el endpoint, el DTO, ni la UI
-que ya lo consume (el cuadro "Temas inteligentes" en la galería).
+`POST /admin/themes/suggest { prompt }` (`ThemeAiService`) llama a Claude
+(modelo `claude-haiku-4-5-20251001`, suficiente para esta clasificación
+cerrada) cuando hay `ANTHROPIC_API_KEY` configurada: le pasa el catálogo
+de temas del sistema (key, nombre, categorías, tagline) y fuerza la
+respuesta con `tool_choice` a una única herramienta `select_theme` cuyo
+`input_schema` restringe `themeKey` a un enum con las keys del catálogo
+más `"none"` — la respuesta nunca puede ser texto libre ni una key
+inventada sin que el código lo detecte.
+
+Sin la API key configurada, o si la llamada falla por cualquier motivo
+(red, rate limit, key fuera de catálogo, respuesta sin `tool_use`), cae a
+un match determinístico por palabras clave contra las categorías/tagline
+de cada tema (mismo comportamiento que la versión original de esta
+clase). Ambos caminos comparten la misma forma de salida
+(`{ themeId, key, name, matched, reason }`), así que el endpoint, el DTO
+y la UI que lo consume (el cuadro "Temas inteligentes" en la galería) no
+necesitan saber cuál de los dos respondió.
 
 ## Cómo agregar un tema nuevo
 

@@ -26,6 +26,11 @@ export interface AppConfig {
     pass?: string;
     from: string;
   };
+  ai: {
+    // When unset, ThemeAiService falls back to deterministic keyword
+    // matching instead of calling the Claude API — see theme-ai.service.ts.
+    anthropicApiKey?: string;
+  };
 }
 
 export default (): AppConfig => ({
@@ -54,5 +59,8 @@ export default (): AppConfig => ({
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS,
     from: process.env.MAIL_FROM ?? 'Aura <no-reply@aura.local>',
+  },
+  ai: {
+    anthropicApiKey: process.env.ANTHROPIC_API_KEY,
   },
 });
