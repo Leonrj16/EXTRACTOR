@@ -23,6 +23,12 @@ interface InspectorPanelProps {
    * opens that same dialog instead of the editor trying to render
    * messages inline. */
   onViewMessages?: (link: LinkItem) => void;
+  /** How many blocks are currently selected — only matters when `link` is
+   * null, to tell "nothing selected" apart from "a multi-selection is
+   * active" (field-by-field editing only makes sense for exactly one
+   * block; bulk actions for a multi-selection live in the toolbar above
+   * the canvas instead, see workspace.tsx). */
+  selectionCount?: number;
 }
 
 /**
@@ -33,7 +39,7 @@ interface InspectorPanelProps {
  * only thing that changes is *when* changes save — here, live, instead of
  * on a form Submit.
  */
-export function InspectorPanel({ link, onClose, onPatch, onViewMessages }: InspectorPanelProps) {
+export function InspectorPanel({ link, onClose, onPatch, onViewMessages, selectionCount = 0 }: InspectorPanelProps) {
   const pendingRef = useRef<{ patch: Record<string, unknown>; before: Record<string, unknown> } | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -61,7 +67,9 @@ export function InspectorPanel({ link, onClose, onPatch, onViewMessages }: Inspe
     return (
       <div className="flex h-full flex-col items-center justify-center gap-2 border-l border-border-subtle p-6 text-center">
         <p className="text-sm text-muted-foreground">
-          Selecciona un bloque en el lienzo o en las capas para editar sus propiedades.
+          {selectionCount > 1
+            ? `${selectionCount} bloques seleccionados — usa la barra de acciones en lote arriba del lienzo.`
+            : "Selecciona un bloque en el lienzo o en las capas para editar sus propiedades."}
         </p>
       </div>
     );

@@ -14,7 +14,12 @@ import { InspectorPanel } from "./inspector-panel";
 import { LayersPanel } from "./layers-panel";
 import { EditorTopBar, type SaveState } from "./editor-top-bar";
 import { PublishDialog } from "./publish-dialog";
+import { SelectionToolbar } from "./selection-toolbar";
 import { validateForPublish } from "./publish-validation";
+
+function isLocked(link: LinkItem) {
+  return (link.styleOverrides as BlockStyleOverrides | null)?.locked ?? false;
+}
 
 const DEVICE_MAX_WIDTH: Record<DeviceId, number> = {
   mobile: 420,
@@ -50,13 +55,53 @@ export function VisualEditorWorkspace({
   onPublish,
   onViewMessages,
 }: VisualEditorWorkspaceProps) {
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [selectionAnchor, setSelectionAnchor] = useState<string | null>(null);
   const [previewMode, setPreviewMode] = useState(false);
   const [saveState, setSaveState] = useState<SaveState>("saved");
   const [publishDialogOpen, setPublishDialogOpen] = useState(false);
   const [publishing, setPublishing] = useState(false);
 
-  const { links, patchLink, applyOrder, createBlock, handleDuplicate, handleDelete } = linksManager;
+  const {
+    links,
+    patchLink,
+    applyOrder,
+    createBlock,
+    handleDuplicate,
+    handleDelete,
+    handleBulkDelete,
+    handleBulkDuplicate,
+    handleBulkSetActive,
+  } = linksManager;
+
+  function clearSelection() {
+    setSelectedIds([]);
+    setSelectionAnchor(null);
+  }
+
+  /** Plain click replaces the selection; Ctrl/Cmd+click toggles one block
+   * in or out of it; Shift+click extends it to every block between the
+   * last-clicked one and this one, in canvas order — the same modifier
+   * scheme as most direct-manipulation editors (Figma, Photoshop). */
+  function handleSelect(id: string, e: React.MouseEvent) {
+    if (e.shiftKey && selectionAnchor) {
+      const ids = links.map((l) => l.id);
+      const anchorIndex = ids.indexOf(selectionAnchor);
+      const targetIndex = ids.indexOf(id);
+      if (anchorIndex !== -1 && targetIndex !== -1) {
+        const [start, end] = anchorIndex < targetIndex ? [anchorIndex, targetIndex] : [targetIndex, anchorIndex];
+        setSelectedIds(ids.slice(start, end + 1));
+        return;
+      }
+    }
+    if (e.metaKey || e.ctrlKey) {
+      setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+      setSelectionAnchor(id);
+      return;
+    }
+    setSelectedIds([id]);
+    setSelectionAnchor(id);
+  }
 
   async function withSaveIndicator<T>(fn: () => Promise<T>): Promise<T> {
     setSaveState("saving");
@@ -102,7 +147,7 @@ export function VisualEditorWorkspace({
     const created = await withSaveIndicator(() =>
       createBlock(kind, { title: definition.label, metadata: definition.defaultMeta }),
     );
-    if (created) setSelectedId(created.id);
+    if (created) setSelectedIds([created.id]);
   }
 
   async function handleDuplicateBlock(link: LinkItem) {
@@ -110,12 +155,43 @@ export function VisualEditorWorkspace({
   }
 
   async function handleDeleteBlock(link: LinkItem) {
-    if (selectedId === link.id) setSelectedId(null);
+    setSelectedIds((prev) => prev.filter((id) => id !== link.id));
     await withSaveIndicator(() => handleDelete(link));
   }
 
+  const selectedBlocks = useMemo(
+    () => links.filter((l) => selectedIds.includes(l.id)),
+    [links, selectedIds],
+  );
+  const duplicableSelection = useMemo(() => selectedBlocks.filter((l) => !isLocked(l)), [selectedBlocks]);
+  const deletableSelection = duplicableSelection;
+
+  async function handleBulkDuplicateBlocks() {
+    if (duplicableSelection.length === 0) return;
+    const created = await withSaveIndicator(() => handleBulkDuplicate(duplicableSelection));
+    if (created.length > 0) setSelectedIds(created.map((l) => l.id));
+  }
+
+  async function handleBulkDeleteBlocks() {
+    if (deletableSelection.length === 0) return;
+    clearSelection();
+    await withSaveIndicator(() => handleBulkDelete(deletableSelection));
+  }
+
+  async function handleBulkSetVisibility(isActive: boolean) {
+    if (selectedBlocks.length === 0) return;
+    history.recordBatch(
+      selectedBlocks.map((link) => ({
+        linkId: link.id,
+        before: { isActive: link.isActive },
+        after: { isActive },
+      })),
+    );
+    await withSaveIndicator(() => handleBulkSetActive(selectedBlocks, isActive));
+  }
+
   const issues = useMemo(() => validateForPublish(profile, links), [profile, links]);
-  const selectedLink = links.find((l) => l.id === selectedId) ?? null;
+  const selectedLink = selectedIds.length === 1 ? (links.find((l) => l.id === selectedIds[0]) ?? null) : null;
 
   async function handleConfirmPublish() {
     setPublishing(true);
@@ -152,16 +228,30 @@ export function VisualEditorWorkspace({
 
         <div
           className={previewMode ? "col-span-3 overflow-y-auto bg-black/20" : "overflow-y-auto bg-black/20"}
-          onClick={() => setSelectedId(null)}
+          onClick={clearSelection}
         >
           <div className="mx-auto py-6" style={{ maxWidth: DEVICE_MAX_WIDTH[device] }}>
+            {!previewMode && selectedIds.length > 1 && (
+              <div onClick={(e) => e.stopPropagation()}>
+                <SelectionToolbar
+                  count={selectedIds.length}
+                  duplicableCount={duplicableSelection.length}
+                  deletableCount={deletableSelection.length}
+                  onDuplicate={() => void handleBulkDuplicateBlocks()}
+                  onHide={() => void handleBulkSetVisibility(false)}
+                  onShow={() => void handleBulkSetVisibility(true)}
+                  onDelete={() => void handleBulkDeleteBlocks()}
+                  onClear={clearSelection}
+                />
+              </div>
+            )}
             <div className="overflow-hidden rounded-2xl border border-border-subtle" onClick={(e) => e.stopPropagation()}>
               <Canvas
                 profile={profile}
                 appearance={appearance}
                 links={links}
-                selectedId={selectedId}
-                onSelect={setSelectedId}
+                selectedIds={selectedIds}
+                onSelect={handleSelect}
                 onDuplicate={handleDuplicateBlock}
                 onDelete={handleDeleteBlock}
                 onToggleVisibility={handleToggleVisibility}
@@ -178,8 +268,8 @@ export function VisualEditorWorkspace({
             <div className="max-h-[45%] overflow-y-auto border-b border-border-subtle">
               <LayersPanel
                 links={links}
-                selectedId={selectedId}
-                onSelect={setSelectedId}
+                selectedIds={selectedIds}
+                onSelect={handleSelect}
                 onToggleVisibility={handleToggleVisibility}
                 onToggleLock={handleToggleLock}
                 onReorder={handleReorder}
@@ -188,7 +278,8 @@ export function VisualEditorWorkspace({
             <div className="flex-1 overflow-y-auto">
               <InspectorPanel
                 link={selectedLink}
-                onClose={() => setSelectedId(null)}
+                selectionCount={selectedIds.length}
+                onClose={clearSelection}
                 onPatch={handleInspectorPatch}
                 onViewMessages={onViewMessages}
               />

@@ -5,7 +5,8 @@ import type { LinkItem } from "@/types/link";
 
 type HistoryEntry =
   | { kind: "update"; linkId: string; before: Record<string, unknown>; after: Record<string, unknown> }
-  | { kind: "reorder"; before: LinkItem[]; after: LinkItem[] };
+  | { kind: "reorder"; before: LinkItem[]; after: LinkItem[] }
+  | { kind: "batch"; entries: { linkId: string; before: Record<string, unknown>; after: Record<string, unknown> }[] };
 
 interface UseEditorHistoryOptions {
   /** Same PATCH path every other edit already goes through (see
@@ -52,11 +53,27 @@ export function useEditorHistory({ applyPatch, applyReorder }: UseEditorHistoryO
     [record],
   );
 
+  /** One undo/redo step for a multi-block action (e.g. bulk hide/show) —
+   * applying N `recordUpdate` calls instead would need N separate
+   * Ctrl+Z presses to undo a single bulk action, which doesn't match
+   * what the user just did. */
+  const recordBatch = useCallback(
+    (entries: { linkId: string; before: Record<string, unknown>; after: Record<string, unknown> }[]) => {
+      if (entries.length === 0) return;
+      record({ kind: "batch", entries });
+    },
+    [record],
+  );
+
   async function invert(entry: HistoryEntry, direction: "undo" | "redo") {
     if (entry.kind === "update") {
       await applyPatch(entry.linkId, direction === "undo" ? entry.before : entry.after);
-    } else {
+    } else if (entry.kind === "reorder") {
       await applyReorder(direction === "undo" ? entry.before : entry.after);
+    } else {
+      await Promise.all(
+        entry.entries.map((e) => applyPatch(e.linkId, direction === "undo" ? e.before : e.after)),
+      );
     }
   }
 
@@ -81,6 +98,7 @@ export function useEditorHistory({ applyPatch, applyReorder }: UseEditorHistoryO
   return {
     recordUpdate,
     recordReorder,
+    recordBatch,
     undo,
     redo,
     canUndo: past.length > 0,

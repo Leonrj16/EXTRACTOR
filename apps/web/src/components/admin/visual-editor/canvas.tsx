@@ -25,8 +25,8 @@ interface CanvasProps {
   profile: ProfileData;
   appearance: AppearanceData;
   links: LinkItem[];
-  selectedId: string | null;
-  onSelect: (id: string) => void;
+  selectedIds: string[];
+  onSelect: (id: string, e: React.MouseEvent) => void;
   onDuplicate: (link: LinkItem) => void;
   onDelete: (link: LinkItem) => void;
   onToggleVisibility: (link: LinkItem) => void;
@@ -53,7 +53,7 @@ export function Canvas({
   profile,
   appearance,
   links,
-  selectedId,
+  selectedIds,
   onSelect,
   onDuplicate,
   onDelete,
@@ -229,10 +229,10 @@ export function Canvas({
                     key={link.id}
                     link={link}
                     wide={isWide(link)}
-                    selected={link.id === selectedId}
+                    selected={selectedIds.includes(link.id)}
                     previewMode={previewMode}
                     hiddenOnDevice={hiddenOnDevice}
-                    onSelect={() => onSelect(link.id)}
+                    onSelect={(e) => onSelect(link.id, e)}
                     onDuplicate={() => onDuplicate(link)}
                     onDelete={() => onDelete(link)}
                     onToggleVisibility={() => onToggleVisibility(link)}
@@ -281,7 +281,7 @@ function CanvasBlockItem({
   selected: boolean;
   previewMode: boolean;
   hiddenOnDevice: boolean;
-  onSelect: () => void;
+  onSelect: (e: React.MouseEvent) => void;
   onDuplicate: () => void;
   onDelete: () => void;
   onToggleVisibility: () => void;
@@ -311,7 +311,7 @@ function CanvasBlockItem({
       )}
       onClick={(e) => {
         e.stopPropagation();
-        onSelect();
+        onSelect(e);
       }}
     >
       {hiddenOnDevice && (

@@ -18,8 +18,8 @@ import { cn } from "@/lib/utils";
 
 interface LayersPanelProps {
   links: LinkItem[];
-  selectedId: string | null;
-  onSelect: (id: string) => void;
+  selectedIds: string[];
+  onSelect: (id: string, e: React.MouseEvent) => void;
   onToggleVisibility: (link: LinkItem) => void;
   onToggleLock: (link: LinkItem) => void;
   onReorder: (reordered: LinkItem[]) => void;
@@ -35,7 +35,7 @@ interface LayersPanelProps {
  */
 export function LayersPanel({
   links,
-  selectedId,
+  selectedIds,
   onSelect,
   onToggleVisibility,
   onToggleLock,
@@ -70,8 +70,8 @@ export function LayersPanel({
               <LayerRow
                 key={link.id}
                 link={link}
-                selected={link.id === selectedId}
-                onSelect={() => onSelect(link.id)}
+                selected={selectedIds.includes(link.id)}
+                onSelect={(e) => onSelect(link.id, e)}
                 onToggleVisibility={() => onToggleVisibility(link)}
                 onToggleLock={() => onToggleLock(link)}
               />
@@ -92,7 +92,7 @@ function LayerRow({
 }: {
   link: LinkItem;
   selected: boolean;
-  onSelect: () => void;
+  onSelect: (e: React.MouseEvent) => void;
   onToggleVisibility: () => void;
   onToggleLock: () => void;
 }) {

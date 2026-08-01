@@ -128,6 +128,41 @@ al cambiar de bloque o desmontar) para no disparar un PATCH por cada
 tecla — pero el historial registra la edición completa como una sola
 entrada, no una por tecla.
 
+## Selección múltiple y acciones en lote
+
+`workspace.tsx` mantiene `selectedIds: string[]` en vez de un único id.
+Clic simple reemplaza la selección; Ctrl/Cmd+clic agrega o quita un bloque
+de la selección actual; Shift+clic selecciona el rango entre el último
+bloque clicado (`selectionAnchor`) y el clicado ahora, en el orden del
+lienzo — el mismo esquema de modificadores que Figma o Photoshop. Tanto
+`Canvas` como `LayersPanel` reciben el mismo `selectedIds`/`onSelect`, así
+que seleccionar desde cualquiera de los dos se refleja en ambos.
+
+Con 2+ bloques seleccionados aparece `SelectionToolbar` (flotante, arriba
+del lienzo) con Duplicar/Ocultar/Mostrar/Eliminar. Duplicar y Eliminar
+excluyen los bloques bloqueados de la selección (igual que sus
+equivalentes de un solo bloque en el overlay del lienzo); Ocultar/Mostrar
+no — el toggle de visibilidad tampoco está bloqueado por `locked` para un
+solo bloque. `InspectorPanel` no intenta edición de campos en lote: con
+2+ seleccionados muestra un mensaje señalando la barra de acciones en vez
+de listar controles ambiguos para bloques de distinto tipo.
+
+Duplicar y Eliminar en lote **no** se registran en el historial — mismo
+motivo que sus versiones de un solo bloque (ver más abajo: el servidor
+asigna ids nuevos a cada fila creada). Ocultar/Mostrar en lote sí se
+registra, como una sola entrada de historial (`recordBatch`, ver
+`use-editor-history.ts`) que aplica los N cambios de `isActive` juntos —
+así un solo Deshacer revierte el lote completo en vez de necesitar N
+Deshacer para volver al estado anterior.
+
+`useLinksManager` expone `handleBulkDelete`/`handleBulkDuplicate`/
+`handleBulkSetActive`, que resuelven cada request del lote de forma
+independiente (`Promise.allSettled`) y reconcilian el estado local
+bloque por bloque en vez de revertir todo el lote ante cualquier fallo
+parcial — revertir todo dejaría en la UI bloques "fantasma" que el
+servidor ya procesó (ya borrados, o ya actualizados) y que fallarían en
+la siguiente acción sobre ellos.
+
 ## Publicación y validación
 
 `publish-validation.ts#validateForPublish` corre en memoria contra el
@@ -151,8 +186,11 @@ la nota de seguridad en `blocks.md`).
 
 ## Qué queda fuera de esta fase (explícitamente diferido)
 
-- **Selección múltiple real y agrupar/desagrupar bloques** — el lienzo
-  selecciona un bloque a la vez.
+- **Agrupar/desagrupar bloques** — la selección múltiple (shift/ctrl+clic)
+  y sus acciones en lote (duplicar/ocultar/mostrar/eliminar) sí están
+  implementadas, ver más arriba; agrupar varios bloques bajo un contenedor
+  propio es una estructura de datos distinta (anidamiento) que esta fase
+  no cubre.
 - **Historial persistido en servidor** — solo en memoria de esta sesión de
   edición (ver arriba).
 - **Overrides responsive campo por campo** (padding/margin/tamaño/orden

@@ -199,6 +199,105 @@ export function useLinksManager(initialLinks: LinkItem[]) {
     }
   }
 
+  /** Deletes several blocks at once (Visual Editor multi-select). Settles
+   * each request independently instead of optimistically removing all of
+   * them up front and rolling back on any failure — rolling back would
+   * resurrect rows the server already deleted successfully, leaving the
+   * UI showing "ghost" blocks that 404 on the next action. */
+  async function handleBulkDelete(targets: LinkItem[]) {
+    if (targets.length === 0) return;
+    const results = await Promise.allSettled(
+      targets.map((link) => adminFetch(`/admin/links/${link.id}`, { method: "DELETE" }).then(() => link.id)),
+    );
+    const deletedIds = new Set(
+      results.filter((r): r is PromiseFulfilledResult<string> => r.status === "fulfilled").map((r) => r.value),
+    );
+    if (deletedIds.size > 0) {
+      setLinks((prev) => prev.filter((l) => !deletedIds.has(l.id)));
+    }
+    const failedCount = targets.length - deletedIds.size;
+    if (failedCount > 0) {
+      toast.error(
+        deletedIds.size > 0
+          ? `${deletedIds.size} eliminados, ${failedCount} fallaron`
+          : "No se pudieron eliminar los bloques",
+      );
+    } else {
+      toast.success(`${targets.length} bloques eliminados`);
+    }
+  }
+
+  /** Duplicates several blocks at once — appended at the end rather than
+   * interleaved after each original (unlike single `handleDuplicate`):
+   * with several source blocks the "right after each original" position
+   * isn't a single well-defined spot anyway, and appending keeps this
+   * simple to reason about. */
+  async function handleBulkDuplicate(targets: LinkItem[]): Promise<LinkItem[]> {
+    if (targets.length === 0) return [];
+    const results = await Promise.allSettled(
+      targets.map((link) =>
+        adminFetch<LinkItem>("/admin/links", {
+          method: "POST",
+          body: JSON.stringify({
+            type: link.type,
+            title: `${link.title} (copia)`,
+            url: link.url ?? undefined,
+            icon: link.icon ?? undefined,
+            imageUrl: link.imageUrl ?? undefined,
+            metadata: link.metadata ?? undefined,
+            styleOverrides: link.styleOverrides ?? undefined,
+          }),
+        }),
+      ),
+    );
+    const created = results
+      .filter((r): r is PromiseFulfilledResult<LinkItem> => r.status === "fulfilled")
+      .map((r) => r.value);
+    if (created.length > 0) {
+      const withDuplicates = [...links, ...created];
+      setLinks(withDuplicates);
+      await persistOrder(withDuplicates);
+    }
+    const failedCount = targets.length - created.length;
+    if (failedCount > 0) {
+      toast.error(
+        created.length > 0
+          ? `${created.length} duplicados, ${failedCount} fallaron`
+          : "No se pudieron duplicar los bloques",
+      );
+    } else {
+      toast.success(`${targets.length} bloques duplicados`);
+    }
+    return created;
+  }
+
+  /** Sets isActive for several blocks at once (bulk "Ocultar"/"Mostrar").
+   * Optimistic like `patchLink`, but reconciles per-block on partial
+   * failure instead of rolling every block back to its pre-action state. */
+  async function handleBulkSetActive(targets: LinkItem[], isActive: boolean) {
+    if (targets.length === 0) return;
+    const previousById = new Map(targets.map((link) => [link.id, link]));
+    const ids = new Set(targets.map((link) => link.id));
+    setLinks((prev) => prev.map((l) => (ids.has(l.id) ? { ...l, isActive } : l)));
+
+    const results = await Promise.allSettled(
+      targets.map((link) =>
+        adminFetch(`/admin/links/${link.id}`, { method: "PATCH", body: JSON.stringify({ isActive }) }),
+      ),
+    );
+    const failedIds = new Set(targets.filter((_, i) => results[i].status === "rejected").map((l) => l.id));
+    if (failedIds.size > 0) {
+      setLinks((prev) => prev.map((l) => (failedIds.has(l.id) ? (previousById.get(l.id) ?? l) : l)));
+      toast.error(
+        failedIds.size < targets.length
+          ? `${targets.length - failedIds.size} actualizados, ${failedIds.size} fallaron`
+          : "No se pudo actualizar la visibilidad",
+      );
+    } else {
+      toast.success(isActive ? `${targets.length} bloques mostrados` : `${targets.length} bloques ocultos`);
+    }
+  }
+
   function handleDragStart(event: DragStartEvent) {
     setActiveId(String(event.active.id));
   }
@@ -232,6 +331,9 @@ export function useLinksManager(initialLinks: LinkItem[]) {
     handleToggleActive,
     handleDelete,
     handleDuplicate,
+    handleBulkDelete,
+    handleBulkDuplicate,
+    handleBulkSetActive,
     handleDragStart,
     handleDragEnd,
     patchLink,
