@@ -3,7 +3,7 @@
 import type { CSSProperties, ReactNode } from "react";
 import { motion } from "framer-motion";
 import { resolveEntranceVariant, resolveHoverEffect } from "./animation-presets";
-import { resolveResponsiveVisibility } from "./style-resolver";
+import { resolveResponsiveFrameClasses, resolveResponsiveFrameVars, resolveResponsiveVisibility } from "./style-resolver";
 import type { BlockStyleOverrides } from "../types";
 
 /**
@@ -20,6 +20,7 @@ export function BlockFrame({
   style,
   wide,
   glowColor = "#7c3aed",
+  previewDevice,
   children,
 }: {
   styleOverrides: BlockStyleOverrides;
@@ -32,16 +33,25 @@ export function BlockFrame({
    * not every block's preview.tsx threads theme.primaryColor through yet
    * (see design-system/architecture/visual-editor.md). */
   glowColor?: string;
+  /** See `BlockTheme.previewDevice` — only set inside the Visual Editor's
+   * simulated device frames. */
+  previewDevice?: "desktop" | "tablet" | "mobile";
   children: ReactNode;
 }) {
   const variants = resolveEntranceVariant(styleOverrides.animation);
   const hover = interactive ? { whileHover: undefined, whileTap: undefined } : resolveHoverEffect(styleOverrides.hoverEffect, glowColor);
   const visibilityClass = resolveResponsiveVisibility(styleOverrides.hiddenOn);
+  const responsiveVarsClass = resolveResponsiveFrameClasses(styleOverrides);
+  // Inline styles always win over classes, so when previewDevice is set
+  // this silently overrides whatever the sm:/lg: classes above would have
+  // set from the real (irrelevant, in the editor) viewport width.
+  const responsiveVarsInline = previewDevice ? resolveResponsiveFrameVars(styleOverrides, previewDevice) : undefined;
 
   const mergedClassName = [
     wide ? "col-span-2" : "",
     className ?? "",
     visibilityClass,
+    responsiveVarsClass,
   ]
     .filter(Boolean)
     .join(" ");
@@ -57,7 +67,7 @@ export function BlockFrame({
       whileHover={hover.whileHover}
       whileTap={hover.whileTap}
       className={mergedClassName || undefined}
-      style={style}
+      style={responsiveVarsInline ? { ...style, ...responsiveVarsInline } : style}
     >
       {children}
     </motion.div>

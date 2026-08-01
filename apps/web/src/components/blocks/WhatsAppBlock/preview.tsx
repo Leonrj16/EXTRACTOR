@@ -36,7 +36,7 @@ export function WhatsAppBlockPreview({
   });
 
   return (
-    <BlockFrame styleOverrides={styleOverrides} interactive={WHATSAPP_BLOCK_INTERACTIVE} index={index}>
+    <BlockFrame styleOverrides={styleOverrides} interactive={WHATSAPP_BLOCK_INTERACTIVE} index={index} previewDevice={theme.previewDevice}>
       <a
         href={href}
         target="_blank"

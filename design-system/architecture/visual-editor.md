@@ -108,6 +108,54 @@ En modo edición (no Vista previa), un bloque oculto en el dispositivo
 activo no desaparece — se muestra atenuado con una etiqueta "Oculto en
 este dispositivo", para que se pueda seguir seleccionando y ajustando.
 
+## Overrides responsive campo por campo (padding/margin/ancho)
+
+`styleOverrides.responsive` extiende la idea de arriba más allá de
+mostrar/ocultar: `{ mobile?, tablet?, desktop? }`, cada uno con su propio
+`padding`/`margin`/`width` opcional. Cada dispositivo es independiente,
+no cascada — un dispositivo sin su propio valor cae al valor base del
+campo (`styleOverrides.padding` etc.), nunca a lo que haya resuelto un
+breakpoint más chico, así que configurar solo "Escritorio" nunca sorprende
+con el valor de tablet filtrándose a los 900px. La UI vive en
+`BlockStylePanel`, debajo de "Ocultar este bloque en": pestañas
+Escritorio/Tablet/Móvil, cada una con sus 3 selects (con "Usar valor
+base" como opción para no-override).
+
+Igual que `hiddenOn`, esto se resuelve con CSS real, no JS — pero acá el
+mecanismo es distinto porque el valor no es un booleano de visibilidad
+sino un valor de layout que el bloque ya está aplicando inline (via
+`resolveBlockStyle`, en el elemento de contenido, no en `BlockFrame`).
+Un `<style>` inyectado por bloque hubiese necesitado un id único por
+bloque y competir en especificidad con ese inline style existente; en
+vez de eso, `resolveResponsiveFrameClasses` (`shared/style-resolver.ts`)
+pone clases Tailwind reales (`[--block-padding:...]`, `sm:[...]`,
+`lg:[...]`) en `BlockFrame` — el ancestro directo del elemento de
+contenido — para fijar `--block-padding`/`--block-margin`/`--block-width`
+por breakpoint; `resolveBlockStyle` simplemente referencia
+`var(--block-padding)` en vez de un valor literal cuando el campo tiene
+algún override responsive. Las custom properties de CSS heredan por el
+árbol del DOM, así que esto no necesita selector ni `<style>` propio, y
+gana automáticamente contra cualquier clase (aunque igual nunca compite:
+es la única fuente para ese campo una vez que es responsive).
+
+Como Tailwind solo genera CSS para clases que ve como texto literal en
+el código fuente (no arma las que se concatenan en tiempo de ejecución),
+las combinaciones posibles (3 breakpoints × 4 valores de padding/margin,
+2 de ancho) están escritas explícitamente como tablas de búsqueda en
+`style-resolver.ts` — `resolveResponsiveFrameClasses` solo indexa esa
+tabla, nunca arma un string.
+
+Igual que con `hiddenOn`, el lienzo del editor no puede confiar en las
+media queries reales (su "dispositivo" es un contenedor de ancho fijo
+dentro del viewport real, casi siempre ancho). `BlockTheme.previewDevice`
+(pasado por `Canvas` y por `ProfileView` en sus contextos de simulación)
+hace que `BlockFrame` calcule el mismo resultado en JS
+(`resolveResponsiveFrameVars`) y lo aplique como CSS custom properties
+inline — un inline style siempre gana sobre las clases con media query,
+así que esto pisa correctamente lo que el viewport real hubiera resuelto,
+sin tocar el comportamiento de la página pública real (que nunca pasa
+`previewDevice`).
+
 ## Historial (deshacer/rehacer)
 
 `use-editor-history.ts` mantiene una pila en memoria (no persistida en el
@@ -193,8 +241,11 @@ la nota de seguridad en `blocks.md`).
   no cubre.
 - **Historial persistido en servidor** — solo en memoria de esta sesión de
   edición (ver arriba).
-- **Overrides responsive campo por campo** (padding/margin/tamaño/orden
-  por dispositivo) — esta fase solo cubre visibilidad (`hiddenOn`).
+- **Orden de bloques por dispositivo** — padding/margin/ancho por
+  dispositivo sí están implementados (ver más arriba); reordenar bloques
+  distinto según el breakpoint es una estructura de datos aparte (un
+  `order` por dispositivo, no un solo `Link.order`) que esta fase no
+  cubre.
 - **Virtualización de la lista de bloques** — no hace falta al tamaño
   realista de una página bio-link.
 - **Guías inteligentes de alineación tipo Figma** (distancias, centrado,

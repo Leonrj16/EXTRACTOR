@@ -33,7 +33,7 @@ export function VideoBlockPreview({
   });
 
   return (
-    <BlockFrame styleOverrides={styleOverrides} interactive={VIDEO_BLOCK_INTERACTIVE} index={index}>
+    <BlockFrame styleOverrides={styleOverrides} interactive={VIDEO_BLOCK_INTERACTIVE} index={index} previewDevice={theme.previewDevice}>
       <div className={`${VIDEO_WRAPPER_CLASS} ${theme.cardRadius}`}>
         <p className="mb-1 text-sm font-medium">{link.title}</p>
 

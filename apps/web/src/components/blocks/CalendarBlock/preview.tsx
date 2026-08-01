@@ -53,7 +53,7 @@ export function CalendarBlockPreview({
   );
 
   return (
-    <BlockFrame styleOverrides={styleOverrides} interactive={CALENDAR_BLOCK_INTERACTIVE} index={index}>
+    <BlockFrame styleOverrides={styleOverrides} interactive={CALENDAR_BLOCK_INTERACTIVE} index={index} previewDevice={theme.previewDevice}>
       {content}
     </BlockFrame>
   );

@@ -50,7 +50,7 @@ export function CountdownBlockPreview({
   const expired = remaining !== null && remaining <= 0;
 
   return (
-    <BlockFrame styleOverrides={styleOverrides} interactive={COUNTDOWN_BLOCK_INTERACTIVE} index={index}>
+    <BlockFrame styleOverrides={styleOverrides} interactive={COUNTDOWN_BLOCK_INTERACTIVE} index={index} previewDevice={theme.previewDevice}>
       <div className={`${COUNTDOWN_CARD_CLASS} ${theme.cardRadius}`} style={style}>
         {link.title && <p className="text-sm font-medium">{link.title}</p>}
         {!target ? (

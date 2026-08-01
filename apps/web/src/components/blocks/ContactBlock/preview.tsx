@@ -139,7 +139,7 @@ export function ContactBlockPreview({
   });
 
   return (
-    <BlockFrame styleOverrides={styleOverrides} interactive={CONTACT_BLOCK_INTERACTIVE} index={index}>
+    <BlockFrame styleOverrides={styleOverrides} interactive={CONTACT_BLOCK_INTERACTIVE} index={index} previewDevice={theme.previewDevice}>
       {mode === "form" ? (
         <ContactForm link={link} radius={theme.cardRadius} style={style} onContactSubmit={onContactSubmit} />
       ) : (

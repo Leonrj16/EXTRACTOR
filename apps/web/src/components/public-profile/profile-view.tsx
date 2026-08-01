@@ -255,6 +255,7 @@ export function ProfileView({
                   cardRadius,
                   pageBorder: blockBorder,
                   pageShadow: blockShadow,
+                  previewDevice,
                 }}
                 index={index}
                 onLinkClick={onLinkClick}

@@ -18,7 +18,7 @@ export function MusicBlockPreview({ link, styleOverrides, theme, index }: BlockP
   });
 
   return (
-    <BlockFrame styleOverrides={styleOverrides} interactive={MUSIC_BLOCK_INTERACTIVE} index={index}>
+    <BlockFrame styleOverrides={styleOverrides} interactive={MUSIC_BLOCK_INTERACTIVE} index={index} previewDevice={theme.previewDevice}>
       {embedUrl ? (
         <iframe
           src={embedUrl}

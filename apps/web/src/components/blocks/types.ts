@@ -17,6 +17,16 @@ export type BlockKind = LinkType;
  * consumed by every block's `preview.tsx` instead of each block inventing
  * its own padding/border/shadow handling.
  */
+/** One device bucket of `BlockStyleOverrides.responsive` — deliberately
+ * only the 3 fields whose values are plain layout box-model sizes (not
+ * colors/borders/animations), the ones that actually differ in a useful
+ * way by viewport. */
+export interface ResponsiveFieldOverrides {
+  padding?: BlockStyleOverrides["padding"];
+  margin?: BlockStyleOverrides["margin"];
+  width?: BlockStyleOverrides["width"];
+}
+
 export interface BlockStyleOverrides {
   padding?: "none" | "sm" | "md" | "lg";
   margin?: "none" | "sm" | "md" | "lg";
@@ -38,9 +48,19 @@ export interface BlockStyleOverrides {
    * the public page render. */
   locked?: boolean;
   /** Hides the block on specific breakpoints of the public page — the
-   * "responsive visibility" slice of per-device properties (see the doc
-   * above for what's deferred: per-field padding/size/order overrides). */
+   * "responsive visibility" slice of per-device properties. See
+   * `responsive` below for the per-field (padding/margin/width) slice. */
   hiddenOn?: Array<"desktop" | "tablet" | "mobile">;
+  /**
+   * Per-breakpoint overrides for padding/margin/width. Each device is
+   * independent, not cascading: a device with no override for a field
+   * falls back to that field's own base value above (`padding`/`margin`/
+   * `width`), never to what a smaller breakpoint resolved to — so
+   * configuring only "Escritorio" never surprises you with the tablet
+   * value leaking in at 900px. See `resolveResponsiveFrameClasses` in
+   * shared/style-resolver.ts for how this becomes real CSS.
+   */
+  responsive?: Partial<Record<"mobile" | "tablet" | "desktop", ResponsiveFieldOverrides>>;
   /** Hover micro-interaction, independent of the entrance animation. */
   hoverEffect?: "lift" | "scale" | "glow" | "none";
   /** Plays the entrance animation when the block scrolls into view
@@ -66,6 +86,19 @@ export interface BlockTheme {
   secondaryColor?: string;
   accentColor?: string;
   buttonTreatment?: ButtonTreatment;
+  /**
+   * Only set by the design editor's simulated device frames (same rule as
+   * `ProfileView`'s own `previewDevice` prop, which this threads through
+   * from). Those frames fake a screen size with a CSS `max-width` on a
+   * fixed box, so the real `sm:`/`lg:` media queries
+   * `resolveResponsiveFrameClasses` emits would evaluate against the
+   * *actual* browser viewport, not the simulated one — wrong in the
+   * editor. `BlockFrame` uses this to set the same CSS variables inline
+   * (which always win over the media-query classes) computed for exactly
+   * this device instead. The real public page never sets this and relies
+   * purely on the CSS classes, which is correct there.
+   */
+  previewDevice?: "desktop" | "tablet" | "mobile";
 }
 
 export interface BlockPreviewProps<TMeta = Record<string, unknown>> {

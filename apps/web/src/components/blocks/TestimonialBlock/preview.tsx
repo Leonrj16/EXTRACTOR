@@ -26,7 +26,7 @@ export function TestimonialBlockPreview({
   });
 
   return (
-    <BlockFrame styleOverrides={styleOverrides} interactive={TESTIMONIAL_BLOCK_INTERACTIVE} index={index}>
+    <BlockFrame styleOverrides={styleOverrides} interactive={TESTIMONIAL_BLOCK_INTERACTIVE} index={index} previewDevice={theme.previewDevice}>
       <div className={`${TESTIMONIAL_CARD_CLASS} ${theme.cardRadius}`} style={style}>
         {rating > 0 && (
           <div className="flex gap-0.5" style={{ color: theme.primaryColor }}>

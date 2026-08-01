@@ -44,7 +44,7 @@ export function ImageBlockPreview({ link, meta, styleOverrides, theme, index, on
   );
 
   return (
-    <BlockFrame styleOverrides={styleOverrides} interactive={IMAGE_BLOCK_INTERACTIVE} index={index}>
+    <BlockFrame styleOverrides={styleOverrides} interactive={IMAGE_BLOCK_INTERACTIVE} index={index} previewDevice={theme.previewDevice}>
       {content}
     </BlockFrame>
   );

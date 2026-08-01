@@ -36,7 +36,7 @@ export function EmailBlockPreview({
   });
 
   return (
-    <BlockFrame styleOverrides={styleOverrides} interactive={EMAIL_BLOCK_INTERACTIVE} index={index}>
+    <BlockFrame styleOverrides={styleOverrides} interactive={EMAIL_BLOCK_INTERACTIVE} index={index} previewDevice={theme.previewDevice}>
       <a
         href={href}
         onClick={() => onLinkClick?.(link)}

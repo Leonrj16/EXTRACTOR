@@ -31,7 +31,7 @@ export function MapBlockPreview({
   });
 
   return (
-    <BlockFrame styleOverrides={styleOverrides} interactive={MAP_BLOCK_INTERACTIVE} index={index}>
+    <BlockFrame styleOverrides={styleOverrides} interactive={MAP_BLOCK_INTERACTIVE} index={index} previewDevice={theme.previewDevice}>
       <div className={theme.cardRadius} style={style}>
         {link.title && <p className="mb-2 px-1 text-sm font-medium">{link.title}</p>}
         {embedUrl ? (

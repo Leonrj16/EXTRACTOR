@@ -35,7 +35,7 @@ export function PricingBlockPreview({
   }
 
   return (
-    <BlockFrame styleOverrides={styleOverrides} interactive={PRICING_BLOCK_INTERACTIVE} index={index}>
+    <BlockFrame styleOverrides={styleOverrides} interactive={PRICING_BLOCK_INTERACTIVE} index={index} previewDevice={theme.previewDevice}>
       <div className={`${PRICING_CARD_CLASS} ${theme.cardRadius}`} style={style}>
         <span className="text-sm font-semibold">{link.title}</span>
         {resolved.price && (

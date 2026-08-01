@@ -27,7 +27,7 @@ export function ProfileBlockPreview({ link, meta, styleOverrides, theme, index }
   });
 
   return (
-    <BlockFrame styleOverrides={styleOverrides} interactive={PROFILE_BLOCK_INTERACTIVE} index={index}>
+    <BlockFrame styleOverrides={styleOverrides} interactive={PROFILE_BLOCK_INTERACTIVE} index={index} previewDevice={theme.previewDevice}>
       <div className={`${PROFILE_CARD_CLASS} ${theme.cardRadius}`} style={style}>
         <div className={PROFILE_PHOTO_CLASS} style={{ borderColor: theme.primaryColor }}>
           {link.imageUrl ? (

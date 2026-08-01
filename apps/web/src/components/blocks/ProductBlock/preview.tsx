@@ -27,7 +27,7 @@ export function ProductBlockPreview({
   });
 
   return (
-    <BlockFrame styleOverrides={styleOverrides} interactive={PRODUCT_BLOCK_INTERACTIVE} index={index}>
+    <BlockFrame styleOverrides={styleOverrides} interactive={PRODUCT_BLOCK_INTERACTIVE} index={index} previewDevice={theme.previewDevice}>
       <a
         href={link.url ?? "#"}
         target="_blank"

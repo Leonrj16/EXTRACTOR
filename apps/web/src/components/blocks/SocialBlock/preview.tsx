@@ -30,7 +30,7 @@ export function SocialBlockPreview({
   });
 
   return (
-    <BlockFrame styleOverrides={styleOverrides} interactive={SOCIAL_BLOCK_INTERACTIVE} index={index}>
+    <BlockFrame styleOverrides={styleOverrides} interactive={SOCIAL_BLOCK_INTERACTIVE} index={index} previewDevice={theme.previewDevice}>
       <a
         href={link.url ?? "#"}
         target="_blank"

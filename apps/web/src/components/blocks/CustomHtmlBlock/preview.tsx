@@ -39,7 +39,7 @@ export function CustomHtmlBlockPreview({ meta, styleOverrides, theme, index }: B
   );
 
   return (
-    <BlockFrame styleOverrides={styleOverrides} interactive={CUSTOM_HTML_BLOCK_INTERACTIVE} index={index}>
+    <BlockFrame styleOverrides={styleOverrides} interactive={CUSTOM_HTML_BLOCK_INTERACTIVE} index={index} previewDevice={theme.previewDevice}>
       {content}
     </BlockFrame>
   );

@@ -19,7 +19,7 @@ export function FooterBlockPreview({ link, meta, styleOverrides, theme, index }:
   });
 
   return (
-    <BlockFrame styleOverrides={styleOverrides} interactive={FOOTER_BLOCK_INTERACTIVE} index={index}>
+    <BlockFrame styleOverrides={styleOverrides} interactive={FOOTER_BLOCK_INTERACTIVE} index={index} previewDevice={theme.previewDevice}>
       <div className={`${FOOTER_WRAPPER_CLASS} ${theme.cardRadius}`} style={style}>
         {link.title && <p>{link.title}</p>}
         {links.length > 0 && (

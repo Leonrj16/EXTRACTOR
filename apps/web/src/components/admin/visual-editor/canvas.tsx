@@ -250,6 +250,7 @@ export function Canvas({
                         cardRadius,
                         pageBorder: blockBorder,
                         pageShadow: blockShadow,
+                        previewDevice: device,
                       }}
                       index={index}
                     />

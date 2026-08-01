@@ -1,11 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import { ColorField } from "@/components/ui/color-field";
 import { FieldSelect } from "@/components/ui/field-select";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Monitor, Tablet, Smartphone } from "lucide-react";
-import type { BlockStyleOverrides } from "../types";
+import { cn } from "@/lib/utils";
+import type { BlockStyleOverrides, ResponsiveFieldOverrides } from "../types";
 
 const PADDING_OPTIONS = [
   { value: "none", label: "Ninguno" },
@@ -70,6 +72,12 @@ const RESPONSIVE_DEVICES = [
   { value: "mobile" as const, label: "Móvil", Icon: Smartphone },
 ];
 
+const INHERIT = "inherit";
+
+const RESPONSIVE_PADDING_OPTIONS = [{ value: INHERIT, label: "Usar valor base" }, ...PADDING_OPTIONS];
+const RESPONSIVE_MARGIN_OPTIONS = [{ value: INHERIT, label: "Usar valor base" }, ...MARGIN_OPTIONS];
+const RESPONSIVE_WIDTH_OPTIONS = [{ value: INHERIT, label: "Usar valor base" }, ...WIDTH_OPTIONS];
+
 /**
  * The one style panel every block's `settings.tsx` renders after its own
  * fields — built once here instead of each block reimplementing padding/
@@ -85,6 +93,18 @@ export function BlockStylePanel({
   onChange: (patch: Partial<BlockStyleOverrides>) => void;
   idPrefix: string;
 }) {
+  const [responsiveDevice, setResponsiveDevice] = useState<"desktop" | "tablet" | "mobile">("desktop");
+
+  function patchResponsiveField(field: keyof ResponsiveFieldOverrides, raw: string) {
+    const current = value.responsive ?? {};
+    const bucket: ResponsiveFieldOverrides = { ...current[responsiveDevice] };
+    if (raw === INHERIT) delete bucket[field];
+    else bucket[field] = raw as never;
+    onChange({ responsive: { ...current, [responsiveDevice]: bucket } });
+  }
+
+  const activeBucket = value.responsive?.[responsiveDevice];
+
   return (
     <div className="flex flex-col gap-4 border-t border-border-subtle pt-4">
       <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
@@ -220,6 +240,65 @@ export function BlockStylePanel({
               </button>
             );
           })}
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <p className="text-xs font-medium text-muted-foreground">
+          Padding / margin / ancho por dispositivo
+        </p>
+        <div className="flex gap-2">
+          {RESPONSIVE_DEVICES.map(({ value: device, label, Icon }) => {
+            const active = device === responsiveDevice;
+            const hasOverride = !!(
+              value.responsive?.[device]?.padding ||
+              value.responsive?.[device]?.margin ||
+              value.responsive?.[device]?.width
+            );
+            return (
+              <button
+                key={device}
+                type="button"
+                aria-pressed={active}
+                onClick={() => setResponsiveDevice(device)}
+                className={cn(
+                  "relative flex flex-1 flex-col items-center gap-1 rounded-xl border px-2 py-2 text-xs transition-colors",
+                  active
+                    ? "border-brand-purple/60 bg-brand-purple/10 text-foreground"
+                    : "border-border bg-surface-2 text-muted-foreground hover:text-foreground",
+                )}
+              >
+                <Icon className="size-4" />
+                {label}
+                {hasOverride && (
+                  <span className="absolute top-1.5 right-1.5 size-1.5 rounded-full bg-brand-purple" />
+                )}
+              </button>
+            );
+          })}
+        </div>
+        <div className="grid gap-3 sm:grid-cols-3">
+          <FieldSelect
+            id={`${idPrefix}-responsive-padding`}
+            label="Padding"
+            value={activeBucket?.padding ?? INHERIT}
+            onChange={(v) => patchResponsiveField("padding", v)}
+            options={RESPONSIVE_PADDING_OPTIONS}
+          />
+          <FieldSelect
+            id={`${idPrefix}-responsive-margin`}
+            label="Margin"
+            value={activeBucket?.margin ?? INHERIT}
+            onChange={(v) => patchResponsiveField("margin", v)}
+            options={RESPONSIVE_MARGIN_OPTIONS}
+          />
+          <FieldSelect
+            id={`${idPrefix}-responsive-width`}
+            label="Ancho"
+            value={activeBucket?.width ?? INHERIT}
+            onChange={(v) => patchResponsiveField("width", v)}
+            options={RESPONSIVE_WIDTH_OPTIONS}
+          />
         </div>
       </div>
     </div>

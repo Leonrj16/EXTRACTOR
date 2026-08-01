@@ -28,7 +28,7 @@ export function HeroBlockPreview({
   });
 
   return (
-    <BlockFrame styleOverrides={styleOverrides} interactive={HERO_BLOCK_INTERACTIVE} index={index}>
+    <BlockFrame styleOverrides={styleOverrides} interactive={HERO_BLOCK_INTERACTIVE} index={index} previewDevice={theme.previewDevice}>
       <div className={`${HERO_WRAPPER_CLASS} ${theme.cardRadius}`} style={style}>
         {link.imageUrl && (
           // eslint-disable-next-line @next/next/no-img-element

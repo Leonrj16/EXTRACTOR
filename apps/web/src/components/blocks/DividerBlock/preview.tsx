@@ -40,7 +40,7 @@ export function DividerBlockPreview({ meta, styleOverrides, theme, index }: Bloc
   );
 
   return (
-    <BlockFrame styleOverrides={styleOverrides} interactive={DIVIDER_BLOCK_INTERACTIVE} index={index}>
+    <BlockFrame styleOverrides={styleOverrides} interactive={DIVIDER_BLOCK_INTERACTIVE} index={index} previewDevice={theme.previewDevice}>
       {content}
     </BlockFrame>
   );

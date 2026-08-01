@@ -28,7 +28,7 @@ export function FaqBlockPreview({
   if (items.length === 0) return null;
 
   return (
-    <BlockFrame styleOverrides={styleOverrides} interactive={FAQ_BLOCK_INTERACTIVE} index={index}>
+    <BlockFrame styleOverrides={styleOverrides} interactive={FAQ_BLOCK_INTERACTIVE} index={index} previewDevice={theme.previewDevice}>
       <div className={`${FAQ_CARD_CLASS} ${theme.cardRadius}`} style={style}>
         {link.title && <p className="mb-2 text-sm font-medium">{link.title}</p>}
         <Accordion>

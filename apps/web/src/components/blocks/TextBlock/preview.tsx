@@ -27,7 +27,7 @@ export function TextBlockPreview({ link, meta, styleOverrides, theme, index }: B
   );
 
   return (
-    <BlockFrame styleOverrides={styleOverrides} interactive={TEXT_BLOCK_INTERACTIVE} index={index}>
+    <BlockFrame styleOverrides={styleOverrides} interactive={TEXT_BLOCK_INTERACTIVE} index={index} previewDevice={theme.previewDevice}>
       {content}
     </BlockFrame>
   );
