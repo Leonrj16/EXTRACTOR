@@ -6,19 +6,33 @@ export interface ResolvedBackground {
   /** Which extra DOM decoration ProfileView needs to render alongside `style` —
    * everything else (solid/gradient/glass/mesh/image/blur) is fully expressible
    * as a CSS background and needs no extra markup. */
-  decoration: "none" | "aurora" | "pattern";
+  decoration: "none" | "aurora" | "pattern" | "video" | "particles";
+  /** Only set when decoration is "video" — the <video> element's src. */
+  videoUrl?: string;
+  /** Dark scrim over a video background so text stays legible regardless
+   * of what's playing underneath — 0 disables it entirely. */
+  overlayOpacity?: number;
 }
 
 // A subtle repeating dot grid — data-uri so it needs no asset/upload.
 const DOT_PATTERN = (color: string) =>
   `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Ccircle cx='2' cy='2' r='1.2' fill='${encodeURIComponent(color)}'/%3E%3C/svg%3E")`;
 
+/** Deterministic (no Math.random — a client component re-rendering with a
+ * different value than what the server sent would be a hydration
+ * mismatch) spread of floating dots for the "particles" background. */
+export const PARTICLE_DOTS = Array.from({ length: 14 }, (_, i) => ({
+  left: `${(i * 37) % 100}%`,
+  size: 2 + (i % 3),
+  duration: 9 + (i % 5) * 2,
+  delay: (i % 7) * 0.7,
+}));
+
 /**
  * Turns a theme's BackgroundSpec into a CSS style + an optional DOM
- * decoration flag. `video` and `particles` are valid BackgroundType
- * values in the contract (see themes/types.ts) but aren't rendered for
- * real yet — they fall back to `solid` rather than erroring, see
- * design-system/architecture/theme-engine.md for what's deferred.
+ * decoration flag. `video` needs a URL (`spec.value`) to actually render a
+ * `<video>` — without one it falls back to `solid` rather than showing a
+ * broken/empty player.
  */
 export function resolveBackground(
   spec: BackgroundSpec,
@@ -75,7 +89,16 @@ export function resolveBackground(
         decoration: "none",
       };
     case "video":
+      return spec.value
+        ? {
+            style: { backgroundColor: colors.background },
+            decoration: "video",
+            videoUrl: spec.value,
+            overlayOpacity: spec.overlayOpacity ?? 0.45,
+          }
+        : { style: { backgroundColor: colors.background }, decoration: "none" };
     case "particles":
+      return { style: { backgroundColor: colors.background }, decoration: "particles" };
     case "solid":
     default:
       return { style: { backgroundColor: colors.background }, decoration: "none" };
@@ -91,6 +114,6 @@ export const BACKGROUND_TYPE_OPTIONS: Array<{ value: BackgroundSpec["type"]; lab
   { value: "pattern", label: "Patrón" },
   { value: "blur", label: "Blur" },
   { value: "image", label: "Imagen" },
-  { value: "video", label: "Video (próximamente)" },
-  { value: "particles", label: "Partículas (próximamente)" },
+  { value: "video", label: "Video" },
+  { value: "particles", label: "Partículas" },
 ];

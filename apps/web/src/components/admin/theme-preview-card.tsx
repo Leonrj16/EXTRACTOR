@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { getResolvedDefinition, resolveTheme } from "@/themes/resolve-theme";
 import { resolveButtonTreatment } from "@/themes/shared/button-treatments";
+import { PARTICLE_DOTS } from "@/themes/shared/backgrounds";
 import { THEME_CATEGORY_LABELS } from "@/themes/types";
 import type { ThemeData } from "@/types/profile";
 
@@ -57,6 +58,24 @@ export function ThemePreviewCard({
               className="absolute right-[-30%] bottom-[-30%] size-[80%] rounded-full blur-[40px]"
               style={{ backgroundColor: `${resolved.accentColor}30` }}
             />
+          </div>
+        )}
+        {resolved.background.decoration === "particles" && (
+          <div className="pointer-events-none absolute inset-0 overflow-hidden">
+            {PARTICLE_DOTS.slice(0, 8).map((dot, i) => (
+              <span
+                key={i}
+                className="absolute bottom-0 rounded-full"
+                style={{
+                  left: dot.left,
+                  width: dot.size,
+                  height: dot.size,
+                  backgroundColor: `${resolved.primaryColor}88`,
+                  animation: `particle-float ${dot.duration}s ease-in-out infinite`,
+                  animationDelay: `${dot.delay}s`,
+                }}
+              />
+            ))}
           </div>
         )}
         <div

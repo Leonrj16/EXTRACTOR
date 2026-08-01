@@ -14,6 +14,7 @@ import { Copy, Eye, EyeOff, GripVertical, Lock, Trash2 } from "lucide-react";
 import { getBlockDefinition } from "@/components/blocks/registry";
 import type { BlockStyleOverrides } from "@/components/blocks/types";
 import { getResolvedDefinition, resolveTheme } from "@/themes/resolve-theme";
+import { PARTICLE_DOTS } from "@/themes/shared/backgrounds";
 import type { ThemeOverrides } from "@/themes/types";
 import type { LinkItem } from "@/types/link";
 import type { AppearanceData, ProfileData } from "@/types/profile";
@@ -137,6 +138,34 @@ export function Canvas({
             className="absolute right-[-20%] top-[5%] size-[65%] rounded-full blur-[100px]"
             style={{ backgroundColor: `${secondaryColor}30` }}
           />
+        </div>
+      )}
+
+      {background.decoration === "video" && background.videoUrl && (
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          <video src={background.videoUrl} autoPlay muted loop playsInline className="h-full w-full object-cover" />
+          {!!background.overlayOpacity && (
+            <div className="absolute inset-0" style={{ backgroundColor: `#000000${Math.round(background.overlayOpacity * 255).toString(16).padStart(2, "0")}` }} />
+          )}
+        </div>
+      )}
+
+      {background.decoration === "particles" && (
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          {PARTICLE_DOTS.map((dot, i) => (
+            <span
+              key={i}
+              className="absolute bottom-0 rounded-full"
+              style={{
+                left: dot.left,
+                width: dot.size,
+                height: dot.size,
+                backgroundColor: `${primaryColor}88`,
+                animation: `particle-float ${dot.duration}s ease-in-out infinite`,
+                animationDelay: `${dot.delay}s`,
+              }}
+            />
+          ))}
         </div>
       )}
 

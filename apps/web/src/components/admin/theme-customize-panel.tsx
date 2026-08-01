@@ -170,9 +170,9 @@ export function ThemeCustomizePanel({
           }
           options={BACKGROUND_TYPE_OPTIONS}
         />
-        {effects.background.type === "image" && (
+        {(effects.background.type === "image" || effects.background.type === "video") && (
           <Input
-            placeholder="https://…"
+            placeholder={effects.background.type === "video" ? "https://…mp4" : "https://…"}
             value={effects.background.value ?? ""}
             onChange={(e) =>
               onPatch("effects", { ...overrides.effects, background: { ...effects.background, value: e.target.value } })
