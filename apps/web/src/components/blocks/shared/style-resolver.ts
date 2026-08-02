@@ -278,15 +278,22 @@ export function resolveBlockStyle(
  * (<640px), tablet = sm..lg (640-1024px), desktop = lg+ (1024px+) — the
  * same 3 buckets the editor's device switcher uses.
  */
+// Keyed by `[...hiddenOn].sort().join(",")` below — sort() is plain
+// lexicographic, so multi-device keys must be spelled in alphabetical
+// order here too ("desktop" before "mobile" before "tablet"), not the
+// mobile/tablet/desktop reading order a human would default to. Getting
+// this wrong doesn't error — .sort() still runs, the lookup just misses
+// and silently falls back to "" (block stays visible everywhere), which
+// is exactly the bug this comment exists to prevent someone reintroducing.
 const RESPONSIVE_VISIBILITY_CLASS: Record<string, string> = {
   "": "",
   mobile: "hidden sm:block",
   tablet: "sm:hidden lg:block",
   desktop: "lg:hidden",
   "mobile,tablet": "hidden lg:block",
-  "mobile,desktop": "hidden sm:block lg:hidden",
-  "tablet,desktop": "sm:hidden",
-  "mobile,tablet,desktop": "hidden",
+  "desktop,mobile": "hidden sm:block lg:hidden",
+  "desktop,tablet": "sm:hidden",
+  "desktop,mobile,tablet": "hidden",
 };
 
 export function resolveResponsiveVisibility(
