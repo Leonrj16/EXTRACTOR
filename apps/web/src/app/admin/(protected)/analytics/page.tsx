@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Eye, MousePointerClick, Percent } from "lucide-react";
+import { Eye, MousePointerClick, Percent, Sparkles } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { serverApiFetch } from "@/lib/api-server";
@@ -10,6 +10,10 @@ interface AnalyticsSummary {
   totalClicks: number;
   clickThroughRate: number;
   topLinks: Array<{ linkId: string; title: string; clicks: number }>;
+}
+
+interface AnalyticsInsights {
+  insights: string[];
 }
 
 const RANGES = [
@@ -25,7 +29,12 @@ interface AnalyticsPageProps {
 
 export default async function AnalyticsPage({ searchParams }: AnalyticsPageProps) {
   const { range = "7d" } = await searchParams;
-  const summary = await serverApiFetch<AnalyticsSummary>(`/admin/analytics/summary?range=${range}`);
+  const [summary, insights] = await Promise.all([
+    serverApiFetch<AnalyticsSummary>(`/admin/analytics/summary?range=${range}`),
+    // Nunca debería fallar (siempre tiene fallback por reglas), pero si
+    // igual pasa algo raro no vale la pena romper toda la página por esto.
+    serverApiFetch<AnalyticsInsights>(`/admin/analytics/insights?range=${range}`).catch(() => null),
+  ]);
 
   return (
     <main className="mx-auto flex max-w-4xl flex-col gap-6 px-1 pb-8">
@@ -48,6 +57,25 @@ export default async function AnalyticsPage({ searchParams }: AnalyticsPageProps
           ))}
         </div>
       </div>
+
+      {insights && insights.insights.length > 0 && (
+        <Card className="border-brand-purple/30 bg-gradient-to-br from-brand-purple/10 to-transparent">
+          <CardHeader className="flex-row items-center gap-2">
+            <Sparkles className="size-4 text-brand-purple-light" />
+            <CardTitle className="text-sm font-medium">Lo que dicen tus números</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ul className="flex flex-col gap-2 text-sm text-muted-foreground">
+              {insights.insights.map((insight, i) => (
+                <li key={i} className="flex gap-2">
+                  <span className="text-brand-purple-light">•</span>
+                  <span>{insight}</span>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid gap-4 sm:grid-cols-3">
         <Card>
