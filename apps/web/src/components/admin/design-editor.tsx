@@ -476,6 +476,7 @@ export function DesignEditor({ initialProfile, initialAppearance, themes: initia
           onDeviceChange={setDevice}
           onPublish={handlePublish}
           onViewMessages={linksManager.setMessagesLink}
+          onProfileChange={(patch) => setProfile((prev) => ({ ...prev, ...patch }))}
         />
 
         <SubmissionsDialog

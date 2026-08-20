@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle, Check, Eye, EyeOff, History, Redo2, Save, Undo2 } from "lucide-react";
+import { AlertTriangle, Check, Eye, EyeOff, History, Redo2, Save, Sparkles, Undo2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -35,6 +35,7 @@ interface EditorTopBarProps {
   onPublish: () => void;
   publishing: boolean;
   onOpenVersions: () => void;
+  onOpenAiEditor: () => void;
 }
 
 const SAVE_STATE_LABEL: Record<SaveState, string> = {
@@ -64,6 +65,7 @@ export function EditorTopBar({
   onPublish,
   publishing,
   onOpenVersions,
+  onOpenAiEditor,
 }: EditorTopBarProps) {
   return (
     <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border-subtle bg-surface-1/60 px-3 py-2">
@@ -138,6 +140,11 @@ export function EditorTopBar({
         <Button variant={previewMode ? "default" : "outline"} size="sm" onClick={onTogglePreview}>
           {previewMode ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
           Vista previa
+        </Button>
+
+        <Button variant="outline" size="sm" onClick={onOpenAiEditor}>
+          <Sparkles className="size-4" />
+          Asistente IA
         </Button>
 
         <CopyLinkButton path={publicPath} />

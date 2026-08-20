@@ -13,6 +13,7 @@ import { Canvas } from "./canvas";
 import { InspectorPanel } from "./inspector-panel";
 import { LayersPanel } from "./layers-panel";
 import { EditorTopBar, type SaveState } from "./editor-top-bar";
+import { AiEditorDialog } from "./ai-editor-dialog";
 import { PageVersionsDialog } from "./page-versions-dialog";
 import { PublishDialog } from "./publish-dialog";
 import { SelectionToolbar } from "./selection-toolbar";
@@ -36,6 +37,7 @@ interface VisualEditorWorkspaceProps {
   onDeviceChange: (device: DeviceId) => void;
   onPublish: () => Promise<boolean>;
   onViewMessages: (link: LinkItem) => void;
+  onProfileChange: (patch: Partial<ProfileData>) => void;
 }
 
 /**
@@ -55,6 +57,7 @@ export function VisualEditorWorkspace({
   onDeviceChange,
   onPublish,
   onViewMessages,
+  onProfileChange,
 }: VisualEditorWorkspaceProps) {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [selectionAnchor, setSelectionAnchor] = useState<string | null>(null);
@@ -63,6 +66,7 @@ export function VisualEditorWorkspace({
   const [publishDialogOpen, setPublishDialogOpen] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const [versionsDialogOpen, setVersionsDialogOpen] = useState(false);
+  const [aiEditorDialogOpen, setAiEditorDialogOpen] = useState(false);
 
   const {
     links,
@@ -79,6 +83,12 @@ export function VisualEditorWorkspace({
 
   function handleVersionRestored(restoredLinks: LinkItem[]) {
     replaceAll(restoredLinks);
+    clearSelection();
+  }
+
+  function handleAiApplied(result: { links: LinkItem[]; profile: Partial<ProfileData> }) {
+    replaceAll(result.links);
+    if (Object.keys(result.profile).length > 0) onProfileChange(result.profile);
     clearSelection();
   }
 
@@ -230,6 +240,7 @@ export function VisualEditorWorkspace({
         onPublish={() => setPublishDialogOpen(true)}
         publishing={publishing}
         onOpenVersions={() => setVersionsDialogOpen(true)}
+        onOpenAiEditor={() => setAiEditorDialogOpen(true)}
       />
 
       <div className="grid flex-1 grid-cols-[220px_1fr_320px] overflow-hidden">
@@ -311,6 +322,13 @@ export function VisualEditorWorkspace({
         onOpenChange={setVersionsDialogOpen}
         currentBlockCount={links.length}
         onRestored={handleVersionRestored}
+      />
+
+      <AiEditorDialog
+        open={aiEditorDialogOpen}
+        onOpenChange={setAiEditorDialogOpen}
+        links={links}
+        onApplied={handleAiApplied}
       />
     </div>
   );
