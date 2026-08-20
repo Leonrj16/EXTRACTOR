@@ -11,6 +11,7 @@ import { UsersModule } from './modules/users/users.module';
 import { ProfilesModule } from './modules/profiles/profiles.module';
 import { LinksModule } from './modules/links/links.module';
 import { PageVersionsModule } from './modules/page-versions/page-versions.module';
+import { AiEditorModule } from './modules/ai-editor/ai-editor.module';
 import { AppearanceModule } from './modules/appearance/appearance.module';
 import { MediaModule } from './modules/media/media.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
@@ -27,6 +28,7 @@ import { HealthModule } from './modules/health/health.module';
     ProfilesModule,
     LinksModule,
     PageVersionsModule,
+    AiEditorModule,
     AppearanceModule,
     MediaModule,
     AnalyticsModule,
