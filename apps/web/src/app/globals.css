@@ -1,0 +1,141 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+/* Design tokens (colors, radius, surfaces, borders, shadows, motion) are
+   centralized in /design-system/tokens.css — the single source of truth
+   for the whole product. Do not redeclare a token here; add it there. */
+@import "../../../../design-system/tokens.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-inter);
+  --font-mono: var(--font-geist-mono);
+  --font-heading: var(--font-space-grotesk);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    color-scheme: dark;
+    scroll-behavior: smooth;
+    /* Keeps anchor-link targets (marketing navbar, hero "Ver demo") clear of
+       the fixed MarketingNavbar instead of tucking their heading under it. */
+    scroll-padding-top: 6.5rem;
+  }
+  body {
+    @apply bg-background font-sans text-foreground;
+  }
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-heading);
+    letter-spacing: -0.02em;
+  }
+}
+
+@layer utilities {
+  /* Glass surface: the core "Neo Glass Premium" material used across cards,
+     the sidebar, dialogs and dropdowns. Shadow recipes live once in
+     /design-system/tokens.css (--shadow-surface, --shadow-surface-strong)
+     — Card and Dialog reuse the same tokens instead of redefining them. */
+  .glass {
+    background: var(--color-surface-3);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-surface);
+  }
+
+  .glass-strong {
+    background: var(--color-surface-strong);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-surface-strong);
+  }
+
+  .glow-purple {
+    box-shadow: var(--shadow-glow-purple);
+  }
+
+  .glow-purple-sm {
+    box-shadow: var(--shadow-glow-purple-sm);
+  }
+
+  /* Sonner toasts already use a solid --normal-bg (--popover, fully opaque),
+     so this shadow is purely a depth cue — no legibility risk the way a
+     translucent surface would have. Gives toasts the same elevated feel as
+     Dialog/DropdownMenu instead of the flat default Sonner card. */
+  .cn-toast {
+    box-shadow: var(--shadow-surface-strong);
+  }
+
+  .text-gradient-aura {
+    background-image: linear-gradient(135deg, #c4b5fd 0%, #818cf8 50%, #67e8f9 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .bg-gradient-aura {
+    background-image: linear-gradient(135deg, #7c3aed 0%, #4f46e5 50%, #0ea5e9 100%);
+  }
+
+  .border-gradient-aura {
+    border-image: linear-gradient(135deg, #7c3aed, #22d3ee) 1;
+  }
+}
+
+@keyframes aurora-drift-1 {
+  0%,
+  100% {
+    transform: translate(-5%, -8%) scale(1);
+  }
+  50% {
+    transform: translate(6%, 4%) scale(1.12);
+  }
+}
+
+@keyframes aurora-drift-2 {
+  0%,
+  100% {
+    transform: translate(8%, 6%) scale(1.05);
+  }
+  50% {
+    transform: translate(-6%, -6%) scale(0.95);
+  }
+}
+
+@keyframes aurora-drift-3 {
+  0%,
+  100% {
+    transform: translate(0%, 10%) scale(1);
+  }
+  50% {
+    transform: translate(-8%, -2%) scale(1.1);
+  }
+}
+
+@keyframes particle-float {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-120%) scale(0.6);
+    opacity: 0;
+  }
+}

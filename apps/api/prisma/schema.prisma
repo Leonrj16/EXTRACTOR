@@ -1,0 +1,386 @@
+// Bio Personal Platform — Prisma schema
+//
+// Diseño pensado para un solo usuario administrador hoy, pero modelado
+// como multiusuario desde el día uno: nada aquí necesita rediseño para
+// soportar registro público, roles o planes más adelante (ver docs/ARCHITECTURE.md).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Identidad y acceso
+// ─────────────────────────────────────────────────────────────────────────
+
+enum Role {
+  ADMIN // único rol usado hoy (dueño de la plataforma)
+  USER  // reservado para cuando se abra el registro público
+}
+
+enum UserStatus {
+  ACTIVE
+  DISABLED
+}
+
+model User {
+  id           String     @id @default(cuid())
+  email        String     @unique
+  passwordHash String
+  role         Role       @default(ADMIN)
+  status       UserStatus @default(ACTIVE)
+  emailVerifiedAt DateTime?
+
+  profile      Profile?
+  media        Media[]
+  refreshTokens RefreshToken[]
+  verificationTokens VerificationToken[]
+
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@map("users")
+}
+
+enum VerificationTokenType {
+  EMAIL_VERIFY
+  PASSWORD_RESET
+}
+
+// Tokens de un solo uso para verificar email y recuperar contraseña — el
+// token en claro solo existe en el link que se envía por correo, acá se
+// guarda su hash (mismo patrón que RefreshToken) para que un dump de la
+// base de datos no permita reusar un token filtrado.
+model VerificationToken {
+  id        String                @id @default(cuid())
+  tokenHash String                @unique
+  userId    String
+  user      User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      VerificationTokenType
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime              @default(now())
+
+  @@index([userId])
+  @@map("verification_tokens")
+}
+
+// Refresh tokens persistidos (hasheados) para poder revocar sesiones
+// individualmente cuando existan múltiples usuarios/dispositivos.
+model RefreshToken {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  revokedAt DateTime?
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Perfil público
+// ─────────────────────────────────────────────────────────────────────────
+
+model Profile {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  username    String   @unique // define la ruta pública: /:username
+  displayName String
+  bio         String?  @db.VarChar(280)
+  avatarUrl   String?
+  coverUrl    String?
+
+  // Contacto / ubicación (todo opcional, cada campo es un bloque independiente en la UI)
+  whatsapp      String?
+  contactEmail  String?
+  location      String?
+  locationUrl   String? // link a Google Maps u otro proveedor
+
+  // SEO básico de la página pública
+  seoTitle       String?
+  seoDescription String?
+
+  isPublished Boolean  @default(true)
+  customDomain String? @unique
+  // Token que el dueño del dominio debe publicar como registro TXT
+  // (_aura-verify.<dominio>) para probar que controla el DNS antes de que
+  // customDomainVerifiedAt se marque. Ver docs/architecture del dominio
+  // personalizado — el ruteo real del dominio hacia esta app es
+  // infraestructura fuera del alcance de este repo (ver custom-domain.md).
+  customDomainToken       String?
+  customDomainVerifiedAt  DateTime?
+
+  // Página con contraseña — pagePasswordHash nunca se expone al cliente,
+  // isPasswordProtected sí (para que la UI sepa si mostrar el candado sin
+  // tener que inferirlo de un campo hasheado presente/ausente).
+  isPasswordProtected Boolean @default(false)
+  pagePasswordHash    String?
+
+  // Keys (Theme.key) marcadas como favoritas en la galería del Theme Engine.
+  favoriteThemeKeys String[] @default([])
+
+  appearance  Appearance?
+  links       Link[]
+  customThemes Theme[]         @relation("CustomThemes")
+  analytics   AnalyticsEvent[]
+  pageVersions PageVersion[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("profiles")
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Enlaces / bloques
+// ─────────────────────────────────────────────────────────────────────────
+
+enum LinkType {
+  LINK        // enlace genérico (Page Builder: ButtonBlock)
+  SOCIAL      // red social (Page Builder: SocialBlock)
+  WHATSAPP    // botón directo de WhatsApp
+  EMAIL       // botón de contacto por email
+  LOCATION    // ubicación con mapa embebido (Page Builder: MapBlock)
+  PRODUCT     // producto con precio/imagen/descuento (Page Builder: ProductBlock)
+  FORM        // formulario de contacto, guarda envíos en ContactSubmission (Page Builder: ContactBlock)
+  VIDEO       // video embebido (YouTube/Vimeo) (Page Builder: VideoBlock)
+  MUSIC       // embed de audio (Spotify)
+  GALLERY     // galería de imágenes (Page Builder: GalleryBlock)
+  TESTIMONIAL // testimonio con foto/nombre/cita/calificación (Page Builder: TestimonialBlock)
+  FAQ         // acordeón de preguntas frecuentes (Page Builder: FAQBlock)
+  PROFILE     // tarjeta de perfil embebida (Page Builder: ProfileBlock)
+  HERO        // portada con imagen, título, descripción y botones (Page Builder: HeroBlock)
+  SERVICE     // servicio con ícono, descripción, precio y botón (Page Builder: ServiceBlock)
+  PRICING     // plan de precios con lista de features y CTA (Page Builder: PricingBlock)
+  COUNTDOWN   // cuenta regresiva a una fecha objetivo (Page Builder: CountdownBlock)
+  FOOTER      // pie de página con texto y enlaces (Page Builder: FooterBlock)
+  TEXT        // párrafo de texto libre (Page Builder: TextBlock)
+  IMAGE       // imagen individual con leyenda opcional (Page Builder: ImageBlock)
+  CALENDAR    // tarjeta para agendar una cita (Calendly/Cal.com) (Page Builder: CalendarBlock)
+  CUSTOM_HTML // HTML libre, renderizado en un iframe sandboxed sin scripts (Page Builder: CustomHtmlBlock)
+  COUNTER     // número animado con etiqueta (Page Builder: CounterBlock)
+  DIVIDER     // separador visual entre bloques (Page Builder: DividerBlock)
+}
+
+// Cada Link es un "bloque" del Page Builder — el nombre de la tabla y el
+// campo `type` se mantienen por compatibilidad con datos existentes, pero
+// conceptualmente esto es la fila de persistencia para /components/blocks.
+// Ver design-system/architecture/blocks.md para el contrato completo.
+model Link {
+  id        String   @id @default(cuid())
+  profileId String
+  profile   Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  type      LinkType @default(LINK)
+  title     String
+  url       String?  // opcional: FORM, por ejemplo, puede no tener URL propia
+  icon      String?  // nombre de ícono (lucide) o emoji
+  imageUrl  String?
+
+  // Configuración específica del bloque (precio de un producto, items de un
+  // FAQ, imágenes de una galería, etc.) sin crear una tabla por tipo — cada
+  // bloque define su propio TMeta en blocks/<Block>/types.ts.
+  metadata  Json?
+
+  // Estilos genéricos del panel compartido (padding, margin, background,
+  // border, radius, shadow, alineación, ancho, alto, opacidad, animación).
+  // Ver blocks/types.ts → BlockStyleOverrides.
+  styleOverrides Json?
+
+  isActive  Boolean  @default(true)
+  order     Int      @default(0)
+
+  analytics AnalyticsEvent[]
+  submissions ContactSubmission[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([profileId, order])
+  @@map("links")
+}
+
+// Un checkpoint nombrado del Page Builder, guardado a pedido del usuario
+// (ver design-system/architecture/visual-editor.md — "Historial persistido
+// en servidor"). Complementa el undo/redo en memoria de use-editor-history.ts,
+// que no cubre crear/eliminar bloques: restaurar una versión reemplaza todo
+// el conjunto de bloques del perfil de una sola vez (con ids nuevos), algo
+// que la pila de undo no puede hacer sin arriesgar inconsistencias.
+model PageVersion {
+  id        String   @id @default(cuid())
+  profileId String
+  profile   Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  name     String
+  // Snapshot de los campos de cada Link relevantes al Page Builder — ver
+  // PageVersionSnapshot en page-versions.service.ts. No incluye ids
+  // (se generan de nuevo al restaurar) ni Appearance (esto es historial
+  // del Editor Visual/bloques, no de temas).
+  snapshot   Json
+  // Cantidad de bloques en el snapshot, calculada al crear la versión —
+  // así el listado no necesita traer el JSON completo solo para mostrar
+  // "8 bloques" en la UI.
+  blockCount Int
+
+  createdAt DateTime @default(now())
+
+  @@index([profileId, createdAt])
+  @@map("page_versions")
+}
+
+// Envíos de un bloque tipo FORM. Se guardan en BD (no requiere proveedor de
+// email externo) y se listan en el panel admin.
+model ContactSubmission {
+  id        String   @id @default(cuid())
+  linkId    String
+  link      Link     @relation(fields: [linkId], references: [id], onDelete: Cascade)
+  profileId String
+
+  name      String
+  email     String
+  message   String   @db.VarChar(1000)
+
+  createdAt DateTime @default(now())
+
+  @@index([profileId, createdAt])
+  @@map("contact_submissions")
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Apariencia / diseño
+// ─────────────────────────────────────────────────────────────────────────
+
+// Catálogo de plantillas disponibles (crece agregando filas, no código).
+//
+// Los temas del sistema (isSystem: true) están definidos en código en
+// apps/web/src/themes/<key>/ (colores, tipografía, botones, cards,
+// animaciones, efectos — ver design-system/architecture/theme-engine.md)
+// y se siembran aquí vía prisma/seed.ts para que el catálogo sea
+// consultable por API igual que un tema personalizado. baseConfig guarda
+// la definición completa serializada (ThemeDefinition), no solo la
+// paleta — Appearance.themeOverrides es lo único que la sobreescribe.
+model Theme {
+  id           String   @id @default(cuid())
+  key          String   @unique // slug estable usado por el frontend, ej. "midnight-dark"
+  name         String
+  previewUrl   String?
+  isSystem     Boolean  @default(true) // plantilla del catálogo vs. creada por un usuario (Guardar/Duplicar)
+  layout       String   @default("list") // "list" | "grid" — estructura visual de la plantilla
+  baseConfig   Json     // ThemeDefinition completo (colors/typography/buttons/cards/animations/effects/categories)
+
+  // Solo se usa para temas custom (isSystem: false) — a qué perfil
+  // pertenece el tema guardado/duplicado. Null para temas del sistema.
+  profileId    String?
+  profile      Profile? @relation("CustomThemes", fields: [profileId], references: [id], onDelete: Cascade)
+
+  appearances  Appearance[]
+
+  createdAt    DateTime @default(now())
+
+  @@map("themes")
+}
+
+// Customización aplicada por el usuario sobre una plantilla base.
+model Appearance {
+  id              String   @id @default(cuid())
+  profileId       String   @unique
+  profile         Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  themeId         String
+  theme           Theme    @relation(fields: [themeId], references: [id])
+
+  primaryColor    String?
+  backgroundColor String?
+  backgroundImage String?
+  buttonStyle     String?  // ej. "rounded" | "square" | "pill"
+  borderStyle     String?  // ej. "none" | "subtle" | "solid" | "thick"
+  shadowStyle     String?  // ej. "none" | "soft" | "glow"
+  fontFamily      String?
+  animation       String?  // ej. "fade" | "slide" | "bounce" | "none"
+  layout          String?  // sobreescribe Theme.layout: "list" | "grid"
+
+  // Personalización profunda del Theme Engine (color secundario/acento,
+  // tipo de fondo, tipografía avanzada, tratamiento de botón, glow) —
+  // capa final sobre baseConfig, igual que Link.styleOverrides para
+  // bloques. Ver design-system/architecture/theme-engine.md.
+  themeOverrides  Json?
+
+  updatedAt       DateTime @updatedAt
+
+  @@map("appearances")
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Medios (imágenes subidas)
+// ─────────────────────────────────────────────────────────────────────────
+
+enum MediaType {
+  IMAGE
+  DOCUMENT
+}
+
+model Media {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type      MediaType @default(IMAGE)
+  url       String
+  provider  String    @default("local") // "local" | "s3" | "r2" — abstrae el storage real
+  filename  String
+  mimeType  String
+  size      Int
+
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+  @@map("media")
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Analítica
+// ─────────────────────────────────────────────────────────────────────────
+
+enum AnalyticsEventType {
+  PAGE_VIEW
+  LINK_CLICK
+}
+
+enum DeviceType {
+  MOBILE
+  TABLET
+  DESKTOP
+  UNKNOWN
+}
+
+model AnalyticsEvent {
+  id        String             @id @default(cuid())
+  profileId String
+  profile   Profile            @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  linkId    String?
+  link      Link?              @relation(fields: [linkId], references: [id], onDelete: SetNull)
+
+  type      AnalyticsEventType
+  device    DeviceType         @default(UNKNOWN)
+  browser   String?
+  os        String?
+  referrer  String?
+  country   String?
+  ipHash    String?            // hash del IP (privacidad), nunca la IP en claro
+
+  createdAt DateTime           @default(now())
+
+  @@index([profileId, type, createdAt])
+  @@index([linkId])
+  @@map("analytics_events")
+}

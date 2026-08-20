@@ -1,0 +1,193 @@
+/**
+ * Aura Design System — Design Tokens
+ * ------------------------------------------------------------------
+ * This file is the SINGLE SOURCE OF TRUTH for every design token used
+ * across the product (colors, radius, elevation/shadow, surfaces,
+ * borders, motion). It is written once here and imported — never
+ * copy-pasted — into the app:
+ *
+ *   apps/web/src/app/globals.css  →  @import "../../../../design-system/tokens.css";
+ *
+ * Do NOT hardcode a raw color/opacity/shadow value in a component.
+ * If a value you need isn't here yet, add it here first, then
+ * consume it as a Tailwind utility (bg-surface-2, border-subtle,
+ * shadow-surface, etc.) or CSS var (var(--shadow-glow-purple)).
+ *
+ * See /design-system/README.md for the full rationale and
+ * /design-system/foundations/*.md for usage documentation.
+ */
+
+@theme inline {
+  /* ---------------------------------------------------------------
+   * Base semantic colors (shadcn-compatible slots)
+   * The app is dark-only by design (see foundations/01-colors.md),
+   * so these resolve directly to their dark values with no light
+   * theme indirection.
+   * --------------------------------------------------------------- */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  --font-sans: var(--font-inter);
+  --font-mono: var(--font-geist-mono);
+  --font-heading: var(--font-space-grotesk);
+
+  /* ---------------------------------------------------------------
+   * Border radius scale — derived from a single --radius base so the
+   * whole app resizes from one value. See foundations/05-radius.md.
+   * --------------------------------------------------------------- */
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+
+  /* ---------------------------------------------------------------
+   * Brand palette — utilities: bg-brand-purple, text-brand-cyan,
+   * from-brand-blue, etc. See foundations/01-colors.md.
+   * --------------------------------------------------------------- */
+  --color-brand-purple: #7c3aed;
+  --color-brand-purple-light: #a78bfa;
+  --color-brand-blue: #3b82f6;
+  --color-brand-blue-light: #60a5fa;
+  --color-brand-cyan: #22d3ee;
+  --color-brand-success: #34d399;
+  --color-brand-warning: #fb923c;
+  --color-brand-error: #fb3b5a;
+
+  /* ---------------------------------------------------------------
+   * Surface scale — the ONE place every "glass" fill opacity lives.
+   * Named by role, not by number, so components read as intent:
+   *   surface-1  faintest fill    (footer strips, list-row backing)
+   *   surface-2  resting fill     (inputs, selects — unfocused)
+   *   surface-3  card/glass fill  (default Card & .glass background)
+   *   surface-4  focus fill       (focused input/select)
+   *   surface-5  hover fill       (nav items, secondary hover, badges)
+   *   surface-6  active fill      (pressed / focused menu item, active tab)
+   * See foundations/06-shadows-elevation.md.
+   * --------------------------------------------------------------- */
+  --color-surface-1: rgba(255, 255, 255, 0.02);
+  --color-surface-2: rgba(255, 255, 255, 0.03);
+  --color-surface-3: rgba(255, 255, 255, 0.045);
+  --color-surface-4: rgba(255, 255, 255, 0.05);
+  --color-surface-5: rgba(255, 255, 255, 0.06);
+  --color-surface-6: rgba(255, 255, 255, 0.07);
+  /* Fully opaque on purpose — not "almost". Testing against the marketing
+     hero's bright, bold heading proved that even 99% alpha still lets a
+     legible ghost of high-contrast text bleed through (alpha blending in
+     gamma space is not linear — it darkens far less than the percentage
+     suggests), and backdrop-filter cannot be relied on to hide the rest:
+     it doesn't render at all in every environment (reduced-transparency
+     settings, older browsers, some headless/GPU-less renderers). A
+     popover that is sometimes unreadable is worse than one that is never
+     translucent, so this is solid. blur(24px) stays on `.glass-strong`
+     as a soft depth cue at the edges where it *is* supported — it is not
+     load-bearing for legibility. */
+  --color-surface-strong: rgba(10, 11, 17, 1);
+
+  /* ---------------------------------------------------------------
+   * Border scale — same idea, for hairline borders.
+   *   border-subtle  faint dividers / outlined rows
+   *   border         default component border (--color-border above)
+   *   border-strong  hover / emphasis border
+   *   border-hover   strongest interactive hover border
+   * --------------------------------------------------------------- */
+  --color-border-subtle: rgba(255, 255, 255, 0.07);
+  --color-border-strong: rgba(255, 255, 255, 0.14);
+  --color-border-hover: rgba(255, 255, 255, 0.2);
+
+  /* ---------------------------------------------------------------
+   * Motion tokens — durations & easings. See foundations/08-animations.md.
+   * --------------------------------------------------------------- */
+  --ease-aura: cubic-bezier(0.16, 1, 0.3, 1);
+  --duration-fast: 150ms;
+  --duration-base: 200ms;
+  --duration-slow: 300ms;
+}
+
+/*
+ * A single block for both selectors — the app is dark-only (see
+ * foundations/01-colors.md), so `:root` and `.dark` were previously
+ * two verbatim copies of the same values. That was itself the kind
+ * of duplication this design system exists to remove.
+ */
+:root,
+.dark {
+  --background: #07080c;
+  --foreground: #f4f5fb;
+  --card: rgba(255, 255, 255, 0.045);
+  --card-foreground: #f4f5fb;
+  --popover: #12131c;
+  --popover-foreground: #f4f5fb;
+  --primary: #7c3aed;
+  --primary-foreground: #ffffff;
+  --secondary: #171826;
+  --secondary-foreground: #eceefb;
+  --muted: #13141d;
+  --muted-foreground: #8d90a8;
+  --accent: #1b1d2c;
+  --accent-foreground: #f4f5fb;
+  --destructive: #fb3b5a;
+  --border: rgba(255, 255, 255, 0.09);
+  --input: rgba(255, 255, 255, 0.07);
+  --ring: #7c3aed;
+  --chart-1: #7c3aed;
+  --chart-2: #3b82f6;
+  --chart-3: #22d3ee;
+  --chart-4: #34d399;
+  --chart-5: #fb923c;
+  --radius: 1rem;
+  --sidebar: rgba(10, 11, 17, 0.6);
+  --sidebar-foreground: #f4f5fb;
+  --sidebar-primary: #7c3aed;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: rgba(255, 255, 255, 0.06);
+  --sidebar-accent-foreground: #f4f5fb;
+  --sidebar-border: rgba(255, 255, 255, 0.08);
+  --sidebar-ring: #7c3aed;
+
+  /* ---------------------------------------------------------------
+   * Shadow / elevation tokens — the ONE place every box-shadow
+   * recipe lives. Consumed via `shadow-(--shadow-x)` arbitrary value
+   * utilities, e.g. class="shadow-(--shadow-surface)".
+   * See foundations/06-shadows-elevation.md.
+   * --------------------------------------------------------------- */
+  --shadow-surface: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 8px 32px rgba(0, 0, 0, 0.35);
+  --shadow-surface-strong: inset 0 1px 0 rgba(255, 255, 255, 0.07), 0 16px 48px rgba(0, 0, 0, 0.5);
+  --shadow-glow-purple: 0 0 0 1px rgba(124, 58, 237, 0.4), 0 0 32px rgba(124, 58, 237, 0.35);
+  --shadow-glow-purple-sm: 0 0 20px rgba(124, 58, 237, 0.28);
+  --shadow-button: 0 1px 0 rgba(255, 255, 255, 0.2) inset, 0 4px 20px rgba(124, 58, 237, 0.35);
+  --shadow-button-hover: 0 1px 0 rgba(255, 255, 255, 0.25) inset, 0 6px 28px rgba(124, 58, 237, 0.5);
+}
