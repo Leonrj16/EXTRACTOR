@@ -29,6 +29,7 @@ import { getResolvedDefinition } from "@/themes/resolve-theme";
 import type { ThemeOverrides } from "@/themes/types";
 import type { LinkItem } from "@/types/link";
 import type { AppearanceData, ProfileData, ThemeData } from "@/types/profile";
+import { CloneDesignDialog, type ClonedAppearance } from "./clone-design-dialog";
 import { SubmissionsDialog } from "./submissions-dialog";
 import { ThemeCustomizePanel } from "./theme-customize-panel";
 import { ThemeGallery } from "./theme-gallery";
@@ -197,6 +198,7 @@ export function DesignEditor({ initialProfile, initialAppearance, themes: initia
   const [domainDraft, setDomainDraft] = useState(initialProfile.customDomain ?? "");
   const [savingDomain, setSavingDomain] = useState(false);
   const [verifyingDomain, setVerifyingDomain] = useState(false);
+  const [cloneDialogOpen, setCloneDialogOpen] = useState(false);
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
 
@@ -359,6 +361,22 @@ export function DesignEditor({ initialProfile, initialAppearance, themes: initia
     });
     setAppearance(updated);
     return updated;
+  }
+
+  async function handleApplyClonedAppearance(cloned: ClonedAppearance) {
+    await persistAppearance({
+      ...appearance,
+      themeId: cloned.themeId ?? appearance.themeId,
+      primaryColor: cloned.primaryColor,
+      backgroundColor: cloned.backgroundColor,
+      buttonStyle: cloned.buttonStyle,
+      borderStyle: cloned.borderStyle,
+      shadowStyle: cloned.shadowStyle,
+      fontFamily: cloned.fontFamily,
+      animation: cloned.animation,
+      layout: cloned.layout,
+      themeOverrides: cloned.themeOverrides,
+    });
   }
 
   async function handleApplyTheme(themeId: string) {
@@ -750,14 +768,29 @@ export function DesignEditor({ initialProfile, initialAppearance, themes: initia
         )}
 
         {activeTab === "gallery" && (
-          <ThemeGallery
-            themes={themeList}
-            activeThemeId={appearance.themeId}
-            favoriteThemeKeys={favoriteThemeKeys}
-            onApply={handleApplyTheme}
-            onToggleFavorite={handleToggleFavorite}
-            onDuplicate={handleDuplicateTheme}
-          />
+          <>
+            <div className="flex flex-col gap-2 rounded-xl border border-border-subtle bg-surface-2 p-4">
+              <div className="flex items-center gap-2 text-sm font-medium">
+                <Copy className="size-4 text-brand-purple" />
+                Clonar diseño de otro perfil
+              </div>
+              <p className="text-xs text-muted-foreground">
+                ¿Viste una página de Aura que te gustó? Copiá su tema y su estructura de bloques — nunca su
+                contenido.
+              </p>
+              <Button size="sm" variant="outline" className="w-fit" onClick={() => setCloneDialogOpen(true)}>
+                Buscar perfil…
+              </Button>
+            </div>
+            <ThemeGallery
+              themes={themeList}
+              activeThemeId={appearance.themeId}
+              favoriteThemeKeys={favoriteThemeKeys}
+              onApply={handleApplyTheme}
+              onToggleFavorite={handleToggleFavorite}
+              onDuplicate={handleDuplicateTheme}
+            />
+          </>
         )}
 
         {activeTab === "theme" && (
@@ -882,6 +915,13 @@ export function DesignEditor({ initialProfile, initialAppearance, themes: initia
       <SubmissionsDialog
         link={linksManager.messagesLink}
         onOpenChange={(open) => !open && linksManager.setMessagesLink(null)}
+      />
+
+      <CloneDesignDialog
+        open={cloneDialogOpen}
+        onOpenChange={setCloneDialogOpen}
+        linksManager={linksManager}
+        onApplyAppearance={handleApplyClonedAppearance}
       />
     </div>
   );

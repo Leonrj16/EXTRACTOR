@@ -84,6 +84,107 @@ describe('PublicService', () => {
     });
   });
 
+  describe('getProfileStructure', () => {
+    it('throws NotFoundException for an unpublished profile', async () => {
+      prismaMock.profile.findUnique.mockResolvedValue({ isPublished: false });
+
+      await expect(service.getProfileStructure('nobody')).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+
+    it('exposes only block type + order + styleOverrides, never title/url/icon/metadata', async () => {
+      prismaMock.profile.findUnique.mockResolvedValue({
+        isPublished: true,
+        username: 'me',
+        displayName: 'Mi Perfil',
+        appearance: {
+          themeId: 'theme-1',
+          theme: { isSystem: true, key: 'midnight-dark', name: 'Midnight' },
+          primaryColor: '#111',
+          backgroundColor: '#000',
+          buttonStyle: 'pill',
+          borderStyle: 'solid',
+          shadowStyle: 'glow',
+          fontFamily: 'Inter',
+          animation: 'fade',
+          layout: 'list',
+          themeOverrides: { accent: '#f00' },
+        },
+        links: [
+          {
+            type: 'SOCIAL',
+            title: 'Instagram',
+            url: 'https://instagram.com/secret',
+            icon: 'instagram',
+            metadata: { handle: '@secret' },
+            styleOverrides: { borderRadius: 12 },
+            order: 10,
+          },
+        ],
+      });
+
+      const result = await service.getProfileStructure('me');
+
+      expect(result.blocks).toEqual([
+        { type: 'SOCIAL', styleOverrides: { borderRadius: 12 } },
+      ]);
+      expect(JSON.stringify(result)).not.toContain('secret');
+    });
+
+    it('includes themeId when the source theme is a system theme', async () => {
+      prismaMock.profile.findUnique.mockResolvedValue({
+        isPublished: true,
+        username: 'me',
+        displayName: 'Mi Perfil',
+        appearance: {
+          themeId: 'theme-1',
+          theme: { isSystem: true, key: 'midnight-dark', name: 'Midnight' },
+          primaryColor: '#111',
+        },
+        links: [],
+      });
+
+      const result = await service.getProfileStructure('me');
+
+      expect(result.appearance?.themeId).toBe('theme-1');
+    });
+
+    it('omits themeId when the source theme is a custom (non-system) theme', async () => {
+      prismaMock.profile.findUnique.mockResolvedValue({
+        isPublished: true,
+        username: 'me',
+        displayName: 'Mi Perfil',
+        appearance: {
+          themeId: 'custom-theme-1',
+          theme: { isSystem: false, key: 'custom', name: 'Mi tema' },
+          primaryColor: '#111',
+        },
+        links: [],
+      });
+
+      const result = await service.getProfileStructure('me');
+
+      expect(result.appearance?.themeId).toBeUndefined();
+      // Los valores de estilo sí se comparten aunque el tema base no.
+      expect(result.appearance?.primaryColor).toBe('#111');
+    });
+
+    it('returns a null appearance when the source profile has none', async () => {
+      prismaMock.profile.findUnique.mockResolvedValue({
+        isPublished: true,
+        username: 'me',
+        displayName: 'Mi Perfil',
+        appearance: null,
+        links: [],
+      });
+
+      const result = await service.getProfileStructure('me');
+
+      expect(result.appearance).toBeNull();
+    });
+  });
+
   describe('unlockProfile', () => {
     it('throws UnauthorizedException on a wrong password', async () => {
       prismaMock.profile.findUnique.mockResolvedValue({

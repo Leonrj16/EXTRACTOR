@@ -31,6 +31,11 @@ export class PublicController {
     return this.publicService.getPublicProfile(username);
   }
 
+  @Get(':username/structure')
+  getStructure(@Param('username') username: string) {
+    return this.publicService.getProfileStructure(username);
+  }
+
   @Throttle({ default: { limit: 30, ttl: 60_000 } })
   @Post(':username/track')
   async track(

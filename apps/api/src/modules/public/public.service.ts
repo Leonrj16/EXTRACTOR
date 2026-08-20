@@ -53,6 +53,56 @@ export class PublicService {
     return this.omitSecrets(profile);
   }
 
+  /**
+   * "Clonar diseño": a diferencia de getPublicProfile, esto nunca incluye
+   * contenido personal — ni título/url/ícono/metadata de cada bloque (solo
+   * su tipo y orden), ni bio/avatar/contacto del perfil, ni backgroundImage
+   * de Appearance (es un archivo subido por ese usuario, no algo que otro
+   * perfil deba poder referenciar). Deliberadamente no respeta
+   * isPasswordProtected: la estructura (tema + qué tipos de bloque hay, en
+   * qué orden) no es información personal, es lo mismo que vería cualquiera
+   * en la vista previa de una plantilla.
+   *
+   * themeId solo se incluye si el tema de origen es del catálogo del
+   * sistema (Theme.isSystem) — apuntar el Appearance de otro perfil al
+   * theme *custom* de este dueño lo dejaría dependiendo de una fila que no
+   * le pertenece y que su dueño podría borrar. Con un tema custom, el
+   * llamador igual recibe los valores de color/estilo para aplicarlos
+   * sobre su propio tema actual.
+   */
+  async getProfileStructure(username: string) {
+    const profile = await this.findPublishedProfile(username);
+
+    return {
+      username: profile.username,
+      displayName: profile.displayName,
+      appearance: profile.appearance
+        ? {
+            themeId: profile.appearance.theme.isSystem
+              ? profile.appearance.themeId
+              : undefined,
+            themeKey: profile.appearance.theme.key,
+            themeName: profile.appearance.theme.name,
+            primaryColor: profile.appearance.primaryColor,
+            backgroundColor: profile.appearance.backgroundColor,
+            buttonStyle: profile.appearance.buttonStyle,
+            borderStyle: profile.appearance.borderStyle,
+            shadowStyle: profile.appearance.shadowStyle,
+            fontFamily: profile.appearance.fontFamily,
+            animation: profile.appearance.animation,
+            layout: profile.appearance.layout,
+            themeOverrides: profile.appearance.themeOverrides,
+          }
+        : null,
+      // profile.links ya viene filtrado a isActive y ordenado por `order`
+      // (ver PROFILE_WITH_CONTENT).
+      blocks: profile.links.map((link) => ({
+        type: link.type,
+        styleOverrides: link.styleOverrides,
+      })),
+    };
+  }
+
   async submitContact(username: string, dto: SubmitContactDto) {
     const profile = await this.prisma.profile.findUnique({
       where: { username },

@@ -164,6 +164,7 @@ export function useLinksManager(initialLinks: LinkItem[]) {
   async function createBlock(
     type: LinkItem["type"],
     defaults: { title: string; metadata?: Record<string, unknown> },
+    styleOverrides?: Record<string, unknown> | null,
   ): Promise<LinkItem | null> {
     try {
       const created = await adminFetch<LinkItem>("/admin/links", {
@@ -172,6 +173,7 @@ export function useLinksManager(initialLinks: LinkItem[]) {
           type,
           title: defaults.title,
           metadata: defaults.metadata && Object.keys(defaults.metadata).length ? defaults.metadata : undefined,
+          styleOverrides: styleOverrides ?? undefined,
         }),
       });
       setLinks((prev) => [...prev, created]);
